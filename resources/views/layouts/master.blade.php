@@ -72,7 +72,7 @@
                     <!-- Logo Section -->
                     <div class="flex items-center space-x-3 mb-8">
                         <div class="w-22 h-22 bg-white/20 rounded-xl backdrop-blur-lg flex items-center justify-center">
-                            <img src="{{ asset(config('app.logo', 'src/3spro.png')) }}" alt="Logo" class="w-22 h-22 object-contain">
+                            <img src="{{ asset(config('app.logo', 'src/3spro.png')) }}" alt="Logo" class="w-16 h-16 object-contain">
                         </div>
                         <div>
                             <h1 class="text-xl font-bold tracking-tight">{{ config('app.name') }}</h1>
@@ -114,8 +114,8 @@
 
                     <div class="relative z-10 flex flex-col h-full">
                         <div class="flex items-center space-x-3 mb-8">
-                            <div class="w-22 h-22 bg-white/20 rounded-xl backdrop-blur-lg flex items-center justify-center">
-                                <img src="{{ asset(config('app.logo', 'src/3spro.png')) }}" alt="Logo" class="w-22 h-22 object-contain">
+                            <div class="w-12 h-12 bg-white/20 rounded-xl backdrop-blur-lg flex items-center justify-center">
+                                <img src="{{ asset(config('app.logo', 'src/3spro.png')) }}" alt="Logo" class="w-12 h-12 object-contain">
                             </div>
                             <div>
                                 <h1 class="text-xl font-bold">{{ config('app.name') }}</h1>
