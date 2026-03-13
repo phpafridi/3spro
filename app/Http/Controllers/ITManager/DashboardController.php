@@ -36,31 +36,31 @@ class DashboardController extends Controller
         return [
             [
                 'title' => 'Service Manager',
-                'url' => route('service.sm'),
+                'url' => route('sm.index'),
                 'icon' => 'services',
                 'description' => 'Manage service operations, team, and workflow'
             ],
             [
                 'title' => 'Finance Manager',
-                'url' => route('finance.accounts'),
+                'url' => route('cashier.index'),
                 'icon' => 'finance',
                 'description' => 'Financial reports, invoices, and accounting'
             ],
             [
                 'title' => 'Job Controller',
-                'url' => route('service.jc'),
+                'url' => route('jc.dashboard'),
                 'icon' => 'job',
                 'description' => 'Monitor and control job cards'
             ],
             [
                 'title' => 'Service Advisor',
-                'url' => route('service.jobcard'),
+                'url' => route('jobcard.index'),
                 'icon' => 'advisor',
                 'description' => 'Customer service and job card management'
             ],
             [
                 'title' => 'Parts Manager',
-                'url' => route('parts.entry'),
+                'url' => route('parts.index'),
                 'icon' => 'parts',
                 'description' => 'Inventory, parts management and ordering'
             ],
@@ -76,12 +76,18 @@ class DashboardController extends Controller
                 'icon' => 'recovery',
                 'description' => 'Debt collection and recovery'
             ],
-             [
-                'title' => 'Cashier',  // Changed from 'T-Sure Admin' to 'Cashier'
-                'url' => route('finance.cashier'),  // Changed route to cashier
-                'icon' => 'cashier',  // Changed icon to cashier
-                'description' => 'Cashier operations and payments'  // Updated description
-            ]
+            [
+                'title' => 'Cashier',
+                'url' => route('cashier.index'),
+                'icon' => 'cashier',
+                'description' => 'Cashier operations and payments'
+            ],
+            [
+                'title' => 'Body & Paint JC',
+                'url' => route('bp-jc.index'),
+                'icon' => 'job',
+                'description' => 'Body and paint job controller'
+            ],
         ];
     }
 }

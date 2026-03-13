@@ -19,7 +19,7 @@ class DashboardController extends Controller
 
     public function partsEntry()
     {
-        return view('parts.entry.dashboard');
+        return view('parts.entry.index');
     }
 
     public function serviceBPJC()
@@ -34,7 +34,7 @@ class DashboardController extends Controller
 
     public function financeCashier()
     {
-        return view('finance.cashier.dashboard');
+        return view('cashier.index');
     }
 
     public function financeAccounts()
