@@ -3,84 +3,67 @@
 @section('sidebar-menu')
     @include('service.partials.bp-jc-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left"><h3>Body &amp; Paint &mdash; Search Jobcard</h3></div>
-    </div>
-    <div class="clearfix"></div>
-
-    <div class="row">
-        <div class="col-md-12">
-            <div class="x_panel">
-                <div class="x_title"><h2>Search</h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <form method="GET" action="{{ route('bp-jc.search') }}">
-                        <div class="input-group" style="max-width:500px;">
-                            <input type="text" name="q" class="form-control"
-                                   value="{{ $query ?? '' }}"
-                                   placeholder="Search by Registration, Customer, or RO No...">
-                            <span class="input-group-btn">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fa fa-search"></i> Search
-                                </button>
-                            </span>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Search Jobcard</h2>
+    <form method="GET" action="{{ route('bp-jc.search') }}">
+        <div class="flex gap-2 max-w-lg">
+            <input type="text" name="q" value="{{ $query ?? '' }}" placeholder="Search by Registration, Customer, or RO No..."
+                   class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                <i class="fa fa-search mr-1"></i> Search
+            </button>
         </div>
-    </div>
-
-    @if(isset($results) && $results->isNotEmpty())
-    <div class="row">
-        <div class="col-md-12">
-            <div class="x_panel">
-                <div class="x_title">
-                    <h2>Results <span class="badge">{{ $results->count() }}</span></h2>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-                    <table class="table table-striped table-bordered">
-                        <thead>
-                            <tr>
-                                <th>RO No</th><th>Registration</th><th>Variant</th>
-                                <th>Customer</th><th>Mobile</th><th>SA</th>
-                                <th>Status</th><th>Open Date</th><th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($results as $r)
-                            <tr>
-                                <td><strong>{{ $r->Jobc_id }}</strong></td>
-                                <td>{{ $r->Registration }}</td>
-                                <td>{{ $r->Variant }}</td>
-                                <td>{{ $r->Customer_name }}</td>
-                                <td>{{ $r->mobile }}</td>
-                                <td>{{ $r->SA }}</td>
-                                <td>
-                                    @if($r->status=='0')<span class="label label-warning">Open</span>
-                                    @elseif($r->status=='1')<span class="label label-info">In Workshop</span>
-                                    @else<span class="label label-success">Closed</span>@endif
-                                </td>
-                                <td>{{ $r->Open_date_time }}</td>
-                                <td>
-                                    <a href="{{ route('bp-jc.additional', $r->Jobc_id) }}"
-                                       class="btn btn-xs btn-primary">
-                                        <i class="fa fa-edit"></i> Manage
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    @elseif(isset($query) && $query)
-    <div class="alert alert-warning">No results found for "{{ $query }}".</div>
-    @endif
+    </form>
 </div>
+
+@if(isset($results) && $results->isNotEmpty())
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <h3 class="font-semibold text-gray-700 mb-4">Results
+        <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $results->count() }}</span>
+    </h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">RO No</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registration</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Variant</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mobile</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SA</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Open Date</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach($results as $r)
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-sm font-bold text-gray-900">#{{ $r->Jobc_id }}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-red-600">{{ $r->Registration }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">{{ $r->Variant }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">{{ $r->Customer_name }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $r->mobile }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $r->SA }}</td>
+                    <td class="px-4 py-3 text-sm">
+                        @if($r->status=='0')<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">Open</span>
+                        @elseif($r->status=='1')<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">In Workshop</span>
+                        @else<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Closed</span>@endif
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ \Carbon\Carbon::parse($r->Open_date_time)->format('d/m/Y g:i A') }}</td>
+                    <td class="px-4 py-3">
+                        <a href="{{ route('bp-jc.additional', $r->Jobc_id) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                            <i class="fa fa-edit mr-1"></i> Manage
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@elseif(isset($query) && $query)
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No results found for "{{ $query }}".</div>
+@endif
 @endsection

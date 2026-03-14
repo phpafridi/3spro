@@ -3,55 +3,36 @@
 @section('sidebar-menu')
     @include('service.partials.sm-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left"><h3>Service Manager &mdash; Reopen / Unclose Jobcard</h3></div>
-    </div>
-    <div class="clearfix"></div>
-    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-    @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
-    <div class="row">
-        <div class="col-md-6 col-md-offset-3">
-            <div class="x_panel">
-                <div class="x_title"><h2>Reopen a Closed Jobcard</h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <div class="alert alert-warning">
-                        <i class="fa fa-exclamation-triangle"></i>
-                        This will reopen a closed jobcard. The original invoice total will be logged. Requires SM password.
-                    </div>
-                    <form method="POST" action="{{ route('sm.unclose.process') }}" class="form-horizontal">
-                        @csrf
-                        <div class="form-group">
-                            <label class="col-md-4 control-label">RO No <span class="required">*</span></label>
-                            <div class="col-md-6">
-                                <input type="text" name="jobc_id" class="form-control" required placeholder="e.g. 12345">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-md-4 control-label">Reason <span class="required">*</span></label>
-                            <div class="col-md-6">
-                                <textarea name="reason" class="form-control" rows="3" required placeholder="Reason for reopening..."></textarea>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-md-4 control-label">SM Password <span class="required">*</span></label>
-                            <div class="col-md-6">
-                                <input type="password" name="passwrd" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-md-offset-4 col-md-6">
-                                <button type="submit" class="btn btn-danger btn-block">
-                                    <i class="fa fa-unlock"></i> Reopen Jobcard
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="max-w-lg mx-auto">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">Reopen / Unclose Jobcard</h2>
+        @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
+        @if(session('error'))<div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{{ session('error') }}</div>@endif
+        <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-md">
+            <i class="fa fa-exclamation-triangle mr-2"></i>This will reopen a closed jobcard. The original invoice total will be logged. Requires SM password.
         </div>
+        <form method="POST" action="{{ route('sm.unclose.process') }}" class="space-y-4">
+            @csrf
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">RO No <span class="text-red-500">*</span></label>
+                <input type="text" name="jobc_id" required placeholder="e.g. 12345"
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-red-500">*</span></label>
+                <textarea name="reason" rows="3" required placeholder="Reason for reopening..."
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">SM Password <span class="text-red-500">*</span></label>
+                <input type="password" name="passwrd" required
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors">
+                <i class="fa fa-unlock mr-2"></i> Reopen Jobcard
+            </button>
+        </form>
     </div>
 </div>
 @endsection

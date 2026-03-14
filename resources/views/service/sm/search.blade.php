@@ -3,49 +3,30 @@
 @section('sidebar-menu')
     @include('service.partials.sm-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left"><h3>Service Manager &mdash; Search &amp; Print</h3></div>
-    </div>
-    <div class="clearfix"></div>
-    <div class="row">
-        <div class="col-md-6 col-md-offset-3">
-            <div class="x_panel">
-                <div class="x_title"><h2>Search Engine</h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <form method="POST" action="{{ route('sm.search') }}" class="form-horizontal">
-                        @csrf
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">Search Type</label>
-                            <div class="col-md-7">
-                                <select name="field" class="form-control" required>
-                                    <option value="jobcard-instail">Jobcard (Instail / Open)</option>
-                                    <option value="jobcard-closed">Jobcard (Closed)</option>
-                                    <option value="Invoice">Invoice</option>
-                                    <option value="SalesTax">Sales Tax Invoice</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">RO / Invoice No</label>
-                            <div class="col-md-7">
-                                <input type="text" name="search" class="form-control" required
-                                       placeholder="Enter RO or Invoice number...">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-md-offset-3 col-md-7">
-                                <button type="submit" class="btn btn-primary btn-block">
-                                    <i class="fa fa-print"></i> Search &amp; Open Print
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+<div class="max-w-lg mx-auto">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Search &amp; Print</h2>
+        <form method="POST" action="{{ route('sm.search') }}" class="space-y-4">
+            @csrf
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search Type</label>
+                <select name="field" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="jobcard-instail">Jobcard (Instail / Open)</option>
+                    <option value="jobcard-closed">Jobcard (Closed)</option>
+                    <option value="Invoice">Invoice</option>
+                    <option value="SalesTax">Sales Tax Invoice</option>
+                </select>
             </div>
-        </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">RO / Invoice No</label>
+                <input type="text" name="search" required placeholder="Enter RO or Invoice number..."
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                <i class="fa fa-print mr-2"></i> Search &amp; Open Print
+            </button>
+        </form>
     </div>
 </div>
 @endsection

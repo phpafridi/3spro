@@ -1,154 +1,99 @@
 @extends('layouts.master')
-
 @section('title', 'Create Estimate')
-
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left">
-            <h3>Workshop &mdash; Create Estimate</h3>
-        </div>
-        <div class="title_right">
-            <a href="{{ route('jobcard.unclosed-estimates') }}" class="btn btn-default pull-right">
-                <i class="fa fa-list"></i> Unclosed Estimates
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="text-xl font-semibold text-gray-800">New Estimate</h2>
+            <a href="{{ route('jobcard.unclosed-estimates') }}" class="text-sm text-gray-500 hover:text-gray-700">
+                <i class="fa fa-list mr-1"></i> Unclosed Estimates
             </a>
         </div>
-    </div>
-    <div class="clearfix"></div>
-
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="x_panel">
-                <div class="x_title"><h2>New Estimate</h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <form method="POST" action="{{ route('jobcard.estimate.store') }}" class="form-horizontal">
-                        @csrf
-
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">Estimate Type <span class="required">*</span></label>
-                            <div class="col-md-5">
-                                <select name="estimate_type" id="est_type" class="form-control" required onchange="toggleInsurance(this)">
-                                    <option value="Self">Self</option>
-                                    <option value="Insurance">Insurance</option>
-                                    <option value="Fleet">Fleet</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">Payment Mode</label>
-                            <div class="col-md-5">
-                                <select name="payment_mode" class="form-control">
-                                    <option>Cash</option>
-                                    <option>Cheque</option>
-                                    <option>Credit</option>
-                                    <option>Online</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">Customer Type</label>
-                            <div class="col-md-5">
-                                <select name="cust_type" class="form-control">
-                                    <option>Individuals</option>
-                                    <option>Govt</option>
-                                    <option>Corporate</option>
-                                    <option>Force</option>
-                                    <option>Banks</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">Customer <span class="required">*</span></label>
-                            <div class="col-md-5">
-                                <select name="cust_id" class="form-control select2" required>
-                                    <option value="">-- Select Customer --</option>
-                                    @foreach($customers as $c)
-                                        <option value="{{ $c->Customer_id }}">{{ $c->Customer_name }} - {{ $c->mobile }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">Vehicle ID <span class="required">*</span></label>
-                            <div class="col-md-5">
-                                <input type="number" name="veh_id" class="form-control" required
-                                       placeholder="Enter vehicle ID">
-                            </div>
-                        </div>
-
-                        <div id="insurance_section" style="display:none;">
-                            <div class="form-group">
-                                <label class="col-md-3 control-label">Insurance Company</label>
-                                <div class="col-md-5">
-                                    <select name="insur_company" class="form-control select2">
-                                        <option value="">-- Select --</option>
-                                        @foreach($insurCompanies as $ic)
-                                            <option value="{{ $ic->company_name }}">{{ $ic->company_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-3 control-label">Surveyor Name</label>
-                                <div class="col-md-5">
-                                    <input type="text" name="surv_name" class="form-control">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-3 control-label">Surveyor Type</label>
-                                <div class="col-md-5">
-                                    <select name="surv_type" class="form-control">
-                                        <option>In-House</option>
-                                        <option>External</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-3 control-label">Surveyor Contact</label>
-                                <div class="col-md-5">
-                                    <input type="text" name="sur_cont" class="form-control">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">Est. Delivery Date</label>
-                            <div class="col-md-5">
-                                <input type="date" name="est_delivery" class="form-control">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <div class="col-md-offset-3 col-md-5">
-                                <button type="submit" class="btn btn-success btn-block">
-                                    <i class="fa fa-save"></i> Create Estimate
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+        <form method="POST" action="{{ route('jobcard.estimate.store') }}" class="space-y-4">
+            @csrf
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Estimate Type <span class="text-red-500">*</span></label>
+                <select name="estimate_type" id="est_type" required onchange="toggleInsurance(this)"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Self">Self</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Fleet">Fleet</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Mode</label>
+                    <select name="payment_mode" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Cash</option><option>Cheque</option><option>Credit</option><option>Online</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer Type</label>
+                    <select name="cust_type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Individuals</option><option>Govt</option><option>Corporate</option><option>Force</option><option>Banks</option>
+                    </select>
                 </div>
             </div>
-        </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
+                <select name="cust_id" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">-- Select Customer --</option>
+                    @foreach($customers as $c)
+                    <option value="{{ $c->Customer_id }}">{{ $c->Customer_name }} — {{ $c->mobile }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle ID <span class="text-red-500">*</span></label>
+                <input type="number" name="veh_id" required placeholder="Enter vehicle ID"
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div id="insurance_section" class="hidden space-y-3 border border-blue-100 bg-blue-50 rounded-lg p-4">
+                <h3 class="text-sm font-semibold text-blue-700">Insurance Details</h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Insurance Company</label>
+                    <select name="insur_company" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Select --</option>
+                        @foreach($insurCompanies as $ic)
+                        <option value="{{ $ic->company_name }}">{{ $ic->company_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Surveyor Name</label>
+                        <input type="text" name="surv_name" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Surveyor Type</label>
+                        <select name="surv_type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option>In-House</option><option>External</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Surveyor Contact</label>
+                    <input type="text" name="sur_cont" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Est. Delivery Date</label>
+                <input type="date" name="est_delivery" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">
+                <i class="fa fa-save mr-2"></i> Create Estimate
+            </button>
+        </form>
     </div>
 </div>
 @push('scripts')
 <script>
 function toggleInsurance(sel) {
-    if (sel.value === 'Insurance') {
-        $('#insurance_section').show();
-    } else {
-        $('#insurance_section').hide();
-    }
+    document.getElementById('insurance_section').classList.toggle('hidden', sel.value !== 'Insurance');
 }
-$(document).ready(function() { $('.select2').select2(); });
 </script>
 @endpush
 @endsection

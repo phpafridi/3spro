@@ -1,11 +1,11 @@
 @extends('layouts.master')
-@section('title', 'Status Parts')
+@section('title', 'Jobcard - Status Parts')
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
 @endsection
 @section('content')
-<div class="x_panel">
-    <div class="x_title"><h2>{{ ucwords(str_replace('-', ' ', 'status-parts')) }}</h2><div class="clearfix"></div></div>
-    <div class="x_content"><p>This page is under construction.</p></div>
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2">Status Parts</h2>
+    <p class="text-gray-400 text-sm">This section is under construction.</p>
 </div>
 @endsection

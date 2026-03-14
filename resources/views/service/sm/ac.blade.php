@@ -3,61 +3,57 @@
 @section('sidebar-menu')
     @include('service.partials.sm-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left"><h3>Service Manager &mdash; Active Customers</h3></div>
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Active Customers
+            <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $customers->total() }}</span>
+        </h2>
     </div>
-    <div class="clearfix"></div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="x_panel">
-                <div class="x_title"><h2>Customers <span class="badge">{{ $customers->total() }}</span></h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <table class="table table-striped table-bordered table-condensed" id="custTable">
-                        <thead>
-                            <tr><th>ID</th><th>Name</th><th>Mobile</th><th>City</th><th>Customer Type</th><th>Update Type</th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach($customers as $c)
-                            <tr>
-                                <td>{{ $c->Customer_id }}</td>
-                                <td>{{ $c->Customer_name }}</td>
-                                <td>{{ $c->mobile }}</td>
-                                <td>{{ $c->City }}</td>
-                                <td>{{ $c->cust_type }}</td>
-                                <td>
-                                    <form class="form-inline update-type-form">
-                                        @csrf
-                                        <input type="hidden" name="cust_id" value="{{ $c->Customer_id }}">
-                                        <select name="cust_type" class="form-control input-sm cust-type-sel" onchange="updateType(this, {{ $c->Customer_id }})">
-                                            @foreach(['Individuals','Govt','Force','Corporate','Banks','Investor','Others'] as $t)
-                                                <option value="{{ $t }}" {{ $c->cust_type==$t?'selected':'' }}>{{ $t }}</option>
-                                            @endforeach
-                                        </select>
-                                    </form>
-                                </td>
-                            </tr>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mobile</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Update Type</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach($customers as $c)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $c->Customer_id }}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $c->Customer_name }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $c->mobile }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $c->City }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $c->cust_type }}</td>
+                    <td class="px-4 py-3">
+                        <select onchange="updateType(this, {{ $c->Customer_id }})"
+                                class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            @foreach(['Individuals','Govt','Force','Corporate','Banks','Investor','Others'] as $t)
+                            <option value="{{ $t }}" {{ $c->cust_type==$t?'selected':'' }}>{{ $t }}</option>
                             @endforeach
-                        </tbody>
-                    </table>
-                    {{ $customers->links() }}
-                </div>
-            </div>
-        </div>
+                        </select>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
+    <div class="mt-4">{{ $customers->links() }}</div>
 </div>
 @push('scripts')
 <script>
 function updateType(sel, custId) {
-    $.post('{{ route("sm.ac.update-type") }}', {
-        _token: '{{ csrf_token() }}', cust_id: custId, cust_type: sel.value
-    }, function(r) {
-        if(r.status==='ok') $(sel).closest('td').find('select').css('border-color','green');
-    });
+    fetch('{{ route("sm.ac.update-type") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
+        body: JSON.stringify({cust_id: custId, cust_type: sel.value})
+    }).then(r=>r.json()).then(res=>{ if(res.status==='ok') sel.style.borderColor='green'; });
 }
-$(document).ready(function(){ $('#custTable').DataTable({paging:false}); });
 </script>
 @endpush
 @endsection

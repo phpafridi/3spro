@@ -1,112 +1,59 @@
 @extends('layouts.master')
-
 @section('title', 'Additional Jobs')
-
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
 @endsection
-
 @section('content')
-<div class="row">
-    <div class="col-md-12 col-sm-12 col-xs-12">
-        <div class="x_panel">
-            <div class="col-md-12 col-sm-6 col-xs-12">
-                <div class="x_panel">
-                    <div class="x_title">
-                        <h2>Additional Jobs:</h2>
-                        <div class="clearfix"></div>
-                    </div>
-                    <div class="x_content">
-                        <div align="center" width="70%">
-                            Search <input type="text" id="search" placeholder="Type to search">
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800">Additional Jobs</h2>
+        <input type="text" id="search" placeholder="Search..." class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200" id="table">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jobcard#</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reg#</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mobile</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Open Date</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MIS Cat</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($jobs ?? [] as $job)
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-sm font-bold text-gray-900">#{{ $job->Jobc_id }}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-red-600">{{ $job->Registration }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">{{ $job->Customer_name }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $job->mobile }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ \Carbon\Carbon::parse($job->Open_date_time)->format('d/m/Y g:i A') }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $job->MSI_cat }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap gap-1">
+                            <a href="{{ route('jobcard.additional.jobrequest', $job->Jobc_id) }}" class="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded transition-colors">JobRequest</a>
+                            <a href="{{ route('jobcard.additional.part', $job->Jobc_id) }}" class="px-2 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded transition-colors">Add Part</a>
+                            <a href="{{ route('jobcard.additional.sublet', $job->Jobc_id) }}" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">Add Sublet</a>
+                            <a href="{{ route('jobcard.additional.consumable', $job->Jobc_id) }}" class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors">Consumble</a>
+                            <a href="{{ route('jobcard.additional', $job->Jobc_id) }}" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors">Calculation</a>
                         </div>
-                        <table class="table table-hover" id="table">
-                            <thead>
-                                <tr>
-                                    <th>Jobcard#</th>
-                                    <th>Reg#</th>
-                                    <th>Customer Name</th>
-                                    <th>Mobile</th>
-                                    <th>Open DateTime</th>
-                                    <th>MIS Catg</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($jobs ?? [] as $job)
-                                <tr>
-                                    <td><table><tr>
-                                        <th><a href="#" target="_blank">{{ $job->Jobc_id }}</a></th>
-                                        <td style="color:red;">{{ $job->Veh_reg_no }}</td>
-                                        <td>{{ $job->Customer_name }}</td>
-                                        <td>{{ $job->mobile }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($job->Open_date_time)->format('d/m/Y g:i A') }}</td>
-                                        <td>{{ $job->MSI_cat }}</td>
-                                        <td></td>
-                                    </tr></table></td>
-                                </tr>
-                                <tr align="center">
-                                    <td align="center">
-                                        <form action="{{ route('jobcard.additional.jobrequest', $job->Jobc_id) }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                            <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                            <button type="submit" class="btn btn-round btn-warning">JobRequest</button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <form action="{{ route('jobcard.additional.part', $job->Jobc_id) }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                            <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                            <button type="submit" class="btn btn-round btn-info">Add Part</button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <form action="{{ route('jobcard.additional.sublet', $job->Jobc_id) }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                            <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                            <button type="submit" class="btn btn-round btn-primary">Add Sublet</button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <form action="{{ route('jobcard.additional.consumable', $job->Jobc_id) }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                            <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                            <button type="submit" class="btn btn-round btn-warning">Add Consumble</button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <form action="{{ route('jobcard.invoice', $job->Jobc_id) }}" method="POST" target="_blank">
-                                            @csrf
-                                            <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                            <button type="submit" class="btn btn-round btn-success">Calculation</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr><td colspan="7" class="text-center">No additional jobs found.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400"><i class="fa fa-inbox text-3xl block mb-2"></i>No additional jobs found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
-
 @push('scripts')
 <script>
-$("#search").keyup(function(){
-    _this = this;
-    $.each($("#table tbody tr"), function() {
-        if($(this).text().toLowerCase().indexOf($(_this).val().toLowerCase()) === -1)
-           $(this).hide();
-        else
-           $(this).show();
+document.getElementById('search').addEventListener('keyup', function() {
+    const val = this.value.toLowerCase();
+    document.querySelectorAll('#table tbody tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(val) ? '' : 'none';
     });
 });
 </script>

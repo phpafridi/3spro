@@ -3,42 +3,52 @@
 @section('sidebar-menu')
     @include('service.partials.sm-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left"><h3>Service Manager &mdash; Parts Status (In Workshop)</h3></div>
-        <div class="title_right"><a href="{{ route('sm.index') }}" class="btn btn-default pull-right"><i class="fa fa-home"></i> Dashboard</a></div>
-    </div>
-    <div class="clearfix"></div>
-    @if($jobcards->isEmpty())
-        <div class="alert alert-success">No jobcards in workshop.</div>
-    @else
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800">Parts Status — In Workshop</h2>
+    <a href="{{ route('sm.index') }}" class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition-colors"><i class="fa fa-home mr-1"></i>Dashboard</a>
+</div>
+@if($jobcards->isEmpty())
+    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg"><i class="fa fa-check-circle mr-2"></i>No jobcards in workshop.</div>
+@else
     @foreach($jobcards as $jc)
     @if(isset($partsData[$jc->Jobc_id]) && count($partsData[$jc->Jobc_id]))
-    <div class="row"><div class="col-md-12">
-        <div class="x_panel">
-            <div class="x_title"><h2>RO# <strong>{{ $jc->Jobc_id }}</strong> &mdash; SA: {{ $jc->SA }}</h2><div class="clearfix"></div></div>
-            <div class="x_content">
-                <table class="table table-condensed table-bordered">
-                    <thead><tr><th>Part</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Status</th><th>Entry</th></tr></thead>
-                    <tbody>
-                        @foreach($partsData[$jc->Jobc_id] as $p)
-                        <tr>
-                            <td>{{ $p->part_description }}</td><td>{{ $p->qty }}</td>
-                            <td>{{ number_format($p->unitprice,2) }}</td>
-                            <td>{{ number_format($p->total,2) }}</td>
-                            <td>{{ $p->status=='0'?'Pending':'Issued' }}</td>
-                            <td>{{ $p->entry_datetime }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-4">
+        <div class="flex items-center gap-4 mb-3 pb-3 border-b border-gray-100">
+            <span class="font-bold text-gray-800">RO# {{ $jc->Jobc_id }}</span>
+            <span class="text-gray-500 text-sm">SA: {{ $jc->SA }}</span>
         </div>
-    </div></div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Part</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Entry</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach($partsData[$jc->Jobc_id] as $p)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 text-sm font-medium text-gray-800">{{ $p->part_description }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">{{ $p->qty }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">{{ number_format($p->unitprice,2) }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">{{ number_format($p->total,2) }}</td>
+                        <td class="px-4 py-2 text-sm">
+                            @if($p->status=='0')<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">Pending</span>
+                            @else<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Issued</span>@endif
+                        </td>
+                        <td class="px-4 py-2 text-sm text-gray-400">{{ $p->entry_datetime }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
     @endif
     @endforeach
-    @endif
-</div>
+@endif
 @endsection

@@ -3,71 +3,65 @@
 @section('sidebar-menu')
     @include('service.partials.sm-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left"><h3>Service Manager &mdash; Labor Price Change <small>(Increase only)</small></h3></div>
-    </div>
-    <div class="clearfix"></div>
-
-    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-    @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="x_panel">
-                <div class="x_title"><h2>Search RO</h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <form method="GET" action="{{ route('sm.labor-change') }}" class="form-inline">
-                        <input type="text" name="jobc_id" class="form-control" value="{{ $jobId ?? '' }}" placeholder="RO No..." required>
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @if($labors->isNotEmpty())
-    <div class="row">
-        <div class="col-md-12">
-            <div class="x_panel">
-                <div class="x_title"><h2>Labor for RO# {{ $jobId }} <span class="badge">{{ $labors->count() }}</span></h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <table class="table table-bordered">
-                        <thead><tr><th>#</th><th>Labor</th><th>Type</th><th>Current Cost</th><th>New Cost</th><th>Action</th></tr></thead>
-                        <tbody>
-                            @foreach($labors as $l)
-                            <tr>
-                                <td>{{ $l->Labor_id }}</td>
-                                <td>{{ $l->Labor }}</td>
-                                <td>{{ $l->type }}</td>
-                                <td><strong>{{ number_format($l->cost,0) }}</strong></td>
-                                <td>
-                                    <form method="POST" action="{{ route('sm.labor-change.update') }}" class="form-inline">
-                                        @csrf
-                                        <input type="hidden" name="Labor_id" value="{{ $l->Labor_id }}">
-                                        <input type="hidden" name="orgcost"  value="{{ $l->cost }}">
-                                        <input type="hidden" name="ro_no"    value="{{ $jobId }}">
-                                        <input type="number" name="cost" class="form-control input-sm" style="width:100px"
-                                               min="{{ $l->cost + 1 }}" value="{{ $l->cost }}" step="1" required>
-                                </td>
-                                <td>
-                                        <button type="submit" class="btn btn-xs btn-warning">
-                                            <i class="fa fa-save"></i> Update
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    @elseif($jobId)
-        <div class="alert alert-warning">No labor found for RO# {{ $jobId }}.</div>
-    @endif
+@if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
+@if(session('error'))<div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{{ session('error') }}</div>@endif
+<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Labor Price Change <span class="text-sm font-normal text-gray-400">(Increase only)</span></h2>
+    <form method="GET" action="{{ route('sm.labor-change') }}" class="flex gap-2">
+        <input type="text" name="jobc_id" value="{{ $jobId ?? '' }}" required placeholder="RO No..."
+               class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors">
+            <i class="fa fa-search mr-1"></i> Search
+        </button>
+    </form>
 </div>
+@if($labors->isNotEmpty())
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <h3 class="font-semibold text-gray-700 mb-4">Labor for RO# {{ $jobId }}
+        <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $labors->count() }}</span>
+    </h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Labor</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Current Cost</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">New Cost</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach($labors as $l)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $l->Labor_id }}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $l->Labor }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $l->type }}</td>
+                    <td class="px-4 py-3 text-sm font-bold text-gray-800">{{ number_format($l->cost,0) }}</td>
+                    <td class="px-4 py-3">
+                        <form method="POST" action="{{ route('sm.labor-change.update') }}" class="flex gap-2 items-center">
+                            @csrf
+                            <input type="hidden" name="Labor_id" value="{{ $l->Labor_id }}">
+                            <input type="hidden" name="orgcost" value="{{ $l->cost }}">
+                            <input type="hidden" name="ro_no" value="{{ $jobId }}">
+                            <input type="number" name="cost" min="{{ $l->cost + 1 }}" value="{{ $l->cost }}" step="1" required
+                                   class="w-28 border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </td>
+                    <td class="px-4 py-3">
+                            <button type="submit" class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded transition-colors">
+                                <i class="fa fa-save mr-1"></i> Update
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@elseif($jobId ?? false)
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No labor found for RO# {{ $jobId }}.</div>
+@endif
 @endsection

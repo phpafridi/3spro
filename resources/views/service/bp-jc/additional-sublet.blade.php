@@ -1,135 +1,105 @@
 @extends('layouts.master')
-
 @section('title', 'Add Sublet - RO# ' . $jobId)
-
 @section('sidebar-menu')
     @include('service.partials.bp-jc-sidebar')
 @endsection
-
 @section('content')
-<div class="right_col" role="main">
-    <div class="page-title">
-        <div class="title_left">
-            <h3>Add Sublet &mdash; RO# {{ $jobId }}</h3>
+@if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
+<div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+    <div class="md:col-span-2 bg-white rounded-lg shadow-sm p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">Add Sublet — RO# {{ $jobId }}</h2>
+            <a href="{{ route('bp-jc.additional', $jobId) }}" class="text-sm text-gray-500 hover:text-gray-700"><i class="fa fa-arrow-left mr-1"></i>Back</a>
         </div>
-        <div class="title_right">
-            <a href="{{ route('bp-jc.additional', $jobId) }}" class="btn btn-default pull-right">
-                <i class="fa fa-arrow-left"></i> Back to Jobcard
-            </a>
-        </div>
+        <form method="POST" action="{{ route('bp-jc.additional.sublet.store') }}" class="space-y-3">
+            @csrf
+            <input type="hidden" name="job_id" value="{{ $jobId }}">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Sublet Description <span class="text-red-500">*</span></label>
+                <input type="text" name="sublet" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+                <select name="type" id="stype" onchange="toggleSubletPrice(this)" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Workshop">Workshop</option>
+                    <option value="Sublet">Sublet</option>
+                    <option value="Warranty">Warranty</option>
+                    <option value="Goodwill">Goodwill</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Qty <span class="text-red-500">*</span></label>
+                <input type="number" name="qty" id="qty_input" min="1" value="1" required onchange="calcTotal()"
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div id="price_section">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
+                        <input type="number" name="unitprice" id="up_input" step="0.01" min="0" value="0" onchange="calcTotal()"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Total</label>
+                        <input type="number" name="totalprice" id="total_input" step="0.01" readonly
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-50">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">
+                <i class="fa fa-plus mr-2"></i> Add Sublet
+            </button>
+        </form>
     </div>
-    <div class="clearfix"></div>
-
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    <div class="row">
-        <div class="col-md-5">
-            <div class="x_panel">
-                <div class="x_title"><h2>Add Sublet</h2><div class="clearfix"></div></div>
-                <div class="x_content">
-                    <form method="POST" action="{{ route('bp-jc.additional.sublet.store') }}" class="form-horizontal">
-                        @csrf
-                        <input type="hidden" name="job_id" value="{{ $jobId }}">
-
-                        <div class="form-group">
-                            <label class="col-md-4 control-label">Sublet Description <span class="required">*</span></label>
-                            <div class="col-md-8">
-                                <input type="text" name="sublet" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-md-4 control-label">Type <span class="required">*</span></label>
-                            <div class="col-md-8">
-                                <select name="type" id="stype" class="form-control" onchange="toggleSubletPrice(this)">
-                                    <option value="Workshop">Workshop</option>
-                                    <option value="Sublet">Sublet</option>
-                                    <option value="Warranty">Warranty</option>
-                                    <option value="Goodwill">Goodwill</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-md-4 control-label">Qty <span class="required">*</span></label>
-                            <div class="col-md-8">
-                                <input type="number" name="qty" id="qty_input" class="form-control"
-                                       min="1" value="1" required onchange="calcTotal()">
-                            </div>
-                        </div>
-                        <div id="price_section">
-                            <div class="form-group">
-                                <label class="col-md-4 control-label">Unit Price</label>
-                                <div class="col-md-8">
-                                    <input type="number" name="unitprice" id="up_input" class="form-control"
-                                           step="0.01" min="0" value="0" onchange="calcTotal()">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-4 control-label">Total</label>
-                                <div class="col-md-8">
-                                    <input type="number" name="totalprice" id="total_input"
-                                           class="form-control" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-md-offset-4 col-md-8">
-                                <button type="submit" class="btn btn-success btn-block">
-                                    <i class="fa fa-plus"></i> Add Sublet
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-7">
-            <div class="x_panel">
-                <div class="x_title">
-                    <h2>Current Sublets <span class="badge">{{ $sublets->count() }}</span></h2>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-                    <table class="table table-condensed table-bordered">
-                        <thead>
-                            <tr><th>Sublet</th><th>Type</th><th>Qty</th><th>Unit</th><th>Total</th><th>Status</th></tr>
-                        </thead>
-                        <tbody>
-                            @forelse($sublets as $s)
-                            <tr>
-                                <td>{{ $s->Sublet }}</td>
-                                <td>{{ $s->type }}</td>
-                                <td>{{ $s->qty }}</td>
-                                <td>{{ number_format($s->unitprice, 2) }}</td>
-                                <td>{{ number_format($s->total, 2) }}</td>
-                                <td>{{ $s->status ?: 'Pending' }}</td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="6" class="text-center text-muted">No sublets yet.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <div class="md:col-span-3 bg-white rounded-lg shadow-sm p-6">
+        <h3 class="font-semibold text-gray-700 mb-3">Current Sublets
+            <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $sublets->count() }}</span>
+        </h3>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sublet</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($sublets as $s)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2 text-sm font-medium text-gray-800">{{ $s->Sublet }}</td>
+                    <td class="px-4 py-2 text-sm text-gray-500">{{ $s->type }}</td>
+                    <td class="px-4 py-2 text-sm text-gray-700">{{ $s->qty }}</td>
+                    <td class="px-4 py-2 text-sm text-gray-700">{{ number_format($s->unitprice,2) }}</td>
+                    <td class="px-4 py-2 text-sm text-gray-700">{{ number_format($s->total,2) }}</td>
+                    <td class="px-4 py-2 text-sm text-gray-500">{{ $s->status ?: 'Pending' }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="px-4 py-4 text-center text-gray-400 text-sm italic">No sublets yet.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 @push('scripts')
 <script>
 function calcTotal() {
-    $('#total_input').val((parseFloat($('#qty_input').val()||0) * parseFloat($('#up_input').val()||0)).toFixed(2));
+    var qty = parseFloat(document.getElementById('qty_input').value) || 0;
+    var up  = parseFloat(document.getElementById('up_input').value) || 0;
+    document.getElementById('total_input').value = (qty * up).toFixed(2);
 }
 function toggleSubletPrice(sel) {
-    if (sel.value === 'Workshop') {
-        $('#price_section').show();
-    } else {
-        $('#price_section').hide();
-        $('#up_input').val(0); $('#total_input').val(0);
+    document.getElementById('price_section').style.display = sel.value === 'Workshop' ? '' : 'none';
+    if (sel.value !== 'Workshop') {
+        document.getElementById('up_input').value = 0;
+        document.getElementById('total_input').value = 0;
     }
 }
-$(document).ready(function() { toggleSubletPrice(document.getElementById('stype')); });
+document.addEventListener('DOMContentLoaded', function() {
+    toggleSubletPrice(document.getElementById('stype'));
+});
 </script>
 @endpush
 @endsection

@@ -1,108 +1,60 @@
 @extends('layouts.master')
-
 @section('title', 'JobCards - Unclosed')
-
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
 @endsection
-
 @section('content')
-<div class="page-title">
-    <div class="title_left">
-        <h3>Open Repair Order:</h3>
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800">Open Repair Orders</h2>
+        <a href="{{ route('jobcard.add-vehicle') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+            <i class="fa fa-plus mr-2"></i> Open New RO
+        </a>
     </div>
-</div>
-<div class="clearfix"></div>
-
-<div class="row">
-    <div class="col-md-12 col-sm-12 col-xs-12">
-        <div class="x_panel">
-            <div class="x_title">
-                <h2>Open Repair Order:</h2>
-                <div class="clearfix"></div>
-            </div>
-            <div class="x_content">
-                <div class="table-responsive">
-                    <table class="table table-striped jambo_table bulk_action">
-                        <thead>
-                            <tr style="background-color:red;">
-                                <th>Jobcard#</th>
-                                <th>Vehicle</th>
-                                <th>Registration</th>
-                                <th>Customer Name</th>
-                                <th>Open DateTime</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($unclosedJobs ?? [] as $job)
-                            <tr>
-                                <th>{{ $job->Jobc_id }}</th>
-                                <td>{{ $job->Variant }}</td>
-                                <td style="color:red;">{{ $job->Veh_reg_no }}</td>
-                                <td>{{ $job->Customer_name }}</td>
-                                <td>{{ \Carbon\Carbon::parse($job->Open_date_time)->format('d/m/Y g:i A') }}</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6">
-                                    <table>
-                                        <tr>
-                                            <td>
-                                                <form action="{{ route('jobcard.jobrequest') }}" method="POST">
-                                                    @csrf
-                                                    <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                                    <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                                    <button type="submit" class="btn btn-round btn-primary">JobRequest</button>
-                                                </form>
-                                            </td>
-                                            <td>
-                                                <form action="{{ route('jobcard.part-add') }}" method="POST">
-                                                    @csrf
-                                                    <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                                    <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                                    <button type="submit" class="btn btn-round btn-info">Spare Parts</button>
-                                                </form>
-                                            </td>
-                                            <td>
-                                                <form action="{{ route('jobcard.sublet') }}" method="POST">
-                                                    @csrf
-                                                    <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                                    <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                                    <button type="submit" class="btn btn-round btn-warning">Sublet</button>
-                                                </form>
-                                            </td>
-                                            <td>
-                                                <form action="{{ route('jobcard.consumable') }}" method="POST">
-                                                    @csrf
-                                                    <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                                    <input type="hidden" value="{{ $job->Variant }}" name="variant">
-                                                    <button type="submit" class="btn btn-round btn-warning">Consumble</button>
-                                                </form>
-                                            </td>
-                                            <td>
-                                                <form action="{{ route('jobcard.start-working') }}" method="POST">
-                                                    @csrf
-                                                    <input type="hidden" name="change_status">
-                                                    <input type="hidden" value="{{ $job->Jobc_id }}" name="job_id">
-                                                    <input type="hidden" value="{{ $job->comp_appointed }}" name="comp_appointed">
-                                                    <button type="submit" class="btn btn-round btn-danger">Start Working</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center">No open jobcards found.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
+    @if(session('error'))<div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{{ session('error') }}</div>@endif
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-red-600">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Jobcard#</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Vehicle</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Registration</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Customer</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Mobile</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Open Date</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($unclosedJobs ?? [] as $job)
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-sm font-bold text-gray-900">#{{ $job->Jobc_id }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">{{ $job->Variant }}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-red-600">{{ $job->Registration }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">{{ $job->Customer_name }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ $job->mobile }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ \Carbon\Carbon::parse($job->Open_date_time)->format('d/m/Y g:i A') }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap gap-1">
+                            <a href="{{ route('jobcard.additional.jobrequest', $job->Jobc_id) }}" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">JobRequest</a>
+                            <a href="{{ route('jobcard.additional.part', $job->Jobc_id) }}" class="px-2 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded transition-colors">Spare Parts</a>
+                            <a href="{{ route('jobcard.additional.sublet', $job->Jobc_id) }}" class="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded transition-colors">Sublet</a>
+                            <a href="{{ route('jobcard.additional.consumable', $job->Jobc_id) }}" class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors">Consumble</a>
+                            <form method="POST" action="{{ route('jobcard.complete.process') }}" class="inline" onsubmit="return confirm('Start working on RO #{{ $job->Jobc_id }}?')">
+                                @csrf
+                                <input type="hidden" name="job_id" value="{{ $job->Jobc_id }}">
+                                <input type="hidden" name="comp_appointed" value="{{ $job->comp_appointed }}">
+                                <button type="submit" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">Start Working</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400"><i class="fa fa-inbox text-3xl block mb-2"></i>No open jobcards found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 @endsection
