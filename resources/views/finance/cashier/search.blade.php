@@ -4,6 +4,35 @@
 
 @section('sidebar-menu')
     @include('finance.cashier.sidebar')
+
+    {{-- ─── Print / Redirect Search ──────────────────────────────────────────── --}}
+    <div class="mt-8 border-t border-gray-200 pt-6">
+        <h3 class="text-base font-semibold text-gray-700 mb-4">
+            <i class="fas fa-print text-gray-500 mr-2"></i>Open / Print by Number
+        </h3>
+        <form method="POST" action="{{ route('cashier.search') }}" class="flex flex-wrap gap-3 items-end">
+            @csrf
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Search Type</label>
+                <select name="field" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="jobcard-instail">Initial RO (open)</option>
+                    <option value="jobcard-closed">Close RO</option>
+                    <option value="Invoice">Invoice Number</option>
+                    <option value="SalesTax">Sales Tax Invoice</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Number</label>
+                <input type="text" name="search" required placeholder="Enter JC / Invoice no."
+                       class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-52">
+            </div>
+            <button type="submit"
+                    class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
+                Open
+            </button>
+        </form>
+    </div>
+
 @endsection
 
 @section('content')

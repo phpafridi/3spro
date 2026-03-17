@@ -303,6 +303,32 @@ class CashierController extends Controller
     /**
      * Search jobs for AJAX
      */
+
+    /**
+     * POST /search  – redirect to the right print page by type
+     * Mirrors PHP search.php redirect logic
+     */
+    public function searchRedirect(Request $request)
+    {
+        $search = trim($request->search ?? '');
+        $field  = $request->field;
+
+        if (!$search) return back()->with('error', 'Please enter a search value.');
+
+        switch ($field) {
+            case 'jobcard-instail':
+                return redirect()->route('cashier.print-initial-ro', ['job_id' => $search]);
+            case 'jobcard-closed':
+                return redirect()->route('cashier.print-close-ro', ['job_id' => $search]);
+            case 'Invoice':
+                return redirect()->route('cashier.print-invoice', ['id' => $search]);
+            case 'SalesTax':
+                return redirect()->route('cashier.tax-invoice-get', ['ro_no' => $search]);
+            default:
+                return back()->with('error', 'Invalid search type.');
+        }
+    }
+
     public function searchJobs(Request $request)
     {
         $query = $request->get('query');

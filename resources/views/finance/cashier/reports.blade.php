@@ -60,7 +60,7 @@
                 @csrf
                 <input type="hidden" name="daterange" class="daterange-input">
                 <button type="submit"
-                        class="px-4 py-2 bg-green-700 hover:bg-green-800 text-black text-sm font-medium rounded-lg transition-colors">
+                        class="px-4 py-2 bg-green-700 hover:bg-green-800 text-white text-sm font-medium rounded-lg transition-colors">
                     Business Summary
                 </button>
             </form>

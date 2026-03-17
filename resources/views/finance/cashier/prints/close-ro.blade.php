@@ -72,7 +72,7 @@
             <label id="heading-labels">Repair Order # <strong>{{ $jobcard->Jobc_id }}</strong></label>
         </div>
         <div style="float:left;">
-            <a href="{{ route('cashier.print.tax-invoice', ['id' => $jobcard->Jobc_id]) }}">
+            <a href="{{ route('cashier.tax-invoice-get', ['ro_no' => $jobcard->Jobc_id]) }}">
                 <img src="{{ asset('images/header.png') }}" width="420px" height="100px"/>
             </a>
         </div>

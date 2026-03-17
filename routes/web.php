@@ -8,11 +8,17 @@ use App\Http\Controllers\Service\JC\JobController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Finance\CashierController;
 use App\Http\Controllers\Finance\Cashier\ReportsController;
+
+use App\Http\Controllers\Finance\AccountantController;
+use App\Http\Controllers\Finance\RecoveryController;
+use App\Http\Controllers\Finance\AccountsController;
+
 use App\Http\Controllers\Parts\PartsController;
 
 use App\Http\Controllers\Service\Jobcard\JobcardController;
 use App\Http\Controllers\Service\BPJC\BPJobController;
 use App\Http\Controllers\Service\SM\SMController;
+use App\Http\Controllers\Sales\SalesController;
 
 // ==================== LOGIN ROUTES ====================
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
@@ -56,9 +62,9 @@ Route::middleware(['auth', 'role:RecoveryExec'])->group(function () {
 });
 
 // CRO / CR Manager
-Route::middleware(['auth', 'role:CRO,CRManager'])->group(function () {
-    Route::get('/cr/cro', [MainDashboardController::class, 'crCRO'])->name('cr.cro');
-});
+// Route::middleware(['auth', 'role:CRO,CRManager'])->group(function () {
+//     Route::get('/cr/cro', [MainDashboardController::class, 'crCRO'])->name('cr.cro');
+// });
 
 // T-Sure Admin
 Route::middleware(['auth', 'role:Tsure'])->group(function () {
@@ -98,6 +104,7 @@ Route::middleware(['auth', 'role:Cashier,FManager,Accountant,IT Manager'])
     // Main pages
     Route::get('/', [CashierController::class, 'index'])->name('index');
     Route::get('/search', [CashierController::class, 'search'])->name('search');
+    Route::post('/search', [CashierController::class, 'searchRedirect'])->name('search.redirect');
     Route::get('/search-jobs', [CashierController::class, 'searchJobs'])->name('search-jobs');
     Route::get('/history', [CashierController::class, 'history'])->name('history');
     Route::get('/reports', [CashierController::class, 'reports'])->name('reports');
@@ -107,7 +114,7 @@ Route::middleware(['auth', 'role:Cashier,FManager,Accountant,IT Manager'])
     Route::post('/process-return', [CashierController::class, 'processReturn'])->name('process-return');
 
     // Invoice
-    Route::post('/invoice', [CashierController::class, 'invoice'])->name('invoice');
+    Route::match(['get','post'], '/invoice', [CashierController::class, 'invoice'])->name('invoice');
     Route::post('/save-invoice', [CashierController::class, 'saveInvoice'])->name('save-invoice');
     Route::get('/print-invoice/{id}', [CashierController::class, 'printInvoice'])->name('print-invoice');
 
@@ -123,8 +130,8 @@ Route::middleware(['auth', 'role:Cashier,FManager,Accountant,IT Manager'])
     Route::get('/print-close', [CashierController::class, 'printCloseRO'])->name('print-close');
 
     // Actual print pages - POST (ReportsController - does the actual printing)
-    Route::post('/print-initial-ro', [ReportsController::class, 'printInitialRO'])->name('print-initial-ro');
-    Route::post('/print-close-ro', [ReportsController::class, 'printCloseRO'])->name('print-close-ro');
+    Route::match(['get','post'], '/print-initial-ro', [ReportsController::class, 'printInitialRO'])->name('print-initial-ro');
+    Route::match(['get','post'], '/print-close-ro', [ReportsController::class, 'printCloseRO'])->name('print-close-ro');
 
     // Tax invoice
     Route::post('/tax-invoice', [ReportsController::class, 'taxInvoice'])->name('tax-invoice');
@@ -347,7 +354,7 @@ Route::middleware(['auth', 'role:body_PaintJC,IT Manager'])
 // ─────────────────────────────────────────────────────────────
 //  SERVICE MANAGER (SM) MODULE  (role: SManager, IMCc)
 // ─────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'role:SManager,IMCc'])
+Route::middleware(['auth', 'role:SManager,IMCc,IT Manager'])
     ->prefix('service/sm')
     ->name('sm.')
     ->group(function () {
@@ -459,3 +466,213 @@ Route::middleware(['auth', 'role:SManager,IMCc'])
             Route::post('/variants/delete', [SMController::class, 'masterVariantsDelete'])->name('variants.delete');
         });
     });
+
+
+
+// ─────────────────────────────────────────────────────────────
+//  SALES / CRM MODULE  (role: SManager, IMCc)
+// ─────────────────────────────────────────────────────────────
+
+
+Route::middleware(['auth', 'role:SManager,IMCc,IT Manager'])
+    ->prefix('sales')
+    ->name('sales.')
+    ->group(function () {
+        Route::get('/',                              [SalesController::class, 'index'])->name('index');
+        Route::get('/search',                        [SalesController::class, 'search'])->name('search');
+        Route::get('/active-customers',              [SalesController::class, 'activeCustomers'])->name('ac');
+        Route::post('/active-customers/update-type', [SalesController::class, 'updateCustomerType'])->name('ac.update-type');
+        Route::get('/vin',                           [SalesController::class, 'vin'])->name('vin');
+        Route::match(['get','post'], '/vin-check',   [SalesController::class, 'vinCheck'])->name('vin-check');
+        Route::get('/uio',                           [SalesController::class, 'uio'])->name('uio');
+        Route::post('/uio/update',                   [SalesController::class, 'uioUpdate'])->name('uio.update');
+        Route::get('/campaigns',                     [SalesController::class, 'campaigns'])->name('campaigns');
+        Route::post('/campaigns/store',              [SalesController::class, 'campaignStore'])->name('campaigns.store');
+        Route::post('/campaigns/toggle',             [SalesController::class, 'campaignToggle'])->name('campaigns.toggle');
+        Route::get('/problem-tray',                  [SalesController::class, 'problemTray'])->name('problem-tray');
+        Route::post('/problem-tray/action',          [SalesController::class, 'problemTrayAction'])->name('problem-tray.action');
+        Route::get('/upload-vin',                    [SalesController::class, 'uploadVin'])->name('upload-vin');
+        Route::post('/upload-vin/store',             [SalesController::class, 'uploadVinStore'])->name('upload-vin.store');
+        Route::get('/reports',                       [SalesController::class, 'reports'])->name('reports');
+        Route::get('/reports-new',                   [SalesController::class, 'reportsNew'])->name('reports-new');
+        Route::get('/jobcards',                      [SalesController::class, 'jobcards'])->name('jobcards');
+        Route::get('/jc-changes',                    [SalesController::class, 'jcChanges'])->name('jc-changes');
+        Route::get('/status/labor',                  [SalesController::class, 'statusLabor'])->name('status.labor');
+        Route::get('/status/parts',                  [SalesController::class, 'statusParts'])->name('status.parts');
+        Route::get('/status/sublet',                 [SalesController::class, 'statusSublet'])->name('status.sublet');
+        Route::get('/status/consumable',             [SalesController::class, 'statusConsumable'])->name('status.consumable');
+    });
+
+
+    // ─────────────────────────────────────────────────────────────
+//  ACCOUNTANT MODULE  (role: FManager, Accountant, IT Manager)
+// ─────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'role:FManager,Accountant,IT Manager'])
+    ->prefix('finance/accountant')
+    ->name('accountant.')
+    ->group(function () {
+
+    // Dashboard (Service Reports)
+    Route::get('/',                         [AccountantController::class, 'index'])->name('index');
+
+    // Jobcard Status
+    Route::get('/jobcard-status',           [AccountantController::class, 'jobcardStatus'])->name('jobcard-status');
+
+    // Reopen JC
+    Route::get('/reopen-jc',               [AccountantController::class, 'reopenJc'])->name('reopen-jc');
+    Route::post('/reopen-jc',              [AccountantController::class, 'reopenJcProcess'])->name('reopen-jc.process');
+
+    // Labor Update — Request
+    Route::get('/labor-request',           [AccountantController::class, 'laborRequest'])->name('labor-request');
+    Route::post('/labor-request',          [AccountantController::class, 'laborRequestProcess'])->name('labor-request.process');
+
+    // Labor Update — Manual list
+    Route::get('/labor-manual',            [AccountantController::class, 'laborManual'])->name('labor-manual');
+
+    // Labor Update — Auto %
+    Route::get('/labor-auto',              [AccountantController::class, 'laborAuto'])->name('labor-auto');
+    Route::post('/labor-auto',             [AccountantController::class, 'laborAutoUpdate'])->name('labor-auto.update');
+
+    // New User
+    Route::get('/new-user',                [AccountantController::class, 'newUser'])->name('new-user');
+    Route::post('/new-user',               [AccountantController::class, 'newUserStore'])->name('new-user.store');
+
+    // New Part
+    Route::get('/new-part',                [AccountantController::class, 'newPart'])->name('new-part');
+    Route::post('/new-part',               [AccountantController::class, 'newPartStore'])->name('new-part.store');
+
+    // Service Search
+    Route::get('/service-search',          [AccountantController::class, 'serviceSearch'])->name('service-search');
+    Route::post('/service-search',         [AccountantController::class, 'serviceSearchRedirect'])->name('service-search.redirect');
+
+    // Parts Search
+    Route::get('/parts-search',            [AccountantController::class, 'partsSearch'])->name('parts-search');
+    Route::post('/parts-search',           [AccountantController::class, 'partsSearchRedirect'])->name('parts-search.redirect');
+    Route::post('/cancel-part',            [AccountantController::class, 'cancelPart'])->name('cancel-part');
+
+    // History
+    Route::get('/history',                 [AccountantController::class, 'history'])->name('history');
+
+    // Reports
+    Route::get('/finance-reports',         [AccountantController::class, 'financeReports'])->name('finance-reports');
+    Route::get('/parts-reports',           [AccountantController::class, 'partsReports'])->name('parts-reports');
+});
+
+
+// ─────────────────────────────────────────────────────────────
+//  RECOVERY MODULE  (role: RecoveryExec, FManager, IT Manager)
+// ─────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'role:RecoveryExec,FManager,IT Manager'])
+    ->prefix('finance/recovery')
+    ->name('recovery.')
+    ->group(function () {
+
+    // Dashboard
+    Route::get('/',                         [RecoveryController::class, 'index'])->name('index');
+
+    // Debit Entry
+    Route::get('/add-debt',                [RecoveryController::class, 'addDebt'])->name('add-debt');
+    Route::post('/add-debt',               [RecoveryController::class, 'addDebtStore'])->name('add-debt.store');
+
+    // Credit Entry
+    Route::get('/add-credit',              [RecoveryController::class, 'addCredit'])->name('add-credit');
+    Route::post('/add-credit',             [RecoveryController::class, 'addCreditStore'])->name('add-credit.store');
+    Route::post('/add-credit/update',      [RecoveryController::class, 'addCreditUpdate'])->name('add-credit.update');
+
+    // Search
+    Route::match(['get','post'], '/search',       [RecoveryController::class, 'search'])->name('search');
+    Route::get('/search-adv',              [RecoveryController::class, 'searchAdvanced'])->name('search-adv');
+    Route::get('/search-name',             [RecoveryController::class, 'searchName'])->name('search-name');
+
+    // Customer Ledger
+    Route::get('/customer-ledger',         [RecoveryController::class, 'customerLedger'])->name('customer-ledger');
+
+    // Clearance
+    Route::get('/clearance',               [RecoveryController::class, 'clearance'])->name('clearance');
+
+    // History & Followup
+    Route::get('/history',                 [RecoveryController::class, 'history'])->name('history');
+    Route::match(['get','post'], '/followup', [RecoveryController::class, 'followup'])->name('followup');
+
+    // Lists
+    Route::get('/not-contacted',           [RecoveryController::class, 'notContacted'])->name('not-contacted');
+    Route::get('/recovered',               [RecoveryController::class, 'recovered'])->name('recovered');
+    Route::get('/stats',                   [RecoveryController::class, 'stats'])->name('stats');
+    Route::get('/dm-bills',                [RecoveryController::class, 'dmBills'])->name('dm-bills');
+
+    // Add Account
+    Route::get('/add-account',             [RecoveryController::class, 'addAccount'])->name('add-account');
+    Route::post('/add-account',            [RecoveryController::class, 'addAccountStore'])->name('add-account.store');
+
+    // AJAX
+    Route::get('/check-invoice',           [RecoveryController::class, 'checkInvoice'])->name('check-invoice');
+    Route::get('/email-status',            [RecoveryController::class, 'emailStatus'])->name('email-status');
+});
+
+
+// ─────────────────────────────────────────────────────────────
+//  ACCOUNTS MODULE  (role: FManager, Accountant, IT Manager)
+// ─────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'role:FManager,Accountant,IT Manager'])
+    ->prefix('finance/accounts')
+    ->name('accounts.')
+    ->group(function () {
+
+    // Dashboard / Reports
+    Route::get('/',                         [AccountsController::class, 'index'])->name('index');
+
+    // ── Voucher Entry ──────────────────────────────────────
+    // CPV — Cash Payment Voucher
+    Route::get('/cpv',                      [AccountsController::class, 'cpv'])->name('cpv');
+    Route::post('/cpv',                     [AccountsController::class, 'cpv'])->name('cpv.post');
+    Route::get('/cpv/items',               [AccountsController::class, 'cpvItems'])->name('cpv.items');
+    Route::post('/cpv/items',              [AccountsController::class, 'cpvItems'])->name('cpv.items.post');
+
+    // CRV — Cash Receipt Voucher
+    Route::get('/crv',                      [AccountsController::class, 'crv'])->name('crv');
+    Route::post('/crv',                     [AccountsController::class, 'crv'])->name('crv.post');
+    Route::get('/crv/items',               [AccountsController::class, 'crvItems'])->name('crv.items');
+    Route::post('/crv/items',              [AccountsController::class, 'crvItems'])->name('crv.items.post');
+
+    // BPV — Bank Payment Voucher
+    Route::get('/bpv',                      [AccountsController::class, 'bpv'])->name('bpv');
+    Route::post('/bpv',                     [AccountsController::class, 'bpv'])->name('bpv.post');
+    Route::get('/bpv/items',               [AccountsController::class, 'bpvItems'])->name('bpv.items');
+    Route::post('/bpv/items',              [AccountsController::class, 'bpvItems'])->name('bpv.items.post');
+
+    // BRV — Bank Receipt Voucher
+    Route::get('/brv',                      [AccountsController::class, 'brv'])->name('brv');
+    Route::post('/brv',                     [AccountsController::class, 'brv'])->name('brv.post');
+    Route::get('/brv/items',               [AccountsController::class, 'brvItems'])->name('brv.items');
+    Route::post('/brv/items',              [AccountsController::class, 'brvItems'])->name('brv.items.post');
+
+    // JV — Journal Voucher
+    Route::get('/jv',                       [AccountsController::class, 'jv'])->name('jv');
+    Route::post('/jv',                      [AccountsController::class, 'jv'])->name('jv.post');
+    Route::get('/jv/items',                [AccountsController::class, 'jvItems'])->name('jv.items');
+    Route::post('/jv/items',               [AccountsController::class, 'jvItems'])->name('jv.items.post');
+
+    // ── Voucher Management ────────────────────────────────
+    Route::match(['get','post'], '/pending-vouchers',   [AccountsController::class, 'pendingVouchers'])->name('pending-vouchers');
+    Route::match(['get','post'], '/authenticate',       [AccountsController::class, 'authenticate'])->name('authenticate');
+    Route::match(['get','post'], '/reopened-vouchers',  [AccountsController::class, 'reopenedVouchers'])->name('reopened-vouchers');
+    Route::match(['get','post'], '/search',             [AccountsController::class, 'search'])->name('search');
+
+    // ── Chart of Accounts ────────────────────────────────
+    Route::match(['get','post'], '/coa',    [AccountsController::class, 'coa'])->name('coa');
+    Route::match(['get','post'], '/add-gl', [AccountsController::class, 'addGL'])->name('add-gl');
+    Route::match(['get','post'], '/add-gsl',[AccountsController::class, 'addGSL'])->name('add-gsl');
+    Route::match(['get','post'], '/add-sh', [AccountsController::class, 'addSH'])->name('add-sh');
+
+    // ── Financial Reports (open in new tab) ──────────────────────────────────
+    Route::post('/report/trial-balances',      [AccountsController::class, 'reportTrialBalances'])->name('report.trial-balances');
+    Route::post('/report/trial-bal-gl',        [AccountsController::class, 'reportTrialBalGL'])->name('report.trial-bal-gl');
+    Route::post('/report/gsl-report',          [AccountsController::class, 'reportGslReport'])->name('report.gsl-report');
+    Route::post('/report/voucher-type',        [AccountsController::class, 'reportVoucherType'])->name('report.voucher-type');
+    Route::post('/report/profit-loss',         [AccountsController::class, 'reportProfitLoss'])->name('report.profit-loss');
+    Route::post('/report/profit-loss-dept',    [AccountsController::class, 'reportProfitLossDept'])->name('report.profit-loss-dept');
+    Route::post('/report/profit-loss-overall', [AccountsController::class, 'reportProfitLossOverall'])->name('report.profit-loss-overall');
+    Route::post('/report/cash-flow',           [AccountsController::class, 'reportCashFlow'])->name('report.cash-flow');
+    Route::post('/report/cash-flow-gsl',       [AccountsController::class, 'reportCashFlowGsl'])->name('report.cash-flow-gsl');
+
+});
