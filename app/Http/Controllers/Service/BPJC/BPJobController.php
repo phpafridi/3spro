@@ -415,6 +415,68 @@ class BPJobController extends Controller
     }
 
     // ─────────────────────────────────────────────
+    //  REPORTS
+    //  NEW METHODS FOR REPORTS
+    // ─────────────────────────────────────────────
+
+    /**
+     * Labor Type Report
+     * Shows labor jobs by type for Body & Paint
+     */
+    public function reportLabor(Request $request)
+    {
+        $query = DB::table('jobc_labor as jl')
+            ->join('jobcard as jc', 'jl.RO_no', '=', 'jc.Jobc_id')
+            ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+            ->where('jl.type', 'Body & Paint');
+
+        // Apply date filter if provided
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+            $query->whereBetween('jl.entry_time', [$request->from_date, $request->to_date]);
+        }
+
+        $labors = $query->select(
+                'jl.*', 'v.Registration', 'v.Variant', 'jc.SA', 'jc.Customer_name'
+            )
+            ->orderByDesc('jl.entry_time')
+            ->get();
+
+        return view('service.bp-jc.reports.labor', compact('labors'));
+    }
+
+    /**
+     * Labor Detail Report
+     * Shows detailed labor information for Body & Paint
+     */
+    public function reportLaborDetail(Request $request)
+    {
+        $query = DB::table('jobc_labor as jl')
+            ->join('jobcard as jc', 'jl.RO_no', '=', 'jc.Jobc_id')
+            ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+            ->join('customer_data as c', 'v.Customer_id', '=', 'c.Customer_id')
+            ->where('jl.type', 'Body & Paint');
+
+        // Apply date filter if provided
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+            $query->whereBetween('jl.entry_time', [$request->from_date, $request->to_date]);
+        }
+
+        // Apply status filter if provided
+        if ($request->filled('status')) {
+            $query->where('jl.status', $request->status);
+        }
+
+        $labors = $query->select(
+                'jl.*', 'v.Registration', 'v.Variant',
+                'jc.SA', 'jc.Customer_name', 'c.mobile'
+            )
+            ->orderByDesc('jl.entry_time')
+            ->get();
+
+        return view('service.bp-jc.reports.labor-detail', compact('labors'));
+    }
+
+    // ─────────────────────────────────────────────
     //  AJAX: Team members
     // ─────────────────────────────────────────────
     public function getTeamMembers(Request $request)

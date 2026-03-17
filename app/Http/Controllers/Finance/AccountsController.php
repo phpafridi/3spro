@@ -718,14 +718,14 @@ class AccountsController extends Controller
         $gslList = DB::table('fin_gsl')->orderBy('GSL_code')->get();
 
         if ($request->filled('SH_title')) {
-            DB::table('fin_sh')->insert([
+            DB::table('fin_gsl')->insert([
                 'SH_title' => $request->SH_title,
                 'GSL_code' => $request->GSL_code,
             ]);
             return back()->with('success', 'Sub-head added.');
         }
 
-        $shList = DB::table('fin_sh')->orderBy('GSL_code')->get();
+        $shList = DB::table('fin_gsl')->orderBy('GSL_code')->get();
         return view('finance.accounts.add_sh', compact('shList', 'gslList', 'counts'));
     }
 }

@@ -349,7 +349,11 @@ Route::middleware(['auth', 'role:body_PaintJC,IT Manager'])
         Route::post('/additional/consumable/store',        [BPJobController::class, 'additionalConsumableStore'])->name('additional.consumable.store');
         Route::get('/{jobId}/additional/sublet',           [BPJobController::class, 'additionalSublet'])->name('additional.sublet');
         Route::post('/additional/sublet/store',            [BPJobController::class, 'additionalSubletStore'])->name('additional.sublet.store');
-    });
+
+        // Inside the bp-jc group, add these report routes:
+Route::get('/report/labor', [BPJobController::class, 'reportLabor'])->name('report.labor');
+Route::get('/report/labor-detail', [BPJobController::class, 'reportLaborDetail'])->name('report.labor-detail');
+        });
 
 // ─────────────────────────────────────────────────────────────
 //  SERVICE MANAGER (SM) MODULE  (role: SManager, IMCc)

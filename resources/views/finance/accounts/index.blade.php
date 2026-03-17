@@ -1,5 +1,6 @@
 @extends('layouts.master')
 @include('finance.accounts.sidebar')
+
 @section('title', 'Finance Accounts — Reports')
 
 @section('content')
@@ -173,16 +174,29 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+@endpush
+
 @push('scripts')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/daterangepicker/3.1.0/daterangepicker.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/daterangepicker/3.1.0/daterangepicker.min.js"></script>
+<!-- jQuery first (required for daterangepicker) -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
 <script>
-$(function(){
+$(document).ready(function() {
     $('#daterange').daterangepicker({
         opens: 'left',
-        locale: { format: 'MM/DD/YYYY' }
+        autoUpdateInput: true,
+        locale: {
+            format: 'MM/DD/YYYY',
+            cancelLabel: 'Clear'
+        }
     });
+
+    // Set initial value
+    $('#daterange').val('{{ date("m/d/Y") }} - {{ date("m/d/Y") }}');
 });
 </script>
 @endpush
