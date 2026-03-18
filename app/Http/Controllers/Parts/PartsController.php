@@ -155,7 +155,12 @@ class PartsController extends Controller
             'consignmentnote' => $request->consignmentnote,
             'Receivername'    => $request->Receivername,
             'mdate'           => $request->mdate ?? now()->toDateString(),
+            'Total_amount' => 0,
+            'status' => 0,
             'user'            => session('login_id'),
+            'date' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return redirect()->route('parts.purchase.detail', $inv->Invoice_no)
@@ -193,7 +198,15 @@ class PartsController extends Controller
             'Price'       => $uprice,
             'Netamount'   => $netamount,
             'cate_type'   => $request->category,
+            'discount'    => 0,
+            'tax'    => 0,
+            'purch_return' => 0,
+            'Model' => 'nil',  ///need to be dynamic
+            'location'    => 'nl', ///need to be dynamic
             'user'        => session('login_id'),
+            'date' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $total = PPurchStock::where('Invoice_no', $invoice_no)->sum('Netamount');
@@ -487,6 +500,12 @@ class PartsController extends Controller
             'address'  => $request->address,
             'email'    => $request->email,
             'cnic'     => $request->CNIC,
+            'Balance_status' => 0,
+            'latest_update' => now(),
+            'last_update' => now(),
+            'datetime' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
             'user'     => session('login_id'),
         ]);
 
