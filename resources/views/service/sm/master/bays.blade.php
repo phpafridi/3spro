@@ -36,17 +36,24 @@
                         <label class="block text-sm font-medium text-gray-600 mb-1">Category</label>
                         <select name="category"
                                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Workshop</option>
-                            <option>Body & Paint</option>
-                            <option>PDI</option>
+                            <option value="M">Mechanical</option>
+                            <option value="DP">Dent Paint</option>
+
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Type</label>
-                        <input type="text" name="bay_type"
-                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="bay_type"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option>PM</option>
+                            <option>GR</option>
+                            <option>BP</option>
+                            <option>EM</option>
+
+                        </select>
                     </div>
+
 
                     <button type="submit"
                             class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">

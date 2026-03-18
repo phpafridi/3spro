@@ -437,10 +437,10 @@ class PartsController extends Controller
 
     public function newPartStore(Request $request)
     {
-        $allowedUsers = ['Mashkoor', 'Swahid'];
-        if (!in_array(session('login_id'), $allowedUsers)) {
-            return back()->with('error', 'You are not authorized to add parts.');
-        }
+        // $allowedUsers = ['Mashkoor', 'Swahid'];
+        // if (!in_array(session('login_id'), $allowedUsers)) {
+        //     return back()->with('error', 'You are not authorized to add parts.');
+        // }
 
         $request->validate([
             'partnumber'  => 'required|string|unique:p_parts,Part_no',
@@ -457,6 +457,9 @@ class PartsController extends Controller
             'ReOrder'     => $request->reorder,
             'Location'    => $request->Location,
             'user'        => session('login_id'),
+            'datetime'    => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return back()->with('success', 'Part number added successfully.');

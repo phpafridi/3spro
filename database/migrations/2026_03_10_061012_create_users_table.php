@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('mobile', 23);
             $table->string('dept', 34);
             $table->string('position', 35);
+            $table->string('image',255);
             $table->dateTime('last_logout');
             $table->timestamps();
 

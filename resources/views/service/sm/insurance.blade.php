@@ -10,7 +10,7 @@
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Add Insurance Company</h2>
         <form method="POST" action="{{ route('sm.insurance.store') }}" class="space-y-3">
             @csrf
-            @foreach(['jobber'=>'Company Name *','contactperson'=>'Contact Person','contact'=>'Contact','address'=>'Address','ntn'=>'NTN'] as $name=>$label)
+            @foreach(['jobber'=>'Company Name *','contactperson'=>'Contact Person','contact'=>'Contact','email'=>'Email','address'=>'Address','ntn'=>'NTN'] as $name=>$label)
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
                 <input type="text" name="{{ $name }}" {{ str_contains($label,'*') ? 'required' : '' }}
@@ -41,6 +41,7 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-3 py-2 text-sm font-medium text-gray-800">{{ $v->company_name }}</td>
                         <td class="px-3 py-2 text-sm text-gray-500">{{ $v->contact }}</td>
+                        <td class="px-3 py-2 text-sm text-gray-500">{{ $v->email }}</td>
                         <td class="px-3 py-2 text-sm">
                             @if($v->status=='Active')<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Active</span>
                             @else<span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">Suspended</span>@endif

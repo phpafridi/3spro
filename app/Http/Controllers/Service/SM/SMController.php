@@ -421,6 +421,10 @@ class SMController extends Controller
             'c_to'          => $request->input('cto'),
             'user'          => $user,
             'datetime'      => now(),
+            'status' => 'Active',
+            'LC' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return back()->with('success', 'Campaign added.');
@@ -447,6 +451,8 @@ class SMController extends Controller
         $labours  = DB::table('s_compaingh_labour')->where('compaingh_id', $campId)->get();
         $laborList = DB::table('labor_list')->orderBy('Labor')->get();
 
+
+
         return view('service.sm.campaign-labour', compact('campaign', 'labours', 'laborList', 'campId'));
     }
 
@@ -456,6 +462,8 @@ class SMController extends Controller
             'compaingh_id'  => $campId,
             'labour_des'    => $request->input('labours'),
             'labour_cost'   => $request->input('labourcost'),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return back()->with('success', 'Labour added to campaign.');
@@ -521,6 +529,9 @@ class SMController extends Controller
             'cate5'    => $request->input('cate5'),
             'remarks'  => $request->input('remarks'),
             'who_req'  => $user,
+            'status'   => 'Pending',
+            'who_acept' => 'null',
+            'when_acept' => now(),
             'when_req' => now(),
         ]);
 
@@ -588,6 +599,7 @@ class SMController extends Controller
             'Location'       => $request->input('address'),
             'addedby'        => $user,
             'status'         => 'Active',
+            'Surveyors_names' => 'null',
             'when'           => now(),
         ]);
 
@@ -637,8 +649,10 @@ class SMController extends Controller
             'login_id'   => $request->input('login_id'),
             'password'   => Hash::make($request->input('password2')),
             'email'      => $request->input('email'),
-            'phone'      => $request->input('phone'),
-            'Department' => $department,
+            'mobile'      => $request->input('phone'),
+            'dept' => $department,
+            'last_login' => now(),
+            'last_logout' => now(),
             'position'   => $position,
             'image'      => $imageName,
             'created_at' => now(),
@@ -770,8 +784,8 @@ class SMController extends Controller
             'bay_name' => $request->input('bay_name'),
             'category' => $request->input('category'),
             'bay_type' => $request->input('bay_type'),
-            'status' => 0,
-            'selection' => 0,
+            'status' => 1,
+            'selection' => 1,
         ]);
         return back()->with('success', 'Bay added.');
     }
@@ -811,6 +825,8 @@ class SMController extends Controller
             'Cate3' => $request->input('Cate3'),
             'Cate4' => $request->input('Cate4'),
             'Cate5' => $request->input('Cate5'),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         return back()->with('success', 'Labor added.');
     }
@@ -850,7 +866,9 @@ class SMController extends Controller
             'team_name' => $request->input('team_name'),
             'members'   => $request->input('members'),
             'category'  => $request->input('category'),
-            'status'    => 'Active',
+            'status'    => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         return back()->with('success', 'Team added.');
     }
@@ -890,6 +908,8 @@ class SMController extends Controller
             'Fram'     => $request->input('Fram'),
             'Engine'   => $request->input('Engine'),
             'Category' => $request->input('Category'),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         return back()->with('success', 'Variant added.');
     }

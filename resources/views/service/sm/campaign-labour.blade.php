@@ -46,11 +46,11 @@
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($labours as $l)
                 <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2 text-sm text-gray-500">{{ $l->id }}</td>
+                    <td class="px-4 py-2 text-sm text-gray-500">{{ $l->compaingh_id }}</td>
                     <td class="px-4 py-2 text-sm font-medium text-gray-800">{{ $l->labour_des }}</td>
                     <td class="px-4 py-2 text-sm text-gray-700">{{ number_format($l->labour_cost,2) }}</td>
                     <td class="px-4 py-2">
-                        <button class="del-labour px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors" data-id="{{ $l->id }}">
+                        <button class="del-labour px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors" data-id="{{ $l->compaingh_id }}">
                             <i class="fa fa-trash"></i>
                         </button>
                     </td>

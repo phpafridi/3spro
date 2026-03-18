@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('s_campaigns', function (Blueprint $table) {
             $table->integer('campaign_id', true);
-            $table->string('campaign_name', 40);
-            $table->string('nature', 20);
+            $table->string('campaign_name', 255);
+            $table->string('nature', 255);
             $table->date('c_from');
             $table->date('c_to');
             $table->string('status', 20);
