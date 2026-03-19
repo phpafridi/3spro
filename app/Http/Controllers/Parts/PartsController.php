@@ -421,7 +421,11 @@ class PartsController extends Controller
             'rec_paid_by'    => $request->rec_paid_by,
             'remarks'        => $request->remarks,
             'user'           => session('login_id'),
+            'datetime'       => now(),
+            'created_at'       => now(),
+            'updated_at'       => now(),
         ]);
+
 
         if ($request->trans_type === 'Paid') {
             PJobber::where('jobber_id', $request->jobber)->update([

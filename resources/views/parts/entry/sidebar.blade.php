@@ -212,9 +212,9 @@
                 <a href="{{ route('parts.new-jobber') }}" class="{{ request()->routeIs('parts.new-jobber') ? 'active' : '' }}">
                     <i class="fa fa-user-plus nav-icon"></i> Jobber
                 </a>
-                <a href="{{ route('parts.new-cate-part') }}" class="{{ request()->routeIs('parts.new-cate-part') ? 'active' : '' }}">
+                {{-- <a href="{{ route('parts.new-cate-part') }}" class="{{ request()->routeIs('parts.new-cate-part') ? 'active' : '' }}">
                     <i class="fa fa-tag nav-icon"></i> IMC Category Part
-                </a>
+                </a> --}}
                 <a href="{{ route('parts.location-change') }}" class="{{ request()->routeIs('parts.location-change') ? 'active' : '' }}">
                     <i class="fa fa-map-marker nav-icon"></i> Edit Location
                 </a>

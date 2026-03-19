@@ -249,36 +249,58 @@ Route::middleware(['auth', 'role:SerAdvisor,IT Manager'])
     ->name('jobcard.')
     ->group(function () {
 
-        Route::get('/',                         [JobcardController::class, 'index'])->name('index');
+        // ── Main index (all unclosed ROs overview)
+        Route::get('/',                              [JobcardController::class, 'index'])->name('index');
 
-        // Add Vehicle / Search
-        Route::get('/add-vehicle',              [JobcardController::class, 'searchVehicle'])->name('add-vehicle');
-        Route::post('/add-vehicle/search',      [JobcardController::class, 'searchVehicleResult'])->name('add-vehicle.search');
-        Route::post('/add-vehicle/customer',    [JobcardController::class, 'storeCustomer'])->name('add-vehicle.customer');
-        Route::post('/add-vehicle/vehicle',     [JobcardController::class, 'storeVehicle'])->name('add-vehicle.vehicle.store');
+        // ── STEP 1: Search vehicle by Reg or Frame  (index.php form)
+        Route::get('/add-vehicle',                   [JobcardController::class, 'searchVehicle'])->name('add-vehicle');
+        Route::post('/add-vehicle/search',           [JobcardController::class, 'searchVehicleResult'])->name('add-vehicle.search');
 
-        // Customer Edit
-        Route::get('/customer/edit/{id}',       [JobcardController::class, 'editCustomer'])->name('customer.edit');
-        Route::post('/customer/update',         [JobcardController::class, 'updateCustomer'])->name('customer.update');
+        // ── STEP 2a: New vehicle not found — add vehicle form  (add_veh.php)
+        Route::get('/add-vehicle/new',               [JobcardController::class, 'newVehicleForm'])->name('add-vehicle.new');
+        Route::post('/add-vehicle/new/store',        [JobcardController::class, 'storeNewVehicle'])->name('add-vehicle.new.store');
 
-        // Mileage check (AJAX)
-        Route::post('/check-mileage',           [JobcardController::class, 'checkMileage'])->name('check-mileage');
+        // ── STEP 2b: Vehicle detail page — pick/add customer  (jobcard_2.php)
+        Route::get('/vehicle-detail',                [JobcardController::class, 'vehicleDetail'])->name('vehicle-detail');
 
-        // Estimate
-        Route::get('/estimate/create',          [JobcardController::class, 'createEstimate'])->name('estimate.create');
-        Route::post('/estimate/store',          [JobcardController::class, 'storeEstimate'])->name('estimate.store');
-        Route::get('/estimate/{id}/ro',         [JobcardController::class, 'estimateRO'])->name('estimate.ro');
-        Route::get('/unclosed-estimates',       [JobcardController::class, 'unclosedEstimates'])->name('unclosed-estimates');
-        Route::get('/estimate/{id}/labor',      [JobcardController::class, 'estimateLabor'])->name('estimate.labor');
-        Route::post('/estimate/labor/store',    [JobcardController::class, 'estimateLaborStore'])->name('estimate.labor.store');
-        Route::get('/estimate/{id}/part',       [JobcardController::class, 'estimatePart'])->name('estimate.part');
-        Route::post('/estimate/part/store',     [JobcardController::class, 'estimatePartStore'])->name('estimate.part.store');
-        Route::get('/estimate/{id}/consumable', [JobcardController::class, 'estimateConsumable'])->name('estimate.consumable');
-        Route::post('/estimate/consumable/store',[JobcardController::class,'estimateConsumableStore'])->name('estimate.consumable.store');
-        Route::get('/estimate/{id}/sublet',     [JobcardController::class, 'estimateSublet'])->name('estimate.sublet');
-        Route::post('/estimate/sublet/store',   [JobcardController::class, 'estimateSubletStore'])->name('estimate.sublet.store');
+        // ── STEP 2c: Add new customer for vehicle  (Forsale/add_customer.php)
+        Route::get('/add-customer',                  [JobcardController::class, 'addCustomerForm'])->name('add-customer');
+        Route::post('/add-customer/store',           [JobcardController::class, 'storeCustomer'])->name('add-customer.store');
 
-        // Jobcard management
+        // ── Customer Edit  (files/cust_edit.php)
+        Route::get('/customer/edit/{id}',            [JobcardController::class, 'editCustomer'])->name('customer.edit');
+        Route::post('/customer/update',              [JobcardController::class, 'updateCustomer'])->name('customer.update');
+
+        // ── STEP 3: Open RO form  (Jobcard_3.php)
+        Route::get('/create',                        [JobcardController::class, 'createJobcard'])->name('create');
+        Route::post('/store',                        [JobcardController::class, 'storeJobcard'])->name('store');
+
+        // ── STEP 4: Checklist  (jobcard_4.php)
+        Route::get('/{jobcId}/checklist',            [JobcardController::class, 'checklist'])->name('checklist');
+        Route::post('/checklist/store',              [JobcardController::class, 'storeChecklist'])->name('checklist.store');
+
+        // ── Unclosed JC list for SA  (Unclosed_JC.php)
+        Route::get('/unclosed-list',                 [JobcardController::class, 'unclosedList'])->name('unclosed-list');
+        Route::post('/start-working',                [JobcardController::class, 'startWorking'])->name('start-working');
+
+        // ── Mileage check AJAX  (files/check.php)
+        Route::post('/check-mileage',                [JobcardController::class, 'checkMileage'])->name('check-mileage');
+
+        // ── Estimate  (estimate.php / estimate_1.php)
+        Route::get('/estimate/create',               [JobcardController::class, 'createEstimate'])->name('estimate.create');
+        Route::post('/estimate/store',               [JobcardController::class, 'storeEstimate'])->name('estimate.store');
+        Route::get('/estimate/{id}/ro',              [JobcardController::class, 'estimateRO'])->name('estimate.ro');
+        Route::get('/unclosed-estimates',            [JobcardController::class, 'unclosedEstimates'])->name('unclosed-estimates');
+        Route::get('/estimate/{id}/labor',           [JobcardController::class, 'estimateLabor'])->name('estimate.labor');
+        Route::post('/estimate/labor/store',         [JobcardController::class, 'estimateLaborStore'])->name('estimate.labor.store');
+        Route::get('/estimate/{id}/part',            [JobcardController::class, 'estimatePart'])->name('estimate.part');
+        Route::post('/estimate/part/store',          [JobcardController::class, 'estimatePartStore'])->name('estimate.part.store');
+        Route::get('/estimate/{id}/consumable',      [JobcardController::class, 'estimateConsumable'])->name('estimate.consumable');
+        Route::post('/estimate/consumable/store',    [JobcardController::class, 'estimateConsumableStore'])->name('estimate.consumable.store');
+        Route::get('/estimate/{id}/sublet',          [JobcardController::class, 'estimateSublet'])->name('estimate.sublet');
+        Route::post('/estimate/sublet/store',        [JobcardController::class, 'estimateSubletStore'])->name('estimate.sublet.store');
+
+        // ── Additional (single RO detail view)  (Additional.php)
         Route::get('/{jobId}/additional',                  [JobcardController::class, 'additional'])->name('additional');
         Route::get('/{jobId}/additional/jobrequest',       [JobcardController::class, 'additionalJobrequest'])->name('additional.jobrequest');
         Route::post('/additional/jobrequest/store',        [JobcardController::class, 'additionalJobrequestStore'])->name('additional.jobrequest.store');
@@ -289,32 +311,67 @@ Route::middleware(['auth', 'role:SerAdvisor,IT Manager'])
         Route::get('/{jobId}/additional/sublet',           [JobcardController::class, 'additionalSublet'])->name('additional.sublet');
         Route::post('/additional/sublet/store',            [JobcardController::class, 'additionalSubletStore'])->name('additional.sublet.store');
 
-        // Delete item
-        Route::post('/delete-item',             [JobcardController::class, 'deleteItem'])->name('delete-item');
+        // ── Delete item AJAX  (delete_labor.php)
+        Route::post('/delete-item',                  [JobcardController::class, 'deleteItem'])->name('delete-item');
 
-        // Ajax variant
-        Route::get('/ajax/variant',             [JobcardController::class, 'ajaxVariant'])->name('ajax.variant');
+        // ── Ajax variant autocomplete  (ajax.php)
+        Route::match(['get','post'], '/ajax/variant', [JobcardController::class, 'ajaxVariant'])->name('ajax.variant');
 
-        // Additional jobs list (all in-progress jobs for SA)
-        Route::get('/additional-list',          [JobcardController::class, 'additionalList'])->name('additional-list');
+        // ── Additional list (in-workshop jobs)  (Additional.php list)
+        Route::get('/additional-list',               [JobcardController::class, 'additionalList'])->name('additional-list');
 
-        // Job complete page
-        Route::get('/complete',                 [JobcardController::class, 'complete'])->name('complete');
-        Route::post('/complete',                [JobcardController::class, 'completeProcess'])->name('complete.process');
+        // ── Job Complete  (jobcomplete.php)
+        Route::get('/complete',                      [JobcardController::class, 'complete'])->name('complete');
+        Route::post('/complete',                     [JobcardController::class, 'completeProcess'])->name('complete.process');
 
-        // Status pages
-        Route::get('/status/labor',             [JobcardController::class, 'statusLabor'])->name('status.labor');
-        Route::get('/status/parts',             [JobcardController::class, 'statusParts'])->name('status.parts');
-        Route::get('/status/sublet',            [JobcardController::class, 'statusSublet'])->name('status.sublet');
-        Route::get('/status/consumable',        [JobcardController::class, 'statusConsumable'])->name('status.consumable');
+        // ── Status pages (status_labor, status_parts, etc.)
+        Route::get('/status/labor',                  [JobcardController::class, 'statusLabor'])->name('status.labor');
+        Route::get('/status/parts',                  [JobcardController::class, 'statusParts'])->name('status.parts');
+        Route::get('/status/sublet',                 [JobcardController::class, 'statusSublet'])->name('status.sublet');
+        Route::get('/status/consumable',             [JobcardController::class, 'statusConsumable'])->name('status.consumable');
 
-        // Add New pages
-        Route::get('/new-labor',                [JobcardController::class, 'newLabor'])->name('new.labor');
-        Route::get('/new-part',                 [JobcardController::class, 'newPart'])->name('new.part');
-        Route::get('/new-consumable',           [JobcardController::class, 'newConsumable'])->name('new.consumable');
+        // Add New pages — SA can request new items not yet in stock
+        Route::get('/new-labor',             [JobcardController::class, 'newLabor'])->name('new.labor');
+        Route::post('/new-labor/store',      [JobcardController::class, 'newLaborStore'])->name('new-labor.store');
+        Route::get('/new-part',              [JobcardController::class, 'newPart'])->name('new.part');
+        Route::post('/new-part/store',       [JobcardController::class, 'newPartStore'])->name('new-part.store');
+        Route::get('/new-consumable',        [JobcardController::class, 'newConsumable'])->name('new.consumable');
+        Route::post('/new-consumable/store', [JobcardController::class, 'newConsumableStore'])->name('new-consumable.store');
 
         // Search
         Route::match(['get','post'], '/search', [JobcardController::class, 'search'])->name('search');
+
+        // ── Vehicle Edit  (files/veh_edit.php)
+        Route::get('/vehicle/edit',              [JobcardController::class, 'editVehicle'])->name('vehicle.edit');
+        Route::post('/vehicle/update',           [JobcardController::class, 'updateVehicle'])->name('vehicle.update');
+
+        // ── Vehicle / Customer History  (history.php / histories.php / histry.php)
+        Route::match(['get','post'], '/history', [JobcardController::class, 'vehicleHistory'])->name('history');
+
+        // ── Invoice View  (invoice.php)
+        Route::match(['get','post'], '/invoice', [JobcardController::class, 'invoiceView'])->name('invoice');
+
+        // ── VIN Check List  (vin_check.php)
+        Route::match(['get','post'], '/vin-check', [JobcardController::class, 'vinCheck'])->name('vin-check');
+
+        // ── Warranty  (warranty.php)
+        Route::match(['get','post'], '/warranty', [JobcardController::class, 'warranty'])->name('warranty');
+
+        // ── Loyalty Services  (loyalty_services.php)
+        Route::match(['get','post'], '/loyalty-services', [JobcardController::class, 'loyaltyServices'])->name('loyalty-services');
+
+        // ── Multi-Customer link  (Forsale/multi_customer.php)
+        Route::get('/multi-customer',            [JobcardController::class, 'multiCustomerForm'])->name('multi-customer');
+        Route::post('/multi-customer/store',     [JobcardController::class, 'multiCustomerStore'])->name('multi-customer.store');
+
+        // ── AJAX: MSI Details  (files/getmsiDetails.php)
+        Route::post('/ajax/msi-details',         [JobcardController::class, 'ajaxMsiDetails'])->name('ajax.msi-details');
+
+        // ── AJAX: Labor Cost  (files/Labor_cost.php)
+        Route::post('/ajax/labor-cost',          [JobcardController::class, 'ajaxLaborCost'])->name('ajax.labor-cost');
+
+        // ── AJAX: Delete Estimate Item  (files/del_est_labor.php)
+        Route::post('/delete-estimate-item',     [JobcardController::class, 'deleteEstimateItem'])->name('delete-estimate-item');
     });
 
 // ─────────────────────────────────────────────────────────────

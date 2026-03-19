@@ -37,7 +37,9 @@
                             <a href="{{ route('jobcard.additional.part', $job->Jobc_id) }}" class="px-2 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded transition-colors">Add Part</a>
                             <a href="{{ route('jobcard.additional.sublet', $job->Jobc_id) }}" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">Add Sublet</a>
                             <a href="{{ route('jobcard.additional.consumable', $job->Jobc_id) }}" class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors">Consumble</a>
-                            <a href="{{ route('jobcard.additional', $job->Jobc_id) }}" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors">Calculation</a>
+                            <a href="{{ route('jobcard.additional', $job->Jobc_id) }}" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors">View RO</a>
+                            <a href="{{ route('jobcard.invoice') }}?job_id={{ $job->Jobc_id }}"
+                               class="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors">Invoice</a>
                         </div>
                     </td>
                 </tr>

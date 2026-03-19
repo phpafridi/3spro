@@ -2,6 +2,27 @@
 @section('title', 'Add Sublet - RO# ' . $jobId)
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
+
+@push('scripts')
+<script>
+// Delete item — matches original delete_labor.php
+// POST: sid=id
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Delete this item?')) return;
+            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
+            postData['sid'] = this.dataset.id;
+            fetch('{{ route("jobcard.delete-item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(postData)
+            }).then(function () { location.reload(); });
+        });
+    });
+});
+</script>
+@endpush
 @endsection
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
@@ -89,6 +110,27 @@ function toggleSubletPrice(sel) {
     if (sel.value!=='Workshop') { document.getElementById('up_input').value=0; document.getElementById('total_input').value=0; }
 }
 document.addEventListener('DOMContentLoaded', function(){ toggleSubletPrice(document.getElementById('stype')); });
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Delete item — matches original delete_labor.php
+// POST: sid=id
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Delete this item?')) return;
+            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
+            postData['sid'] = this.dataset.id;
+            fetch('{{ route("jobcard.delete-item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(postData)
+            }).then(function () { location.reload(); });
+        });
+    });
+});
 </script>
 @endpush
 @endsection

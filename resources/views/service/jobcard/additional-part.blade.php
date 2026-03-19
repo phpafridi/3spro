@@ -2,6 +2,27 @@
 @section('title', 'Add Part - RO# ' . $jobId)
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
+
+@push('scripts')
+<script>
+// Delete item — matches original delete_labor.php
+// POST: Pid=id
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Delete this item?')) return;
+            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
+            postData['Pid'] = this.dataset.id;
+            fetch('{{ route("jobcard.delete-item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(postData)
+            }).then(function () { location.reload(); });
+        });
+    });
+});
+</script>
+@endpush
 @endsection
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
@@ -79,6 +100,27 @@ function calcTotal() {
     var up  = parseFloat(document.getElementById('unitprice_input').value)||0;
     document.getElementById('total_input').value = (qty*up).toFixed(2);
 }
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Delete item — matches original delete_labor.php
+// POST: Pid=id
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Delete this item?')) return;
+            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
+            postData['Pid'] = this.dataset.id;
+            fetch('{{ route("jobcard.delete-item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(postData)
+            }).then(function () { location.reload(); });
+        });
+    });
+});
 </script>
 @endpush
 @endsection

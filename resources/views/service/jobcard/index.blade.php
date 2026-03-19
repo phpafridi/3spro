@@ -41,12 +41,17 @@
                             <a href="{{ route('jobcard.additional.part', $job->Jobc_id) }}" class="px-2 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded transition-colors">Spare Parts</a>
                             <a href="{{ route('jobcard.additional.sublet', $job->Jobc_id) }}" class="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded transition-colors">Sublet</a>
                             <a href="{{ route('jobcard.additional.consumable', $job->Jobc_id) }}" class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors">Consumble</a>
-                            <form method="POST" action="{{ route('jobcard.complete.process') }}" class="inline" onsubmit="return confirm('Start working on RO #{{ $job->Jobc_id }}?')">
+                            @if($job->status == 0)
+                            <form method="POST" action="{{ route('jobcard.start-working') }}" class="inline"
+                                  onsubmit="return confirm('Send RO #{{ $job->Jobc_id }} to workshop?')">
                                 @csrf
-                                <input type="hidden" name="job_id" value="{{ $job->Jobc_id }}">
+                                <input type="hidden" name="job_id"         value="{{ $job->Jobc_id }}">
                                 <input type="hidden" name="comp_appointed" value="{{ $job->comp_appointed }}">
                                 <button type="submit" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">Start Working</button>
                             </form>
+                            @else
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-semibold">In Workshop</span>
+                            @endif
                         </div>
                     </td>
                 </tr>

@@ -2,6 +2,27 @@
 @section('title', 'Add Labor - RO# ' . $jobId)
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
+
+@push('scripts')
+<script>
+// Delete item — matches original delete_labor.php
+// POST: id=id
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Delete this item?')) return;
+            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
+            postData['id'] = this.dataset.id;
+            fetch('{{ route("jobcard.delete-item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(postData)
+            }).then(function () { location.reload(); });
+        });
+    });
+});
+</script>
+@endpush
 @endsection
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
@@ -45,6 +66,15 @@
                 <i class="fa fa-plus mr-2"></i> Add Labor
             </button>
         </form>
+        {{-- Navigate to other sections — matches original form buttons --}}
+        <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
+            <a href="{{ route('jobcard.additional.part', $jobId) }}"
+               class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded">Spare Parts</a>
+            <a href="{{ route('jobcard.additional.sublet', $jobId) }}"
+               class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded">Sublet</a>
+            <a href="{{ route('jobcard.additional.consumable', $jobId) }}"
+               class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded">Consumble</a>
+        </div>
     </div>
     <div class="md:col-span-3 bg-white rounded-lg shadow-sm p-6">
         <h3 class="font-semibold text-gray-700 mb-3">Current Labor
@@ -80,11 +110,57 @@
 </div>
 @push('scripts')
 <script>
+// ── Toggle price row based on type (same as original myfunction())
 function togglePrice(sel) {
     document.getElementById('price_row').style.display = sel.value === 'Workshop' ? '' : 'none';
     if (sel.value !== 'Workshop') document.getElementById('price_input').value = 0;
 }
-document.addEventListener('DOMContentLoaded', function() { togglePrice(document.getElementById('labor_type')); });
+document.addEventListener('DOMContentLoaded', function () {
+    togglePrice(document.getElementById('labor_type'));
+});
+
+// ── Auto-fill labor price from variant — matches original files/Labor_cost.php
+// POST: partn=laborName, variant=variantCode, type=contractType → returns price as plain text
+document.querySelector('select[name="jobrequest"]').addEventListener('change', function () {
+    var partn   = this.value;
+    var variant = '{{ $jobcard->Variant ?? "" }}';
+    var type    = document.getElementById('labor_type') ? document.getElementById('labor_type').value : 'Workshop';
+
+    if (!partn || !variant) return;
+
+    $.ajax({
+        type:    'POST',
+        url:     '{{ route("jobcard.ajax.labor-cost") }}',
+        data:    { _token: '{{ csrf_token() }}', partn: partn, variant: variant, type: type },
+        success: function (price) {
+            var priceInput = document.getElementById('price_input');
+            if (priceInput && parseFloat(price) > 0) {
+                priceInput.value = price;
+            }
+        }
+    });
+});
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Delete item — matches original delete_labor.php
+// POST: id=id
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Delete this item?')) return;
+            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
+            postData['id'] = this.dataset.id;
+            fetch('{{ route("jobcard.delete-item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(postData)
+            }).then(function () { location.reload(); });
+        });
+    });
+});
 </script>
 @endpush
 @endsection
