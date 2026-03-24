@@ -3,10 +3,10 @@
 @section('title', 'Recovery Statistics')
 
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
-            <i class="fas fa-chart-bar text-indigo-500 mr-2"></i> Recovery Status — All Accounts
+            <i class="fas fa-chart-bar text-red-500 mr-2"></i> Recovery Status — All Accounts
         </h2>
         <div class="text-sm text-gray-500">
             Total records: <strong>{{ $stats->count() }}</strong>
@@ -18,7 +18,7 @@
 
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm" id="statsTable">
-            <thead class="bg-gradient-to-r from-indigo-600 to-purple-600">
+            <thead class="bg-red-600">
                 <tr>
                     <th class="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Customer</th>
                     <th class="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Contact</th>
@@ -54,7 +54,7 @@
                     <td class="px-3 py-3">
                         <div class="flex gap-2 text-xs">
                             <a href="{{ route('recovery.customer-ledger', ['id' => $s->cust_name]) }}"
-                               class="text-indigo-600 hover:text-indigo-900" title="Ledger">
+                               class="text-red-600 hover:text-indigo-900" title="Ledger">
                                 <i class="fas fa-book"></i>
                             </a>
                             <a href="{{ route('recovery.followup', ['id' => $s->cust_name]) }}"

@@ -4,7 +4,7 @@
 @section('title', 'Cashier - Parts Return')
 
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-repeat text-orange-500 mr-2"></i>
@@ -20,10 +20,10 @@
                        name="search"
                        value="{{ $search ?? '' }}"
                        placeholder="Enter search value..."
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                       class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div class="w-64">
-                <select name="field" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select name="field" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Select field...</option>
                     <optgroup label="Customer">
                         <option value="customer_data-Customer_name" {{ $field == 'customer_data-Customer_name' ? 'selected' : '' }}>Customer Name</option>
@@ -37,7 +37,7 @@
                     </optgroup>
                 </select>
             </div>
-            <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+            <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors">
                 <i class="fas fa-search mr-2"></i> Search
             </button>
         </div>

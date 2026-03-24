@@ -2,7 +2,7 @@
 @include('finance.recovery.sidebar')
 @section('title', 'Non-Active Accounts')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">
         <i class="fas fa-bell-slash text-orange-500 mr-2"></i> Non-Active Accounts (No Followup in 7 Days)
     </h2>
@@ -20,13 +20,13 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 text-gray-400">{{ $loop->iteration }}</td>
                     <td class="px-4 py-3 font-medium">
-                        <a href="{{ route('recovery.customer-ledger', ['id'=>$r->cust_name]) }}" class="text-indigo-600 hover:underline">{{ $r->cust_name }}</a>
+                        <a href="{{ route('recovery.customer-ledger', ['id'=>$r->cust_name]) }}" class="text-red-600 hover:underline">{{ $r->cust_name }}</a>
                     </td>
                     <td class="px-4 py-3">{{ $r->contact }}</td>
                     <td class="px-4 py-3 text-xs text-gray-400">{{ $r->last_fol ?? 'Never' }}</td>
                     <td class="px-4 py-3">
                         <a href="{{ route('recovery.followup', ['id'=>$r->cust_name]) }}"
-                           class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs hover:bg-green-200">Add Followup</a>
+                           class="px-3 py-1 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200">Add Followup</a>
                     </td>
                 </tr>
                 @empty

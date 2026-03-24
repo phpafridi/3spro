@@ -2,7 +2,7 @@
 @include('finance.accounts.sidebar')
 @section('title', 'Accounts - Authenticate Vouchers')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-shield-alt text-green-500 mr-2"></i>Authenticate Vouchers
@@ -26,7 +26,7 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3">{{ $i+1 }}</td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
                             {{ $v->vchr_type }}
                         </span>
                     </td>
@@ -40,7 +40,7 @@
                         <form method="POST" action="{{ route('accounts.authenticate') }}">
                             @csrf
                             <input type="hidden" name="vch_status_change" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-green-500 text-white rounded-lg text-xs hover:bg-green-600">
+                            <button class="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
                                 <i class="fas fa-check mr-1"></i>Approve
                             </button>
                         </form>
@@ -49,7 +49,7 @@
                               onsubmit="return confirm('Cancel this voucher?')">
                             @csrf
                             <input type="hidden" name="vch_status_cancel" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600">
+                            <button class="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">
                                 <i class="fas fa-times mr-1"></i>Cancel
                             </button>
                         </form>

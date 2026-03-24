@@ -17,7 +17,7 @@
     <div class="flex flex-col lg:flex-row gap-6">
         <!-- Add Team Form - Full width on mobile, 1/3 on desktop -->
         <div class="w-full lg:w-1/3">
-            <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <div class="bg-white rounded shadow-sm p-4 sm:p-6">
                 <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">Add Team</h2>
 
                 <form method="POST" action="{{ route('sm.master.teams.store') }}">
@@ -58,7 +58,7 @@
 
         <!-- Teams List - Full width on mobile, 2/3 on desktop -->
         <div class="w-full lg:w-2/3">
-            <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <div class="bg-white rounded shadow-sm p-4 sm:p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                     <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Teams</h2>
                     <span class="px-2 py-1 bg-gray-100 text-gray-600 text-sm rounded-full self-start sm:self-auto">
@@ -69,7 +69,7 @@
                 <!-- Horizontal scroll on mobile -->
                 <div class="overflow-x-auto -mx-4 sm:mx-0">
                     <div class="inline-block min-w-full align-middle">
-                        <div class="overflow-hidden border border-gray-200 sm:rounded-lg">
+                        <div class="overflow-hidden border border-gray-200 sm:rounded">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>

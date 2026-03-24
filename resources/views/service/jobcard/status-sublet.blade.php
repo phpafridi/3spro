@@ -4,7 +4,7 @@
     @include('service.partials.jobcard-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Sublet Status</h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -31,7 +31,7 @@
                     <td class="px-3 py-2 text-sm">{{ number_format($s->unitprice, 0) }}</td>
                     <td class="px-3 py-2 text-sm font-medium">{{ number_format($s->total, 0) }}</td>
                     <td class="px-3 py-2 text-sm">
-                        @if($s->status === '')
+                        @if($s->status == 0)
                             <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">Pending</span>
                         @else
                             <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs">{{ $s->status }}</span>

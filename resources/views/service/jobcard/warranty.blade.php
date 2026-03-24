@@ -25,7 +25,7 @@
 
 {{-- Pending Jobs tab --}}
 <div id="panel-pending">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Warranty Pending Jobs</h2>
         <input type="text" id="search1" placeholder="Search..."
                class="mb-4 border border-gray-300 rounded-md px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -75,7 +75,7 @@
 
 {{-- Claimed / Approved tab --}}
 <div id="panel-claimed" class="hidden">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Claimed Warranties</h2>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">

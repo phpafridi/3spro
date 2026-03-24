@@ -4,7 +4,7 @@
     @include('service.partials.sm-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-800">Active Customers
             <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $customers->total() }}</span>

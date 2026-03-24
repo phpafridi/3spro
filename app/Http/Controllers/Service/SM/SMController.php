@@ -714,9 +714,616 @@ class SMController extends Controller
     }
 
     // ─────────────────────────────────────────────
-    //  REPORTS  (reports.php)
+    //  REPORTS  (reports.php / reportsN.php)
     // ─────────────────────────────────────────────
-    public function reports(Request $request)
+
+    // ═══════════════════════════════════════════════════
+    //  REPORTS INDEX  (reports.php / reportsN.php)
+    // ═══════════════════════════════════════════════════
+    public function reports()
+    {
+        $campaigns = DB::table('s_campaigns')
+            ->whereIn('nature', ['Campaign', 'CustType'])
+            ->orderBy('campaign_id', 'desc')
+            ->get();
+        return view('service.sm.reports.index', compact('campaigns'));
+    }
+
+    // ─── Helper: year-by-month pivot ───
+    private function monthPivot(string $table, string $dateCol, string $countCol, string $where = ''): array
+    {
+        $sql = "SELECT
+          YEAR(`{$dateCol}`) as yr,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=1  THEN `{$countCol}` END) AS Jan,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=2  THEN `{$countCol}` END) AS Feb,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=3  THEN `{$countCol}` END) AS Mar,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=4  THEN `{$countCol}` END) AS Apr,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=5  THEN `{$countCol}` END) AS May,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=6  THEN `{$countCol}` END) AS Jun,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=7  THEN `{$countCol}` END) AS Jul,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=8  THEN `{$countCol}` END) AS Aug,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=9  THEN `{$countCol}` END) AS Sep,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=10 THEN `{$countCol}` END) AS Oct,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=11 THEN `{$countCol}` END) AS Nov,
+          COUNT(CASE WHEN MONTH(`{$dateCol}`)=12 THEN `{$countCol}` END) AS `Dec`,
+          COUNT(`{$countCol}`) AS Total
+        FROM `{$table}` {$where} GROUP BY YEAR(`{$dateCol}`) ORDER BY yr DESC";
+        return DB::select($sql);
+    }
+
+    private function getDateRange(Request $request): array
+    {
+        $from = $request->from ?? now()->startOfMonth()->toDateString();
+        $to   = $request->to   ?? now()->toDateString();
+        return [$from, $to];
+    }
+
+    // ─── summary.php ───
+    public function reportSummary(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobc_invoice')
+            ->join('jobcard', 'jobc_invoice.Jobc_id', '=', 'jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->where('jobcard.status', '>', 1)
+            ->selectRaw("jobcard.RO_type, COUNT(jobc_invoice.Jobc_id) AS ROs,
+                SUM(jobc_invoice.Lnet) AS Labor, SUM(jobc_invoice.Pnet) AS Parts,
+                SUM(jobc_invoice.Snet) AS Sublet, SUM(jobc_invoice.Cnet) AS Consumble,
+                SUM(jobc_invoice.Total) AS Total")
+            ->groupBy('jobcard.RO_type')
+            ->get();
+        return view('service.sm.reports.summary', compact('rows','from','to'));
+    }
+
+    // ─── REPORT.php (Invoice Report) ───
+    public function reportInvoice(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $type = $request->type ?? '';
+        $query = DB::table('jobc_invoice')
+            ->join('jobcard', 'jobc_invoice.Jobc_id', '=', 'jobcard.Jobc_id')
+            ->join('vehicles_data', 'jobcard.Vehicle_id', '=', 'vehicles_data.Vehicle_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->where('jobcard.status', '>', 1)
+            ->selectRaw("jobc_invoice.Invoice_id, jobc_invoice.Jobc_id, jobc_invoice.type,
+                jobcard.RO_type, jobcard.Customer_name, jobcard.SA, jobcard.serv_nature,
+                vehicles_data.Frame_no, vehicles_data.Registration,
+                jobc_invoice.Lnet, jobc_invoice.Pnet, jobc_invoice.Snet, jobc_invoice.Cnet,
+                jobc_invoice.Total, jobc_invoice.Ltax+jobc_invoice.Stax AS L_tax,
+                jobc_invoice.Ptax+jobc_invoice.Ctax AS P_tax,
+                DATE_FORMAT(jobc_invoice.datetime,'%d %b %y') AS inv_date,
+                DATE_FORMAT(jobcard.Open_date_time,'%d %b %y') AS open_date")
+            ->orderByDesc('jobc_invoice.Invoice_id');
+        if ($type) $query->where('jobc_invoice.type', $type);
+        $rows = $query->get();
+        return view('service.sm.reports.invoice', compact('rows','from','to','type'));
+    }
+
+    // ─── sa.php ───
+    public function reportSA(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobcard')
+            ->join('jobc_invoice', 'jobcard.Jobc_id', '=', 'jobc_invoice.Jobc_id')
+            ->where('jobcard.status', '>', 1)
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->selectRaw("jobcard.SA, COUNT(jobcard.Jobc_id) AS closedRO,
+                SUM(jobc_invoice.Lnet) AS Labor, SUM(jobc_invoice.Pnet) AS Parts,
+                SUM(jobc_invoice.Snet) AS Sublet, SUM(jobc_invoice.Cnet) AS Cons,
+                SUM(jobc_invoice.Total) AS Total")
+            ->groupBy('jobcard.SA')
+            ->orderByDesc('Total')
+            ->get();
+        return view('service.sm.reports.sa', compact('rows','from','to'));
+    }
+
+    // ─── rate.php (FFS Rate) ───
+    public function reportFfsRate(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $ffs = DB::table('jobcard')
+            ->join('vehicles_data','jobcard.Vehicle_id','=','vehicles_data.Vehicle_id')
+            ->whereRaw("DATE_FORMAT(Open_date_time,'%Y-%m') BETWEEN DATE_FORMAT(?,'%Y-%m') AND DATE_FORMAT(?,'%Y-%m')",[$from,$to])
+            ->where('vehicles_data.Make','Toyota')
+            ->selectRaw("SUM(IF(serv_nature='FFS',1,0)) AS FFS, SUM(IF(serv_nature='PDS',1,0)) AS PDS")->first();
+        $pds3 = DB::table('jobcard')
+            ->whereRaw("DATE_FORMAT(Open_date_time,'%Y-%m') BETWEEN DATE_FORMAT(DATE_SUB(?,'3 MONTH'),'%Y-%m') AND DATE_FORMAT(DATE_SUB(?,'1 MONTH'),'%Y-%m')",[$from,$to])
+            ->selectRaw("SUM(IF(serv_nature='PDS',1,0)) AS PDS")->value('PDS') ?: 1;
+        $ffsRate = $pds3 > 0 ? round(($ffs->FFS / $pds3)*100) : 0;
+        return view('service.sm.reports.ffs-rate', compact('ffs','pds3','ffsRate','from','to'));
+    }
+
+    // ─── rattings.php ───
+    public function reportRatings(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $bySa = DB::table('customer_ratings')
+            ->whereBetween(DB::raw("DATE_FORMAT(datetime,'%Y-%m-%d')"),[$from,$to])
+            ->selectRaw("SA, COUNT(*) AS total, AVG(behaviour) AS behv,
+                AVG(professionalism) AS prof, AVG(Tech_expertize) AS exprt")
+            ->groupBy('SA')->get();
+        $byType = DB::table('customer_ratings')
+            ->join('jobcard','customer_ratings.jobc_id','=','jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(customer_ratings.datetime,'%Y-%m-%d')"),[$from,$to])
+            ->selectRaw("jobcard.RO_type, COUNT(*) AS total,
+                AVG(Management) AS mgmt, AVG(Services) AS svc,
+                AVG(prices) AS prices, AVG(cleanance) AS clean")
+            ->groupBy('jobcard.RO_type')->get();
+        return view('service.sm.reports.ratings', compact('bySa','byType','from','to'));
+    }
+
+    // ─── team_report.php ───
+    public function reportTeam(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobc_labor')
+            ->join('jobc_invoice','jobc_labor.RO_no','=','jobc_invoice.Jobc_id')
+            ->join('jobcard','jobc_labor.RO_no','=','jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"),[$from,$to])
+            ->where('jobcard.status','>',1)
+            ->selectRaw("jobc_labor.team, COUNT(DISTINCT jobc_labor.RO_no) AS ROs,
+                SUM(CASE WHEN jobcard.serv_nature='PM' THEN 1 ELSE 0 END) AS PM,
+                SUM(CASE WHEN jobcard.serv_nature='GR' THEN 1 ELSE 0 END) AS GR,
+                SUM(CASE WHEN jobc_invoice.type='CBJ' THEN 1 ELSE 0 END) AS CBJ,
+                SUM(jobc_labor.cost) AS Labor")
+            ->groupBy('jobc_labor.team')->get();
+        return view('service.sm.reports.team', compact('rows','from','to'));
+    }
+
+    // ─── Labor_detail.php ───
+    public function reportLaborDetail(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $roType = $request->ro_type ?? '';
+        $query = DB::table('jobc_invoice')
+            ->join('jobcard','jobc_invoice.Jobc_id','=','jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"),[$from,$to])
+            ->where('jobcard.status','>',1)
+            ->selectRaw("jobc_invoice.Invoice_id, jobcard.Jobc_id AS ro,
+                jobcard.Customer_name, jobcard.Veh_reg_no, jobcard.SA, jobcard.RO_type,
+                jobcard.serv_nature, jobcard.comp_appointed,
+                DATE_FORMAT(jobcard.Open_date_time,'%d %b %y %h:%i %p') AS open_time,
+                DATE_FORMAT(jobcard.closing_time,'%d %b %y %h:%i %p') AS close_time,
+                TIMEDIFF(jobcard.closing_time, jobcard.Open_date_time) AS JobcardTime,
+                jobc_invoice.Lnet, jobc_invoice.Pnet, jobc_invoice.Snet, jobc_invoice.Cnet,
+                jobc_invoice.Total");
+        if ($roType) $query->where('jobcard.RO_type', $roType);
+        $rows = $query->orderByDesc('ro')->get();
+        return view('service.sm.reports.labor-detail', compact('rows','from','to','roType'));
+    }
+
+    // ─── dept_REPORT.php ───
+    public function reportDept(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $custType = $request->cust_type ?? '';
+        $query = DB::table('jobc_invoice')
+            ->join('jobcard','jobc_invoice.Jobc_id','=','jobcard.Jobc_id')
+            ->join('customer_data','jobcard.Customer_id','=','customer_data.Customer_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"),[$from,$to])
+            ->where('jobcard.status','>',1)
+            ->selectRaw("jobc_invoice.Invoice_id, jobcard.Jobc_id,
+                jobcard.serv_nature, jobcard.RO_type, jobcard.comp_appointed,
+                jobcard.cust_source, jobcard.Customer_name, jobcard.SA,
+                customer_data.cust_type,
+                jobc_invoice.Lnet, jobc_invoice.Pnet, jobc_invoice.Snet, jobc_invoice.Cnet,
+                jobc_invoice.Ltax, jobc_invoice.Ptax, jobc_invoice.Stax, jobc_invoice.Ctax,
+                jobc_invoice.Ldiscount, jobc_invoice.Pdiscount,
+                jobc_invoice.Total, jobc_invoice.type,
+                DATE_FORMAT(jobc_invoice.datetime,'%d %b %Y') AS inv_date");
+        if ($custType && $custType !== 'Overall') $query->where('customer_data.cust_type', $custType);
+        $rows  = $query->orderByDesc('jobc_invoice.Invoice_id')->get();
+        $types = DB::table('customer_data')->distinct()->pluck('cust_type');
+        return view('service.sm.reports.dept', compact('rows','from','to','custType','types'));
+    }
+
+    // ─── bays.php ───
+    public function reportBays(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $bayTypes = DB::table('s_bays')->selectRaw("IF(category='M','Mechanical','Body&Paint') AS Baytypo, COUNT(*) AS counter")->groupBy('category')->get();
+        $workDays = DB::table('jobcard')->whereBetween(DB::raw("DATE_FORMAT(closing_time,'%Y-%m-%d')"),[$from,$to])->selectRaw('COUNT(DISTINCT DATE(closing_time)) AS days')->value('days');
+        $bayUtil  = DB::table('jobcard')
+            ->whereBetween(DB::raw("DATE_FORMAT(closing_time,'%Y-%m-%d')"),[$from,$to])
+            ->where('status','>',1)
+            ->count();
+        $mechBays = DB::table('s_bays')->where('category','M')->count();
+        $bpBays   = DB::table('s_bays')->where('category','BP')->count();
+        return view('service.sm.reports.bays', compact('bayTypes','workDays','bayUtil','mechBays','bpBays','from','to'));
+    }
+
+    // ─── cpus.php (CPUS – Cars Per Unit Served) ───
+    public function reportCpus(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::select("SELECT YEAR(Open_date_time) AS yr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(Open_date_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(Open_date_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(Open_date_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(Open_date_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(Open_date_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(Open_date_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(Open_date_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(Open_date_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(Open_date_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(Open_date_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard
+            INNER JOIN vehicles_data ON jobcard.Vehicle_id=vehicles_data.Vehicle_id
+            WHERE (serv_nature='PM' OR serv_nature='GR') AND vehicles_data.Make='Toyota'
+            GROUP BY YEAR(Open_date_time) ORDER BY yr DESC");
+        $uio = DB::table('uio')->sum('UIO');
+        return view('service.sm.reports.cpus', compact('rows','uio','from','to'));
+    }
+
+    // ─── OTD.php ───
+    public function reportOtd(Request $request)
+    {
+        $year   = $request->year   ?? now()->year;
+        $roType = $request->ro_type ?? 'PM';
+        $rows = DB::select("SELECT YEAR(closing_time) AS yr,
+            COUNT(CASE WHEN MONTH(closing_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(closing_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(closing_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(closing_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(closing_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(closing_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(closing_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(closing_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(closing_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(closing_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(closing_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(closing_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard WHERE serv_nature=? AND status>2 AND YEAR(closing_time)=?
+            GROUP BY YEAR(closing_time) ORDER BY yr DESC", [$roType, $year]);
+        $roTypes = ['PM','GR','FFS','PDS','Internal','CallBack','BP','SFS'];
+        return view('service.sm.reports.otd', compact('rows','year','roType','roTypes'));
+    }
+
+    // ─── WYW.php ───
+    public function reportWyw(Request $request)
+    {
+        $year   = $request->year   ?? now()->year;
+        $roType = $request->ro_type ?? 'PM';
+        $rows = DB::select("SELECT YEAR(Open_date_time) AS yr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(Open_date_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(Open_date_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(Open_date_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(Open_date_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(Open_date_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(Open_date_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(Open_date_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(Open_date_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(Open_date_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(Open_date_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard WHERE serv_nature=? AND YEAR(Open_date_time)=?
+            GROUP BY YEAR(Open_date_time) ORDER BY yr DESC", [$roType, $year]);
+        $roTypes = ['PM','GR','FFS','PDS','Internal','CallBack','BP','SFS'];
+        return view('service.sm.reports.wyw', compact('rows','year','roType','roTypes'));
+    }
+
+    // ─── app_rate.php (Appointment Rate) ───
+    public function reportAppRate(Request $request)
+    {
+        $year = $request->year ?? now()->year;
+        $total = DB::select("SELECT YEAR(closing_time) AS yr,
+            COUNT(CASE WHEN MONTH(closing_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(closing_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(closing_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(closing_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(closing_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(closing_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(closing_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(closing_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(closing_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(closing_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(closing_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(closing_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard WHERE status>2 AND YEAR(closing_time)=?
+            GROUP BY YEAR(closing_time) ORDER BY yr DESC", [$year]);
+        $appt = DB::select("SELECT YEAR(closing_time) AS yr,
+            COUNT(CASE WHEN MONTH(closing_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(closing_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(closing_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(closing_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(closing_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(closing_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(closing_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(closing_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(closing_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(closing_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(closing_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(closing_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard WHERE cust_source='Appointed' AND status>2 AND YEAR(closing_time)=?
+            GROUP BY YEAR(closing_time) ORDER BY yr DESC", [$year]);
+        return view('service.sm.reports.app-rate', compact('total','appt','year'));
+    }
+
+    // ─── psfu_graph.php ───
+    public function reportPsfu(Request $request)
+    {
+        $year = $request->year ?? now()->year;
+        $closed = DB::select("SELECT YEAR(closing_time) AS yr,
+            COUNT(CASE WHEN MONTH(closing_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(closing_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(closing_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(closing_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(closing_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(closing_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(closing_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(closing_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(closing_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(closing_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(closing_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(closing_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard WHERE status>2 AND YEAR(closing_time)=?
+            GROUP BY YEAR(closing_time) ORDER BY yr DESC", [$year]);
+        $psfu = DB::select("SELECT YEAR(Datetime) AS yr,
+            COUNT(CASE WHEN MONTH(Datetime)=1  THEN id END) AS Jan,
+            COUNT(CASE WHEN MONTH(Datetime)=2  THEN id END) AS Feb,
+            COUNT(CASE WHEN MONTH(Datetime)=3  THEN id END) AS Mar,
+            COUNT(CASE WHEN MONTH(Datetime)=4  THEN id END) AS Apr,
+            COUNT(CASE WHEN MONTH(Datetime)=5  THEN id END) AS May,
+            COUNT(CASE WHEN MONTH(Datetime)=6  THEN id END) AS Jun,
+            COUNT(CASE WHEN MONTH(Datetime)=7  THEN id END) AS Jul,
+            COUNT(CASE WHEN MONTH(Datetime)=8  THEN id END) AS Aug,
+            COUNT(CASE WHEN MONTH(Datetime)=9  THEN id END) AS Sep,
+            COUNT(CASE WHEN MONTH(Datetime)=10 THEN id END) AS Oct,
+            COUNT(CASE WHEN MONTH(Datetime)=11 THEN id END) AS Nov,
+            COUNT(CASE WHEN MONTH(Datetime)=12 THEN id END) AS `Dec`,
+            COUNT(id) AS Total
+            FROM cr_psfu WHERE YEAR(Datetime)=?
+            GROUP BY YEAR(Datetime) ORDER BY yr DESC", [$year]);
+        return view('service.sm.reports.psfu', compact('closed','psfu','year'));
+    }
+
+    // ─── TUS.php (Toyota Units Serviced) ───
+    public function reportTus(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::select("SELECT YEAR(Open_date_time) AS yr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(Open_date_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(Open_date_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(Open_date_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(Open_date_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(Open_date_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(Open_date_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(Open_date_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(Open_date_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(Open_date_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(Open_date_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard WHERE serv_nature IN ('PM','FFS','Internal','CallBack','GR')
+            GROUP BY YEAR(Open_date_time) ORDER BY yr DESC");
+        return view('service.sm.reports.tus', compact('rows','from','to'));
+    }
+
+    // ─── FFS_units.php ───
+    public function reportFfsUnits(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::select("SELECT YEAR(Open_date_time) AS yr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=1  THEN Jobc_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(Open_date_time)=2  THEN Jobc_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(Open_date_time)=3  THEN Jobc_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(Open_date_time)=4  THEN Jobc_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(Open_date_time)=5  THEN Jobc_id END) AS May,
+            COUNT(CASE WHEN MONTH(Open_date_time)=6  THEN Jobc_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(Open_date_time)=7  THEN Jobc_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(Open_date_time)=8  THEN Jobc_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(Open_date_time)=9  THEN Jobc_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(Open_date_time)=10 THEN Jobc_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(Open_date_time)=11 THEN Jobc_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(Open_date_time)=12 THEN Jobc_id END) AS `Dec`,
+            COUNT(Jobc_id) AS Total
+            FROM jobcard WHERE serv_nature='FFS'
+            GROUP BY YEAR(Open_date_time) ORDER BY yr DESC");
+        return view('service.sm.reports.ffs-units', compact('rows','from','to'));
+    }
+
+    // ─── NVS.php (New Vehicle Sales from delivery table) ───
+    public function reportNvs(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::select("SELECT YEAR(Del_date) AS yr,
+            COUNT(CASE WHEN MONTH(Del_date)=1  THEN Delivery_id END) AS Jan,
+            COUNT(CASE WHEN MONTH(Del_date)=2  THEN Delivery_id END) AS Feb,
+            COUNT(CASE WHEN MONTH(Del_date)=3  THEN Delivery_id END) AS Mar,
+            COUNT(CASE WHEN MONTH(Del_date)=4  THEN Delivery_id END) AS Apr,
+            COUNT(CASE WHEN MONTH(Del_date)=5  THEN Delivery_id END) AS May,
+            COUNT(CASE WHEN MONTH(Del_date)=6  THEN Delivery_id END) AS Jun,
+            COUNT(CASE WHEN MONTH(Del_date)=7  THEN Delivery_id END) AS Jul,
+            COUNT(CASE WHEN MONTH(Del_date)=8  THEN Delivery_id END) AS Aug,
+            COUNT(CASE WHEN MONTH(Del_date)=9  THEN Delivery_id END) AS Sep,
+            COUNT(CASE WHEN MONTH(Del_date)=10 THEN Delivery_id END) AS Oct,
+            COUNT(CASE WHEN MONTH(Del_date)=11 THEN Delivery_id END) AS Nov,
+            COUNT(CASE WHEN MONTH(Del_date)=12 THEN Delivery_id END) AS `Dec`,
+            COUNT(Delivery_id) AS Total
+            FROM delivery GROUP BY YEAR(Del_date) ORDER BY yr DESC");
+        return view('service.sm.reports.nvs', compact('rows','from','to'));
+    }
+
+    // ─── top_labor.php ───
+    public function reportTopLabor(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobc_labor')
+            ->join('jobcard','jobc_labor.RO_no','=','jobcard.Jobc_id')
+            ->leftJoin('labor_list','jobc_labor.Labor','=','labor_list.Labor')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobcard.Open_date_time,'%Y-%m-%d')"),[$from,$to])
+            ->selectRaw("jobc_labor.Labor, COUNT(*) AS counter, SUM(jobc_labor.cost) AS Labor_cost,
+                labor_list.Cate1, labor_list.Cate2, labor_list.Cate3, labor_list.Cate4, labor_list.Cate5")
+            ->groupBy('jobc_labor.Labor','labor_list.Cate1','labor_list.Cate2','labor_list.Cate3','labor_list.Cate4','labor_list.Cate5')
+            ->orderByDesc('counter')->get();
+        return view('service.sm.reports.top-labor', compact('rows','from','to'));
+    }
+
+    // ─── zero_invoices.php ───
+    public function reportZeroInvoices(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobc_invoice')
+            ->join('jobcard','jobc_invoice.Jobc_id','=','jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"),[$from,$to])
+            ->where('jobcard.status','>',1)
+            ->where(function($q){ $q->where('jobc_invoice.Total',0)->orWhere('jobc_invoice.Lnet',0); })
+            ->selectRaw("jobc_invoice.Invoice_id, jobc_invoice.Jobc_id, jobc_invoice.type,
+                jobcard.Customer_name, jobcard.SA, jobcard.serv_nature,
+                jobc_invoice.Lnet, jobc_invoice.Pnet, jobc_invoice.Snet, jobc_invoice.Cnet,
+                jobc_invoice.Total, jobc_invoice.Ltax+jobc_invoice.Ptax+jobc_invoice.Stax+jobc_invoice.Ctax AS tax,
+                DATE_FORMAT(jobc_invoice.datetime,'%d %b %y') AS inv_date")
+            ->orderByDesc('jobc_invoice.Invoice_id')->get();
+        return view('service.sm.reports.zero-invoices', compact('rows','from','to'));
+    }
+
+    // ─── warranty.php ───
+    public function reportWarranty(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobcard')
+            ->join('s_warranty','jobcard.Jobc_id','=','s_warranty.jobc_id')
+            ->join('jobc_invoice','jobcard.Jobc_id','=','jobc_invoice.Jobc_id')
+            ->join('vehicles_data','jobcard.Vehicle_id','=','vehicles_data.Vehicle_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(s_warranty.claim_date,'%Y-%m-%d')"),[$from,$to])
+            ->selectRaw("jobcard.Jobc_id, jobcard.Customer_name, jobcard.SA,
+                s_warranty.wc_no, s_warranty.status AS w_status,
+                s_warranty.remarks AS w_remarks, s_warranty.user AS w_user,
+                vehicles_data.Frame_no, vehicles_data.Registration,
+                jobc_invoice.Total,
+                DATE_FORMAT(jobcard.Open_date_time,'%d %b %Y') AS open_date,
+                DATE_FORMAT(s_warranty.claim_date,'%d %b %Y') AS claim_date")
+            ->orderByDesc('s_warranty.w_id')->get();
+        return view('service.sm.reports.warranty', compact('rows','from','to'));
+    }
+
+    // ─── salestax.php ───
+    public function reportSalesTax(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $type = $request->type ?? '';
+        $query = DB::table('jobc_invoice')
+            ->join('jobcard','jobc_invoice.Jobc_id','=','jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"),[$from,$to])
+            ->where('jobcard.status','>',1)
+            ->selectRaw("jobc_invoice.Invoice_id, jobc_invoice.Jobc_id, jobc_invoice.type,
+                jobc_invoice.Lnet, jobc_invoice.Pnet, jobc_invoice.Snet, jobc_invoice.Cnet,
+                jobc_invoice.Ptax+jobc_invoice.Ctax AS P_tax,
+                jobc_invoice.Ltax+jobc_invoice.Stax AS L_tax,
+                jobc_invoice.Ldiscount+jobc_invoice.Pdiscount+jobc_invoice.Sdiscount+jobc_invoice.Cdiscount AS discount,
+                jobc_invoice.Total, jobcard.Customer_name, jobcard.SA,
+                DATE_FORMAT(jobc_invoice.datetime,'%d %b %y') AS inv_date")
+            ->orderByDesc('jobc_invoice.Invoice_id');
+        if ($type) $query->where('jobc_invoice.type', $type);
+        $rows = $query->get();
+        return view('service.sm.reports.sales-tax', compact('rows','from','to','type'));
+    }
+
+    // ─── sublet_profit.php ───
+    public function reportSubletProfit(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobc_sublet')
+            ->whereBetween(DB::raw("DATE_FORMAT(end_time,'%Y-%m-%d')"),[$from,$to])
+            ->selectRaw("sublet_id, RO_no, Sublet, total, jc,
+                Vendor, Vendor_price, logistics,
+                DATE_FORMAT(end_time,'%d %b %Y') AS close_date")
+            ->orderByDesc('sublet_id')->get();
+        return view('service.sm.reports.sublet-profit', compact('rows','from','to'));
+    }
+
+    // ─── partstimings.php ───
+    public function reportPartsTimings(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $rows = DB::table('jobc_parts')
+            ->join('jobcard','jobc_parts.RO_no','=','jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_parts.entry_datetime,'%Y-%m-%d')"),[$from,$to])
+            ->where('jobc_parts.status','>',0)
+            ->selectRaw("jobcard.Jobc_id, jobcard.Customer_name, jobcard.Veh_reg_no, jobcard.SA,
+                jobc_parts.part_number, jobc_parts.part_description,
+                DATE_FORMAT(jobc_parts.entry_datetime,'%d %b %Y %h:%i %p') AS requested,
+                DATE_FORMAT(jobc_parts.issue_time,'%d %b %Y %h:%i %p') AS issued,
+                jobc_parts.issue_by,
+                TIMESTAMPDIFF(MINUTE, jobc_parts.entry_datetime, jobc_parts.issue_time) AS minutes")
+            ->orderByDesc('jobcard.Jobc_id')->get();
+        return view('service.sm.reports.parts-timings', compact('rows','from','to'));
+    }
+
+    // ─── SA_parts.php ───
+    public function reportSaParts(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $sa    = $request->sa ?? '';
+        $saList = DB::table('users')->where('position','SerAdvisor')->pluck('login_id');
+        $query = DB::select("
+            SELECT p_parts_subcat.subcategory, SUM(t_sale) AS t_sale
+            FROM (
+                SELECT p_parts_subcat.subcategory, SUM(jobc_parts_p.issued_qty) AS t_sale
+                FROM jobc_parts_p
+                INNER JOIN jobc_parts ON jobc_parts_p.parts_sale_id = jobc_parts.parts_sale_id
+                INNER JOIN p_parts_subcat ON jobc_parts_p.part_no = p_parts_subcat.partnumber
+                INNER JOIN jobcard ON jobc_parts.RO_no = jobcard.Jobc_id
+                WHERE DATE_FORMAT(jobc_parts_p.date_time,'%Y-%m-%d') BETWEEN ? AND ?
+                " . ($sa ? "AND jobcard.SA = '$sa'" : '') . "
+                GROUP BY p_parts_subcat.subcategory
+            ) AS x GROUP BY subcategory ORDER BY t_sale DESC", [$from, $to]);
+        return view('service.sm.reports.sa-parts', compact('query','saList','sa','from','to'));
+    }
+
+    // ─── campaign.php ───
+    public function reportCampaign(Request $request)
+    {
+        [$from, $to] = $this->getDateRange($request);
+        $source   = $request->source ?? '';
+        $campaign = $request->campaign ?? '';
+        $campaigns = DB::table('s_campaigns')->where('nature','Campaign')->pluck('campaign_name');
+        $sources   = DB::table('s_campaigns')->where('nature','CustType')->pluck('campaign_name');
+        $query = DB::table('jobc_invoice')
+            ->join('jobcard','jobc_invoice.Jobc_id','=','jobcard.Jobc_id')
+            ->whereBetween(DB::raw("DATE_FORMAT(jobc_invoice.datetime,'%Y-%m-%d')"),[$from,$to])
+            ->where('jobcard.status','>',1)
+            ->selectRaw("jobcard.RO_type, COUNT(jobc_invoice.Jobc_id) AS ROs,
+                SUM(jobc_invoice.Lnet) AS Labor, SUM(jobc_invoice.Pnet) AS Parts,
+                SUM(jobc_invoice.Snet) AS Sublet, SUM(jobc_invoice.Cnet) AS Consumble,
+                SUM(jobc_invoice.Total) AS Total")
+            ->groupBy('jobcard.RO_type');
+        if ($source)   $query->where('jobcard.cust_source', $source);
+        if ($campaign) $query->where('jobcard.comp_appointed', $campaign);
+        $rows = $query->get();
+        return view('service.sm.reports.campaign', compact('rows','campaigns','sources','source','campaign','from','to'));
+    }
+
+    // ─── visits.php ───
+    public function reportVisits(Request $request)
+    {
+        $rows = DB::table('jobcard')
+            ->join('vehicles_data','jobcard.Vehicle_id','=','vehicles_data.Vehicle_id')
+            ->join('customer_data','jobcard.Customer_id','=','customer_data.Customer_id')
+            ->selectRaw("vehicles_data.Frame_no, vehicles_data.Registration, vehicles_data.Variant,
+                jobcard.Customer_name, customer_data.mobile,
+                COUNT(jobcard.Jobc_id) AS total_visits,
+                GROUP_CONCAT(jobcard.cust_source ORDER BY jobcard.Jobc_id ASC) AS sources,
+                GROUP_CONCAT(jobcard.serv_nature ORDER BY jobcard.Jobc_id ASC) AS natures")
+            ->groupBy('vehicles_data.Frame_no','vehicles_data.Registration','vehicles_data.Variant',
+                      'jobcard.Customer_name','customer_data.mobile')
+            ->orderByDesc('total_visits')
+            ->limit(500)->get();
+        return view('service.sm.reports.visits', compact('rows'));
+    }
+
+    // LEGACY reports() kept for old tab-based view:
+    public function reportsLegacy(Request $request)
     {
         $tab      = $request->input('tab', 'summary');
         $fromDate = $request->input('from_date', now()->startOfMonth()->toDateString());

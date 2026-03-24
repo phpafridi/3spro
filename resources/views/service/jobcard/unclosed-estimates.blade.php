@@ -4,7 +4,7 @@
     @include('service.partials.jobcard-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-5">
         <h2 class="text-xl font-semibold text-gray-800">Open Estimates</h2>
         <a href="{{ route('jobcard.estimate.create') }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">

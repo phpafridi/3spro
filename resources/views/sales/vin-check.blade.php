@@ -4,7 +4,7 @@
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
 
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-800">VIN Check — Pending
             <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-sm rounded-full">{{ $pending->count() }}</span>

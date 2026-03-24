@@ -2,7 +2,7 @@
 @include('finance.accounts.sidebar')
 @section('title', 'Accounts - Reopened Vouchers')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-undo text-orange-500 mr-2"></i>Reopened Vouchers
@@ -38,7 +38,7 @@
                         <form method="POST" action="{{ route('accounts.reopened-vouchers') }}">
                             @csrf
                             <input type="hidden" name="Submitit" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-green-500 text-white rounded-lg text-xs hover:bg-green-600">
+                            <button class="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
                                 <i class="fas fa-paper-plane mr-1"></i>Re-submit
                             </button>
                         </form>
@@ -46,7 +46,7 @@
                               onsubmit="return confirm('Trash this voucher?')">
                             @csrf
                             <input type="hidden" name="vch_status_cancel" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600">
+                            <button class="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">
                                 <i class="fas fa-trash mr-1"></i>Trash
                             </button>
                         </form>

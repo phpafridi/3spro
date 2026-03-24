@@ -5,7 +5,7 @@
 @endsection
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold text-gray-800">Invoice Details — RO# {{ $jobcard->Jobc_id }}</h2>
             <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">

@@ -2,7 +2,7 @@
 @section('title', 'Sales - Unclose Jobcards')
 @section('sidebar-menu') @include('sales.partials.sidebar') @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-800">Unclosed Jobcards
             <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-sm rounded-full">{{ count($jobcards) }}</span>

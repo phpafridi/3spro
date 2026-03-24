@@ -16,22 +16,27 @@ class JobController extends Controller
         $pendingJobs = DB::table('jobcard as jc')
             ->join('jobc_labor as jl', 'jc.Jobc_id', '=', 'jl.RO_no')
             ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
-            ->where('jc.status', '1')
-            ->where(function($query) {
-                $query->where('jl.status', '')
-                      ->orWhereNull('jl.status');
-            })
+            ->leftJoin('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
+            ->where('jc.status', 1)  // Use integer, not string
             ->where('jl.type', 'Workshop')
+            ->where(function ($query) {
+                $query->where('jl.status', '')
+                    ->orWhereNull('jl.status')
+                    ->orWhere('jl.status', '0');  // Sometimes status '0' might mean pending
+            })
             ->select(
                 'jl.Labor_id',
                 'jl.RO_no',
                 'jl.Labor',
                 'jl.entry_time',
+                'jl.status as labor_status',
                 'v.Variant',
                 'v.Registration',
-                'jc.SA'
+                'jc.SA',
+                'jc.Customer_name',
+                DB::raw('COALESCE(c.mobile, "N/A") as mobile')
             )
-            ->orderBy('jl.entry_time', 'desc')
+            ->orderByDesc('jl.entry_time')
             ->get();
 
         return view('service.jc.index', compact('pendingJobs'));
@@ -46,7 +51,7 @@ class JobController extends Controller
             ->join('jobc_sublet as js', 'jc.Jobc_id', '=', 'js.RO_no')
             ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
             ->where('jc.status', '1')
-            ->where('js.status', '')
+            ->where('js.status', '0')
             ->select(
                 'js.sublet_id',
                 'js.RO_no',
@@ -267,7 +272,7 @@ class JobController extends Controller
                 ->where('sublet_id', $request->sublet_id)
                 ->update([
                     'Vendor' => $request->Vendor,
-                    'status' => 'Assigned',
+                    'status' => 'JobDone',
                     'parts_details' => $request->parts_details,
                     'Asign_time' => now(),
                     'who_taking' => $request->who_taking,

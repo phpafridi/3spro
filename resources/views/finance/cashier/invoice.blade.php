@@ -30,7 +30,7 @@
 @endpush
 
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-file-invoice text-red-500 mr-2"></i>
@@ -42,7 +42,7 @@
     </div>
 
     <!-- Job Details -->
-    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+    <div class="bg-gray-50 rounded p-4 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <p class="text-xs text-gray-500">Customer</p>
@@ -207,24 +207,19 @@
         </div>
 
         <!-- Care Of (for DM) -->
-        <div id="careof-container" class="mb-6 hidden">
+        <div id="careof-container" class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Care Of *</label>
-            <select name="careoff" class="w-full md:w-96 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select...</option>
-                @foreach($recoveryAccounts as $account)
-                <option value="{{ $account->Name }}">{{ $account->Name }}</option>
-                @endforeach
-            </select>
+            <input type="text" name="careoff" class="w-full md:w-96 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" />
         </div>
 
         <!-- Submit Buttons -->
         <div class="flex justify-between items-center">
             <button type="submit" formaction="{{ route('cashier.save-invoice') }}"
-                    class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
+                    class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors">
                 <i class="fas fa-save mr-2"></i> Submit & Print
             </button>
             <button type="submit" formaction="{{ route('cashier.tax-invoice') }}"
-                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors">
                 <i class="fas fa-file-invoice mr-2"></i> Sales Tax Invoice
             </button>
         </div>

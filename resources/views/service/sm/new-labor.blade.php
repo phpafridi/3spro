@@ -6,12 +6,12 @@
 
 @section('content')
 @if(session('success'))
-    <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+    <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
         {{ session('success') }}
     </div>
 @endif
 
-<div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+<div class="bg-white rounded border border-gray-200 p-6 mb-6">
     <h2 class="text-lg font-medium text-gray-800 mb-4 pb-2 border-b border-gray-100">Request New Labor</h2>
 
     <form method="POST" action="{{ route('sm.new-labor.store') }}">
@@ -66,7 +66,7 @@
     </form>
 </div>
 
-<div class="bg-white rounded-lg border border-gray-200 p-6">
+<div class="bg-white rounded border border-gray-200 p-6">
     <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
         <h2 class="text-lg font-medium text-gray-800">Previous Requests</h2>
         <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">{{ $requests->count() }}</span>

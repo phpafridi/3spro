@@ -5,13 +5,13 @@
 @endsection
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-5">SMS Template Management
         <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $smsList->count() }}</span>
     </h2>
     <div class="space-y-4">
         @foreach($smsList as $sms)
-        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <div class="border border-gray-200 rounded p-4 bg-gray-50">
             <form method="POST" action="{{ route('sm.sms.update') }}">
                 @csrf
                 <input type="hidden" name="edit_sms_id" value="{{ $sms->id }}">

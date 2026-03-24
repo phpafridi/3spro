@@ -6,7 +6,7 @@
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
 <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-    <div class="md:col-span-2 bg-white rounded-lg shadow-sm p-6">
+    <div class="md:col-span-2 bg-white rounded shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Add Insurance Company</h2>
         <form method="POST" action="{{ route('sm.insurance.store') }}" class="space-y-3">
             @csrf
@@ -22,7 +22,7 @@
             </button>
         </form>
     </div>
-    <div class="md:col-span-3 bg-white rounded-lg shadow-sm p-6">
+    <div class="md:col-span-3 bg-white rounded shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Insurance Companies
             <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $companies->count() }}</span>
         </h2>

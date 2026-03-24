@@ -12,7 +12,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
     {{-- ADD FORM --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Add Labor — Estimate #{{ $estmId }}</h2>
 
         <form method="POST" action="{{ route('jobcard.estimate.labor.store') }}" class="space-y-3">
@@ -54,7 +54,7 @@
     </div>
 
     {{-- EXISTING ITEMS --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h3 class="font-semibold text-gray-700 mb-3">Labor Estimated — Estm #{{ $estmId }}</h3>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">

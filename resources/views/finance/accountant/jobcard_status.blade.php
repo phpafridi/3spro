@@ -2,13 +2,13 @@
 @include('finance.accountant.sidebar')
 @section('title', 'Accountant - Jobcard Status')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">
-        <i class="fas fa-sign-out-alt text-indigo-500 mr-2"></i> Jobcard Status
+        <i class="fas fa-sign-out-alt text-red-500 mr-2"></i> Jobcard Status
     </h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gradient-to-r from-indigo-600 to-purple-600">
+            <thead class="bg-red-600">
                 <tr>
                     @foreach(['JC #','Customer','Vehicle','Reg','Mobile','MSI','SA','Status','Invoice','Total','Rec','Action'] as $h)
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">{{ $h }}</th>
@@ -42,7 +42,7 @@
                     <td class="px-4 py-3">
                         @if($j->Invoice_id)
                         <a href="{{ route('cashier.print-invoice', ['id'=>$j->Invoice_id]) }}" target="_blank"
-                           class="text-indigo-600 hover:underline text-xs">Print</a>
+                           class="text-red-600 hover:underline text-xs">Print</a>
                         @endif
                     </td>
                 </tr>

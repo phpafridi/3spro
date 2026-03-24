@@ -2,13 +2,13 @@
 @include('finance.accountant.sidebar')
 @section('title', 'Reopen Jobcard')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">
-        <i class="fas fa-undo text-indigo-500 mr-2"></i> Reopen JC Requests
+        <i class="fas fa-undo text-red-500 mr-2"></i> Reopen JC Requests
     </h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gradient-to-r from-indigo-600 to-purple-600">
+            <thead class="bg-red-600">
                 <tr>
                     @foreach(['#','JC ID','SM Reason','Requested By','SM Date','Action'] as $h)
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">{{ $h }}</th>
@@ -29,13 +29,13 @@
                             @csrf
                             <input type="hidden" name="Jobc_id" value="{{ $r->jobc_id }}">
                             <input type="hidden" name="unjc_Id" value="{{ $r->unjc_Id }}">
-                            <button class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg">Approve</button>
+                            <button class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded">Approve</button>
                         </form>
                         {{-- Reject --}}
                         <form method="POST" action="{{ route('accountant.reopen-jc.process') }}">
                             @csrf
                             <input type="hidden" name="unclose_id" value="{{ $r->unjc_Id }}">
-                            <button class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg">Reject</button>
+                            <button class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded">Reject</button>
                         </form>
                     </td>
                 </tr>

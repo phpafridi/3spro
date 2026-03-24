@@ -13,7 +13,7 @@
 @endif
 
 <div class="max-w-3xl mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-2">
             RO# <span class="text-red-600">{{ $jobcId }}</span> — Vehicle Items Checklist
         </h2>

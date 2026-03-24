@@ -5,7 +5,7 @@
 @endsection
 @section('content')
 @push('once') {{-- content inserted by controller --}} @endpush
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-800">Estimate RO - #' . $estimate->est_id)</h2>
         <a href="{{ route('jobcard.unclosed-estimates') }}" class="text-sm text-gray-500 hover:text-gray-700">

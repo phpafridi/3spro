@@ -4,7 +4,7 @@
     @include('service.partials.jobcard-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Search Engine</h2>
 
     <form method="POST" action="{{ route('jobcard.search') }}" class="flex flex-wrap gap-3 mb-6">

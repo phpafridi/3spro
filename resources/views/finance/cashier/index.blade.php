@@ -7,7 +7,7 @@
 <!-- Auto-refresh meta tag -->
 <meta http-equiv="refresh" content="10">
 
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-clock text-yellow-500 mr-2"></i>
@@ -56,7 +56,7 @@
                         <form action="{{ route('cashier.invoice') }}" method="POST" target="_blank">
                             @csrf
                             <input type="hidden" name="job_id" value="{{ $invoice->Jobc_id }}">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors">
                                 <i class="fas fa-file-invoice mr-2"></i> Invoice
                             </button>
                         </form>
@@ -76,7 +76,7 @@
 </div>
 
 <!-- Auto-refresh notification -->
-<div class="fixed bottom-4 right-4 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-2 rounded-lg shadow-lg text-sm">
+<div class="fixed bottom-4 right-4 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-2 rounded shadow-lg text-sm">
     <i class="fas fa-sync-alt mr-2 animate-spin"></i> Page auto-refreshes every 10 seconds
 </div>
 @endsection

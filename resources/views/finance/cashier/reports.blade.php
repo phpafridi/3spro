@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-chart-line text-purple-500 mr-2"></i>
@@ -44,7 +44,7 @@
                 <input type="hidden" name="type" value="{{ $type }}">
                 <input type="hidden" name="daterange" class="daterange-input">
                 <button type="submit"
-                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors">
                     {{ $type }}
                 </button>
             </form>
@@ -60,7 +60,7 @@
                 @csrf
                 <input type="hidden" name="daterange" class="daterange-input">
                 <button type="submit"
-                        class="px-4 py-2 bg-green-700 hover:bg-green-800 text-white text-sm font-medium rounded-lg transition-colors">
+                        class="px-4 py-2 bg-green-700 hover:bg-green-800 text-white text-sm font-medium rounded transition-colors">
                     Business Summary
                 </button>
             </form>

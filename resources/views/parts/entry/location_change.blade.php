@@ -6,23 +6,23 @@
 </div>
 @if(session('success'))<div class="mb-4 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-r-xl">{{ session('success') }}</div>@endif
 <div class="max-w-xl">
-<div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+<div class="bg-white rounded shadow-sm border border-gray-200 p-6">
 <form action="{{ route('parts.location-change.update') }}" method="POST">
 @csrf
 <div class="space-y-4">
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Part Number <span class="text-red-500">*</span></label>
         <input type="text" name="typeahead" id="locPartSearch" required autocomplete="off"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Search part number...">
+               class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500" placeholder="Search part number...">
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">New Location <span class="text-red-500">*</span></label>
         <input type="text" name="location" required
-               class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="e.g. Shelf B-3">
+               class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500" placeholder="e.g. Shelf B-3">
     </div>
 </div>
 <div class="mt-6">
-    <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all">Update Location</button>
+    <button type="submit" class="w-full bg-red-600 text-white py-2.5 rounded font-medium hover:bg-red-700 transition-all">Update Location</button>
 </div>
 </form>
 </div>

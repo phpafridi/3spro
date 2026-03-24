@@ -2,7 +2,7 @@
 @section('title', 'Sales - JC Changes')
 @section('sidebar-menu') @include('sales.partials.sidebar') @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">JC Modifications</h2>
     <form method="GET" action="{{ route('sales.jc-changes') }}" class="flex gap-2">
         <input type="text" name="jobc_id" value="{{ $jobId ?? '' }}" required placeholder="Enter RO No..."
@@ -14,7 +14,7 @@
 </div>
 
 @if($jobcard)
-<div class="bg-white rounded-lg shadow-sm p-5 mb-4">
+<div class="bg-white rounded shadow-sm p-5 mb-4">
     <h3 class="font-semibold text-gray-700 mb-3">RO# {{ $jobId }} Info</h3>
     <div class="grid grid-cols-4 gap-3 text-sm">
         <div><span class="text-gray-500">Registration:</span> <span class="font-medium text-red-600">{{ $jobcard->Veh_reg_no }}</span></div>
@@ -31,7 +31,7 @@
 </div>
 
 @if($changes->count())
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h3 class="font-semibold text-gray-700 mb-3">Labor for RO# {{ $jobId }}
         <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $changes->count() }}</span>
     </h3>
@@ -69,10 +69,10 @@
     </div>
 </div>
 @else
-<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No labor found for RO# {{ $jobId }}.</div>
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">No labor found for RO# {{ $jobId }}.</div>
 @endif
 
 @elseif($jobId ?? false)
-<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">Jobcard #{{ $jobId }} not found.</div>
+<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">Jobcard #{{ $jobId }} not found.</div>
 @endif
 @endsection

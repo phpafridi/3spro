@@ -5,7 +5,7 @@
 @endsection
 @section('content')
 <div class="max-w-lg mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-2xl font-semibold text-gray-800 mb-6">Search &amp; Print</h2>
         <form method="POST" action="{{ route('sm.search') }}" class="space-y-4">
             @csrf

@@ -4,7 +4,7 @@
     @include('service.partials.jobcard-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">{{ $heading }}</h2>
         <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">
@@ -13,7 +13,7 @@
     </div>
 
     @forelse($jobcards as $jc)
-    <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+    <div class="mb-6 border border-gray-200 rounded overflow-hidden">
         {{-- Header row --}}
         <div class="bg-gray-50 border-b border-gray-200 px-4 py-3 grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
             <div>

@@ -4,7 +4,7 @@
     @include('service.partials.jobcard-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">Additional Jobs</h2>
         <input type="text" id="search" placeholder="Search..." class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -39,7 +39,7 @@
                             <a href="{{ route('jobcard.additional.consumable', $job->Jobc_id) }}" class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors">Consumble</a>
                             <a href="{{ route('jobcard.additional', $job->Jobc_id) }}" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors">View RO</a>
                             <a href="{{ route('jobcard.invoice') }}?job_id={{ $job->Jobc_id }}"
-                               class="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors">Invoice</a>
+                               class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">Invoice</a>
                         </div>
                     </td>
                 </tr>

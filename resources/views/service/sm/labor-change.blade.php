@@ -6,7 +6,7 @@
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
 @if(session('error'))<div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{{ session('error') }}</div>@endif
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h2 class="text-2xl font-semibold text-gray-800 mb-4">Labor Price Change <span class="text-sm font-normal text-gray-400">(Increase only)</span></h2>
     <form method="GET" action="{{ route('sm.labor-change') }}" class="flex gap-2">
         <input type="text" name="jobc_id" value="{{ $jobId ?? '' }}" required placeholder="RO No..."
@@ -17,7 +17,7 @@
     </form>
 </div>
 @if($labors->isNotEmpty())
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h3 class="font-semibold text-gray-700 mb-4">Labor for RO# {{ $jobId }}
         <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $labors->count() }}</span>
     </h3>
@@ -62,6 +62,6 @@
     </div>
 </div>
 @elseif($jobId ?? false)
-<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No labor found for RO# {{ $jobId }}.</div>
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">No labor found for RO# {{ $jobId }}.</div>
 @endif
 @endsection

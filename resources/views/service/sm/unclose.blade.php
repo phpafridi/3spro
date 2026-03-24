@@ -5,7 +5,7 @@
 @endsection
 @section('content')
 <div class="max-w-lg mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-2xl font-semibold text-gray-800 mb-2">Reopen / Unclose Jobcard</h2>
         @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
         @if(session('error'))<div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{{ session('error') }}</div>@endif

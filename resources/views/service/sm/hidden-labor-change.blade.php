@@ -6,7 +6,7 @@
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
 @if(session('error'))<div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{{ session('error') }}</div>@endif
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Advanced Change <span class="text-sm font-normal text-gray-400">(Labor + Sublet + Delete)</span></h2>
     <form method="GET" action="{{ route('sm.hidden-labor-change') }}" class="flex gap-2">
         <input type="text" name="jobc_id" value="{{ $jobId ?? '' }}" required placeholder="RO No..."
@@ -18,7 +18,7 @@
 </div>
 
 @if($labors->isNotEmpty())
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h3 class="font-semibold text-gray-700 mb-3">Labor — RO# {{ $jobId }}</h3>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -72,7 +72,7 @@
 @endif
 
 @if($sublets->isNotEmpty())
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h3 class="font-semibold text-gray-700 mb-3">Sublets — RO# {{ $jobId }}</h3>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -113,6 +113,6 @@
 @endif
 
 @if(($jobId ?? false) && $labors->isEmpty() && $sublets->isEmpty())
-<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No labor or sublets found for RO# {{ $jobId }}.</div>
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">No labor or sublets found for RO# {{ $jobId }}.</div>
 @endif
 @endsection

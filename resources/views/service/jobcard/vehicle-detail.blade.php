@@ -12,7 +12,7 @@
 <div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">{{ session('error') }}</div>
 @endif
 
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-800">Vehicle Details</h2>
         <a href="{{ route('jobcard.add-vehicle') }}" class="text-sm text-gray-500 hover:text-gray-700">

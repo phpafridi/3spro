@@ -18,8 +18,8 @@ class JobcardController extends Controller
     {
         $unclosedJobs = DB::table('jobcard as jc')
             ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
-            ->join('customer_data as c', 'v.Customer_id', '=', 'c.Customer_id')
-            ->whereIn('jc.status', ['0', '1'])
+            ->where('jc.status', 0)
+            ->where('jc.SA', session('login_id'))
             ->select(
                 'jc.Jobc_id',
                 'jc.Open_date_time',
@@ -29,12 +29,11 @@ class JobcardController extends Controller
                 'jc.Mileage',
                 'jc.comp_appointed',
                 'jc.MSI_cat',
+                'jc.Customer_name',
+                'jc.Customer_id',
                 'v.Registration',
                 'v.Variant',
-                'v.Frame_no',
-                'c.Customer_name',
-                'c.mobile',
-                'c.Customer_id'
+                'v.Frame_no'
             )
             ->orderBy('jc.Open_date_time', 'desc')
             ->get();
@@ -52,8 +51,8 @@ class JobcardController extends Controller
 
     public function searchVehicleResult(Request $request)
     {
-        $reg   = strtoupper(trim($request->input('Registration', '')));
-        $fram  = strtoupper(trim($request->input('fram', '')));
+        $reg = strtoupper(trim($request->input('Registration', '')));
+        $fram = strtoupper(trim($request->input('fram', '')));
         $reserved = ['NEW', 'AFR', 'APL'];
 
         if ($reg && in_array($reg, $reserved)) {
@@ -87,7 +86,7 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function newVehicleForm(Request $request)
     {
-        $field  = $request->query('field', 'Registration');
+        $field = $request->query('field', 'Registration');
         $regFam = $request->query('reg_fam', '');
         return view('service.jobcard.new-vehicle', compact('field', 'regFam'));
     }
@@ -96,33 +95,33 @@ class JobcardController extends Controller
     {
         $request->validate([
             'registration' => 'required|string|max:20',
-            'varaint'      => 'required|string|max:100',
+            'varaint' => 'required|string|max:100',
         ]);
 
-        $intosell  = $request->has('intosell') ? 'on' : '';
+        $intosell = $request->has('intosell') ? 'on' : '';
 
         DB::table('vehicles_data')->insert([
-            'Customer_id'  => 0,
+            'Customer_id' => 0,
             'Registration' => strtoupper($request->registration),
-            'Frame_no'     => strtoupper($request->fram ?? ''),
-            'Engine_code'    => $request->engine ?? '',
-            'Engine_number'    => $request->engine_no ?? '',
-            'cust_id'      => 0,
-            'Customer_id'      => 0,
+            'Frame_no' => strtoupper($request->fram ?? ''),
+            'Engine_code' => $request->engine ?? '',
+            'Engine_number' => $request->engine_no ?? '',
+            'cust_id' => 0,
+            'Customer_id' => 0,
             'Wrnty_book_no' => 'nil',
             'Insurance' => 'nil',
-            'user' => Auth::user()->name ?? 'unkown',
-            'updated_by' => Auth::user()->name ?? 'unkown',
+            'user' => Auth::user()->login_id ?? 'unkown',
+            'updated_by' => Auth::user()->login_id ?? 'unkown',
             'own_vehicle' => 'nil',
             'v_status' => 'nil',
-            'Variant'      => $request->varaint,
-            'Model'        => $request->model ?? '',
-            'Colour'       => $request->color ?? '',
-            'Make'         => $request->make ?? '',
-            'into_sell'    => $intosell,
-            'model_year'   => $intosell ? ($request->model_year ?? '') : '',
+            'Variant' => $request->varaint,
+            'Model' => $request->model ?? '',
+            'Colour' => $request->color ?? '',
+            'Make' => $request->make ?? '',
+            'into_sell' => $intosell,
+            'model_year' => $intosell ? ($request->model_year ?? '') : '',
             'demand_price' => $intosell ? ($request->demandprice ?? '') : '',
-            'Update_date'  => now()->toDateString(),
+            'Update_date' => now()->toDateString(),
         ]);
 
         $vehicleId = DB::table('vehicles_data')
@@ -141,10 +140,12 @@ class JobcardController extends Controller
     public function vehicleDetail(Request $request)
     {
         $vehicleId = $request->query('vehicle_id');
-        if (!$vehicleId) abort(404);
+        if (!$vehicleId)
+            abort(404);
 
         $vehicle = DB::table('vehicles_data')->where('Vehicle_id', $vehicleId)->first();
-        if (!$vehicle) abort(404);
+        if (!$vehicle)
+            abort(404);
 
         // Original jobcard_2.php query:
         // SELECT ... FROM s_cust_veh
@@ -188,45 +189,47 @@ class JobcardController extends Controller
     public function addCustomerForm(Request $request)
     {
         $vehicleId = $request->query('vehicle_id');
-        if (!$vehicleId) abort(404);
+        if (!$vehicleId)
+            abort(404);
         return view('service.jobcard.add-customer', compact('vehicleId'));
     }
 
     public function storeCustomer(Request $request)
     {
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'mobile'     => 'required|string|max:20',
+            'name' => 'required|string|max:255',
+            'mobile' => 'required|string|max:20',
             'vehicle_id' => 'required|integer',
         ]);
 
         $vehicleId = $request->vehicle_id;
-        $name      = strtoupper($request->name);
+        $name = strtoupper($request->name);
 
         if (strpos($name, '----') !== false) {
             // Existing customer — just link
             DB::table('s_cust_veh')->insert(['cust_id' => $request->email, 'veh_id' => $vehicleId]);
         } else {
             $customerId = DB::table('customer_data')->insertGetId([
-                'Vehicle_id'    => $vehicleId,
+                'Vehicle_id' => $vehicleId,
                 'old_id' => 'nill',
                 'NTN' => 'nill',
                 'STRN' => 'nill',
                 'Supplier' => 'nill',
                 'c_status' => 'nill',
-                'updated_by' => Auth::user()->name ?? 'unkown',
-                'cust_type'     => $request->cust_type ?? '',
-                'contact_type'  => $request->contact_type ?? '',
+                'updated_by' => Auth::user()->login_id ?? 'unkown',
+                'cust_type' => $request->cust_type ?? '',
+                'contact_type' => $request->contact_type ?? '',
                 'Customer_name' => $name,
-                'off_phone'     => $request->off_phone ?? '',
-                'mobile'        => $request->mobile,
-                'DOB'           => $request->dob ?? null,
-                'City'          => $request->city ?? '',
-                'Region'        => $request->region ?? '',
-                'Address'       => $request->address ?? '',
-                'email'         => $request->email ?? '',
-                'CNIC'          => $request->cnic ?? '',
-                'user'          => Auth::user()->login_id,
+                'off_phone' => $request->off_phone ?? '',
+                'mobile' => $request->mobile,
+                'DOB' => $request->dob ?? null,
+                'City' => $request->city ?? '',
+                'Region' => $request->region ?? '',
+                'Address' => $request->address ?? '',
+                'email' => $request->email ?? '',
+                'CNIC' => $request->cnic ?? '',
+
+                'user' => Auth::user()->login_id,
                 'update_date' => now()->toDateTimeString(),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -245,9 +248,10 @@ class JobcardController extends Controller
     public function editCustomer(Request $request, $customerId)
     {
         $customer = DB::table('customer_data')->where('Customer_id', $customerId)->first();
-        if (!$customer) abort(404);
+        if (!$customer)
+            abort(404);
 
-        $roNo      = $request->query('ro_no');
+        $roNo = $request->query('ro_no');
         $vehicleId = $request->query('vehicle_id');
 
         return view('service.jobcard.customer-edit', compact('customer', 'roNo', 'vehicleId'));
@@ -257,28 +261,28 @@ class JobcardController extends Controller
     {
         $request->validate([
             'cust_id' => 'required|integer',
-            'mobile'  => 'required|string|max:20',
-            'name'    => 'required|string|max:255',
+            'mobile' => 'required|string|max:20',
+            'name' => 'required|string|max:255',
         ]);
 
         DB::table('customer_data')
             ->where('Customer_id', $request->cust_id)
             ->update([
-                'cust_type'     => $request->cust_type,
+                'cust_type' => $request->cust_type,
                 'Customer_name' => strtoupper($request->name),
-                'DOB'           => $request->dob,
-                'City'          => $request->city,
-                'Region'        => $request->region,
-                'off_phone'     => $request->off_phone,
-                'mobile'        => $request->mobile,
-                'Address'       => $request->address,
-                'email'         => $request->email,
-                'NTN'           => $request->ntn,
-                'STRN'          => $request->strn,
-                'Supplier'      => $request->supplier,
-                'CNIC'          => $request->cnic,
-                'updated_by'    => Auth::user()->login_id,
-                'Update_date'   => now(),
+                'DOB' => $request->dob,
+                'City' => $request->city,
+                'Region' => $request->region,
+                'off_phone' => $request->off_phone,
+                'mobile' => $request->mobile,
+                'Address' => $request->address,
+                'email' => $request->email,
+                'NTN' => $request->ntn,
+                'STRN' => $request->strn,
+                'Supplier' => $request->supplier,
+                'CNIC' => $request->cnic,
+                'updated_by' => Auth::user()->login_id,
+                'Update_date' => now(),
             ]);
 
         if ($request->ro_no) {
@@ -296,15 +300,17 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function createJobcard(Request $request)
     {
-        $vehicleId  = $request->query('vehicle_id');
+        $vehicleId = $request->query('vehicle_id');
         $customerId = $request->query('customer_id');
 
-        if (!$vehicleId || !$customerId) abort(404);
+        if (!$vehicleId || !$customerId)
+            abort(404);
 
-        $vehicle  = DB::table('vehicles_data')->where('Vehicle_id', $vehicleId)->first();
+        $vehicle = DB::table('vehicles_data')->where('Vehicle_id', $vehicleId)->first();
         $customer = DB::table('customer_data')->where('Customer_id', $customerId)->first();
 
-        if (!$vehicle || !$customer) abort(404);
+        if (!$vehicle || !$customer)
+            abort(404);
 
         $campaigns = DB::table('s_campaigns')
             ->whereDate('c_to', '>=', now()->toDateString())
@@ -336,19 +342,19 @@ class JobcardController extends Controller
     public function storeJobcard(Request $request)
     {
         $request->validate([
-            'veh_id'  => 'required|integer',
+            'veh_id' => 'required|integer',
             'cust_id' => 'required|integer',
             'ro_type' => 'required|string',
-            'milage'  => 'required|integer|min:0',
-            'VOC'     => 'required|string|min:5',
+            'milage' => 'required|integer|min:0',
+            'VOC' => 'required|string|min:5',
         ]);
 
-        $vehId    = $request->veh_id;
-        $custId   = $request->cust_id;
-        $vehReg   = strtoupper($request->veh_reg ?? '');
+        $vehId = $request->veh_id;
+        $custId = $request->cust_id;
+        $vehReg = strtoupper($request->veh_reg ?? '');
         $custName = strtoupper($request->cust_name ?? '');
-        $frameNo  = $request->Frame_no ?? '';
-        $SA       = Auth::user()->login_id;
+        $frameNo = $request->Frame_no ?? '';
+        $SA = Auth::user()->login_id;
 
         // Check appointment ±3 days
         $custSource = $request->cust_source ?? 'None';
@@ -379,24 +385,32 @@ class JobcardController extends Controller
         }
 
         $jobcId = DB::table('jobcard')->insertGetId([
-            'Vehicle_id'     => $vehId,
-            'Customer_id'    => $custId,
-            'Customer_name'  => $custName,
-            'Veh_reg_no'     => $vehReg,
+            'Vehicle_id' => $vehId,
+            'Customer_id' => $custId,
+            'Customer_name' => $custName,
+            'Veh_reg_no' => $vehReg,
             'comp_appointed' => $request->compaign ?? 'None',
-            'cust_source'    => $custSource,
-            'MSI_cat'        => $request->msi_category ?? '',
-            'RO_type'        => $request->ro_type,
-            'serv_nature'    => $request->serv_nature ?? '',
-            'Fuel'           => $request->fuel ?? 'Half',
-            'Mileage'        => $request->milage,
-            'VOC'            => $request->VOC,
-            'Estim_time'     => $request->estimat_time ?: null,
-            'Estim_cost'     => $request->estimatedcost ?? '',
-            'Diagnose_by'    => $request->Diagnozer ?? '',
-            'SA'             => $SA,
+            'cust_source' => $custSource,
+            'MSI_cat' => $request->msi_category ?? '',
+            'RO_type' => $request->ro_type,
+            'serv_nature' => $request->serv_nature ?? '',
+            'Fuel' => $request->fuel ?? 'Half',
+            'Mileage' => $request->milage,
+            'cust_waiting' => 0,
+            'VOC' => $request->VOC,
+            'Estim_time' => $request->estimat_time ?: null,
+            'closing_time' => $request->estimat_time ?: null,
+            'Estim_cost' => $request->estimatedcost ?? '',
+            'Diagnose_by' => $request->Diagnozer ?? '',
+            'SA' => $SA,
             'Open_date_time' => now(),
-            'status'         => 0,
+            'PSFU' => 0,
+            'status' => 0,
+            'rating_done' => 0,
+            'PM_status' => 0,
+            'RO_no' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         // Update appointment
@@ -415,18 +429,18 @@ class JobcardController extends Controller
                 ->first();
 
             if ($vinRow) {
-                $listRow  = DB::table('s_upload_listname')->where('list_id', $vinRow->uploaded_id)->first();
+                $listRow = DB::table('s_upload_listname')->where('list_id', $vinRow->uploaded_id)->first();
                 $listName = $listRow ? $listRow->list_name : 'a recall list';
 
                 DB::table('s_vin_check')->insert([
-                    'jobcard'   => $jobcId,
-                    'frameno'   => $vinRow->VIN,
-                    'listid'    => $vinRow->uploaded_id,
-                    'full_vin'  => $vinRow->full_VIN,
-                    'veh_id'    => $vehId,
+                    'jobcard' => $jobcId,
+                    'frameno' => $vinRow->VIN,
+                    'listid' => $vinRow->uploaded_id,
+                    'full_vin' => $vinRow->full_VIN,
+                    'veh_id' => $vehId,
                     'cust_name' => $custName,
-                    'cust_id'   => $custId,
-                    'veh_reg'   => $vehReg,
+                    'cust_id' => $custId,
+                    'veh_reg' => $vehReg,
                 ]);
 
                 return redirect()->route('jobcard.checklist', $jobcId)
@@ -443,7 +457,8 @@ class JobcardController extends Controller
     public function checklist($jobcId)
     {
         $jobcard = DB::table('jobcard')->where('Jobc_id', $jobcId)->first();
-        if (!$jobcard) abort(404);
+        if (!$jobcard)
+            abort(404);
         return view('service.jobcard.checklist', compact('jobcard', 'jobcId'));
     }
 
@@ -452,29 +467,29 @@ class JobcardController extends Controller
         $jobcId = $request->jobc_id;
 
         DB::table('jobc_checklist')->insert([
-            'RO_id'       => $jobcId,
-            'usb'         => $request->has('USB')             ? 1 : 0,
-            'cardreader'  => $request->has('Reader')          ? 1 : 0,
-            'ashtray'     => $request->has('AshTray')         ? 1 : 0,
-            'lighter'     => $request->has('Lighter')         ? 1 : 0,
-            'wiperblader' => $request->has('WiperBlades')     ? 1 : 0,
-            'seatcover'   => $request->has('SeatCovers')      ? 1 : 0,
-            'dickymat'    => $request->has('DickeyMat')       ? 1 : 0,
-            'sparewheel'  => $request->has('SpareWheel')      ? 1 : 0,
-            'jackhandle'  => $request->has('JackHandle')      ? 1 : 0,
-            'tools'       => $request->has('Tools')           ? 1 : 0,
-            'perfume'     => $request->has('Perfume')         ? 1 : 0,
-            'remote'      => $request->has('Remote')          ? 1 : 0,
-            'floormate'   => $request->has('FloorMats')       ? 1 : 0,
-            'mirror'      => $request->has('RearViewMirrors') ? 1 : 0,
-            'cassete'     => $request->has('Cassettes')       ? 1 : 0,
-            'hubcaps'     => $request->has('Hubcaps')         ? 1 : 0,
-            'wheelcaps'   => $request->has('Wheelcaps')       ? 1 : 0,
-            'monogram'    => $request->has('Monograms')       ? 1 : 0,
-            'extrakeys'   => $request->has('Noofkeys')        ? 1 : 0,
-            'anttena'     => $request->has('RadioAntenna')    ? 1 : 0,
-            'clock'       => $request->has('Clock')           ? 1 : 0,
-            'Navigation'  => $request->has('Nav_sys')         ? 1 : 0,
+            'RO_id' => $jobcId,
+            'usb' => $request->has('USB') ? 1 : 0,
+            'cardreader' => $request->has('Reader') ? 1 : 0,
+            'ashtray' => $request->has('AshTray') ? 1 : 0,
+            'lighter' => $request->has('Lighter') ? 1 : 0,
+            'wiperblader' => $request->has('WiperBlades') ? 1 : 0,
+            'seatcover' => $request->has('SeatCovers') ? 1 : 0,
+            'dickymat' => $request->has('DickeyMat') ? 1 : 0,
+            'sparewheel' => $request->has('SpareWheel') ? 1 : 0,
+            'jackhandle' => $request->has('JackHandle') ? 1 : 0,
+            'tools' => $request->has('Tools') ? 1 : 0,
+            'perfume' => $request->has('Perfume') ? 1 : 0,
+            'remote' => $request->has('Remote') ? 1 : 0,
+            'floormate' => $request->has('FloorMats') ? 1 : 0,
+            'mirror' => $request->has('RearViewMirrors') ? 1 : 0,
+            'cassete' => $request->has('Cassettes') ? 1 : 0,
+            'hubcaps' => $request->has('Hubcaps') ? 1 : 0,
+            'wheelcaps' => $request->has('Wheelcaps') ? 1 : 0,
+            'monogram' => $request->has('Monograms') ? 1 : 0,
+            'extrakeys' => $request->has('Noofkeys') ? 1 : 0,
+            'anttena' => $request->has('RadioAntenna') ? 1 : 0,
+            'clock' => $request->has('Clock') ? 1 : 0,
+            'Navigation' => $request->has('Nav_sys') ? 1 : 0,
         ]);
 
         return redirect()->route('jobcard.index')
@@ -486,7 +501,7 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function checkMileage(Request $request)
     {
-        $nic   = $request->input('NIC');
+        $nic = $request->input('NIC');
         $vehId = $request->input('veh_id');
 
         $last = DB::table('jobcard')
@@ -532,7 +547,7 @@ class JobcardController extends Controller
     // POST: Start Working
     public function startWorking(Request $request)
     {
-        $jobId         = $request->job_id;
+        $jobId = $request->job_id;
         $compAppointed = $request->comp_appointed;
 
         // Insert campaign labors
@@ -544,10 +559,10 @@ class JobcardController extends Controller
 
         foreach ($campaignLabors as $labor) {
             DB::table('jobc_labor')->insert([
-                'RO_no'      => $jobId,
-                'Labor'      => $labor->labour_des,
-                'type'       => 'Workshop',
-                'cost'       => $labor->labour_cost,
+                'RO_no' => $jobId,
+                'Labor' => $labor->labour_des,
+                'type' => 'Workshop',
+                'cost' => $labor->labour_cost,
                 'entry_time' => now(),
             ]);
         }
@@ -571,7 +586,7 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function createEstimate()
     {
-        $customers      = DB::table('customer_data')->orderBy('Customer_name')->get();
+        $customers = DB::table('customer_data')->orderBy('Customer_name')->get();
         $insurCompanies = DB::table('s_insurance_companies')->get();
         return view('service.jobcard.estimate', compact('customers', 'insurCompanies'));
     }
@@ -580,22 +595,22 @@ class JobcardController extends Controller
     {
         $request->validate([
             'estimate_type' => 'required|string',
-            'cust_id'       => 'required|integer',
-            'veh_id'        => 'required|integer',
+            'cust_id' => 'required|integer',
+            'veh_id' => 'required|integer',
         ]);
 
         DB::table('s_estimates')->insert([
-            'sur_cont'       => $request->sur_cont,
-            'estimate_type'  => $request->estimate_type,
-            'cust_id'        => $request->cust_id,
-            'veh_id'         => $request->veh_id,
-            'payment_mode'   => $request->payment_mode,
-            'cust_type'      => $request->cust_type,
-            'insur_company'  => $request->insur_company,
-            'surv_name'      => $request->surv_name,
-            'surv_type'      => $request->surv_type,
-            'est_delivery'   => $request->est_delivery,
-            'user'           => Auth::user()->login_id,
+            'sur_cont' => $request->sur_cont,
+            'estimate_type' => $request->estimate_type,
+            'cust_id' => $request->cust_id,
+            'veh_id' => $request->veh_id,
+            'payment_mode' => $request->payment_mode,
+            'cust_type' => $request->cust_type,
+            'insur_company' => $request->insur_company,
+            'surv_name' => $request->surv_name,
+            'surv_type' => $request->surv_type,
+            'est_delivery' => $request->est_delivery,
+            'user' => Auth::user()->login_id,
             'entry_datetime' => now(),
         ]);
 
@@ -612,12 +627,13 @@ class JobcardController extends Controller
             ->select('e.*', 'c.Customer_name', 'c.mobile', 'v.Registration', 'v.Variant')
             ->first();
 
-        if (!$estimate) abort(404);
+        if (!$estimate)
+            abort(404);
 
-        $labors     = DB::table('s_est_labor')->where('estm_id', $estimateId)->get();
-        $parts      = DB::table('s_est_parts')->where('estm_id', $estimateId)->get();
+        $labors = DB::table('s_est_labor')->where('estm_id', $estimateId)->get();
+        $parts = DB::table('s_est_parts')->where('estm_id', $estimateId)->get();
         $consumbles = DB::table('s_est_consumble')->where('estm_id', $estimateId)->get();
-        $sublets    = DB::table('s_est_sublet')->where('estm_id', $estimateId)->get();
+        $sublets = DB::table('s_est_sublet')->where('estm_id', $estimateId)->get();
 
         return view('service.jobcard.estimate-ro', compact('estimate', 'labors', 'parts', 'consumbles', 'sublets'));
     }
@@ -637,9 +653,10 @@ class JobcardController extends Controller
 
     public function estimateLabor($estmId)
     {
-        $estimate  = DB::table('s_estimates')->where('est_id', $estmId)->first();
-        if (!$estimate) abort(404);
-        $labors    = DB::table('s_est_labor')->where('estm_id', $estmId)->get();
+        $estimate = DB::table('s_estimates')->where('est_id', $estmId)->first();
+        if (!$estimate)
+            abort(404);
+        $labors = DB::table('s_est_labor')->where('estm_id', $estmId)->get();
         $laborList = DB::table('labor_list')->get();
         return view('service.jobcard.estm-labor', compact('estimate', 'labors', 'laborList', 'estmId'));
     }
@@ -649,8 +666,8 @@ class JobcardController extends Controller
         if ($request->jobrequest) {
             DB::table('s_est_labor')->insert([
                 'estm_id' => $request->job_id,
-                'Labor'   => $request->jobrequest,
-                'cost'    => $request->price,
+                'Labor' => $request->jobrequest,
+                'cost' => $request->price,
             ]);
         }
         return redirect()->route('jobcard.estimate.labor', $request->job_id)->with('success', 'Labor added.');
@@ -659,8 +676,9 @@ class JobcardController extends Controller
     public function estimatePart($estmId)
     {
         $estimate = DB::table('s_estimates')->where('est_id', $estmId)->first();
-        if (!$estimate) abort(404);
-        $parts    = DB::table('s_est_parts')->where('estm_id', $estmId)->get();
+        if (!$estimate)
+            abort(404);
+        $parts = DB::table('s_est_parts')->where('estm_id', $estmId)->get();
         return view('service.jobcard.estm-part', compact('estimate', 'parts', 'estmId'));
     }
 
@@ -668,11 +686,11 @@ class JobcardController extends Controller
     {
         if ($request->unitprice) {
             DB::table('s_est_parts')->insert([
-                'estm_id'          => $request->job_id,
+                'estm_id' => $request->job_id,
                 'part_description' => $request->part_description,
-                'qty'              => $request->qty,
-                'unitprice'        => $request->unitprice,
-                'total'            => $request->totalprice,
+                'qty' => $request->qty,
+                'unitprice' => $request->unitprice,
+                'total' => $request->totalprice,
             ]);
         }
         return redirect()->route('jobcard.estimate.part', $request->job_id)->with('success', 'Part added.');
@@ -680,8 +698,9 @@ class JobcardController extends Controller
 
     public function estimateConsumable($estmId)
     {
-        $estimate   = DB::table('s_estimates')->where('est_id', $estmId)->first();
-        if (!$estimate) abort(404);
+        $estimate = DB::table('s_estimates')->where('est_id', $estmId)->first();
+        if (!$estimate)
+            abort(404);
         $consumbles = DB::table('s_est_consumble')->where('estm_id', $estmId)->get();
         return view('service.jobcard.estm-consumable', compact('estimate', 'consumbles', 'estmId'));
     }
@@ -690,11 +709,11 @@ class JobcardController extends Controller
     {
         if ($request->unitprice) {
             DB::table('s_est_consumble')->insert([
-                'estm_id'          => $request->job_id,
+                'estm_id' => $request->job_id,
                 'part_description' => $request->part_description,
-                'qty'              => $request->qty,
-                'unitprice'        => $request->unitprice,
-                'total'            => $request->totalprice,
+                'qty' => $request->qty,
+                'unitprice' => $request->unitprice,
+                'total' => $request->totalprice,
             ]);
         }
         return redirect()->route('jobcard.estimate.consumable', $request->job_id)->with('success', 'Consumable added.');
@@ -703,8 +722,9 @@ class JobcardController extends Controller
     public function estimateSublet($estmId)
     {
         $estimate = DB::table('s_estimates')->where('est_id', $estmId)->first();
-        if (!$estimate) abort(404);
-        $sublets  = DB::table('s_est_sublet')->where('estm_id', $estmId)->get();
+        if (!$estimate)
+            abort(404);
+        $sublets = DB::table('s_est_sublet')->where('estm_id', $estmId)->get();
         return view('service.jobcard.estm-sublet', compact('estimate', 'sublets', 'estmId'));
     }
 
@@ -712,12 +732,12 @@ class JobcardController extends Controller
     {
         if ($request->unitprice) {
             DB::table('s_est_sublet')->insert([
-                'estm_id'   => $request->job_id,
-                'Sublet'    => $request->sublet,
-                'type'      => $request->type,
-                'qty'       => $request->qty,
+                'estm_id' => $request->job_id,
+                'Sublet' => $request->sublet,
+                'type' => $request->type,
+                'qty' => $request->qty,
                 'unitprice' => $request->unitprice,
-                'total'     => $request->totalprice,
+                'total' => $request->totalprice,
             ]);
         }
         return redirect()->route('jobcard.estimate.sublet', $request->job_id)->with('success', 'Sublet added.');
@@ -743,12 +763,13 @@ class JobcardController extends Controller
             )
             ->first();
 
-        if (!$jobcard) abort(404);
+        if (!$jobcard)
+            abort(404);
 
-        $labors     = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
-        $parts      = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
+        $labors = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
+        $parts = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
         $consumbles = DB::table('jobc_consumble')->where('RO_no', $jobId)->get();
-        $sublets    = DB::table('jobc_sublet')->where('RO_no', $jobId)->get();
+        $sublets = DB::table('jobc_sublet')->where('RO_no', $jobId)->get();
 
         return view('service.jobcard.additional', compact(
             'jobcard',
@@ -765,9 +786,10 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function additionalJobrequest($jobId)
     {
-        $jobcard   = DB::table('jobcard')->where('Jobc_id', $jobId)->first();
-        if (!$jobcard) abort(404);
-        $labors    = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
+        $jobcard = DB::table('jobcard')->where('Jobc_id', $jobId)->first();
+        if (!$jobcard)
+            abort(404);
+        $labors = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
         $laborList = DB::table('labor_list')->get();
         return view('service.jobcard.additional-jobrequest', compact('jobcard', 'labors', 'laborList', 'jobId'));
     }
@@ -775,15 +797,24 @@ class JobcardController extends Controller
     public function additionalJobrequestStore(Request $request)
     {
         if ($request->jobrequest) {
-            $type  = $request->type;
+            $type = $request->type;
             $price = ($type === 'Workshop') ? $request->price : 0;
             DB::table('jobc_labor')->insert([
-                'RO_no'      => $request->job_id,
-                'Labor'      => $request->jobrequest,
-                'type'       => $type,
-                'cost'       => $price,
-                'reason'     => $request->reason ?? '',
+                'RO_no' => $request->job_id,
+                'Labor' => $request->jobrequest,
+                'type' => $type,
+                'cost' => $price,
+                'reason' => $request->reason ?? '',
                 'Additional' => 1,
+                'status' => 0,
+                'team' => 'null',
+                'bay' => "null",
+                'remarks' => "null",
+                'resumetime' => "null",
+                'jc' => "null",
+                'end_time' => now(),
+                'Assign_time' => now(),
+                'estimated_time' => now(),
                 'entry_time' => now(),
             ]);
         }
@@ -796,8 +827,9 @@ class JobcardController extends Controller
     public function additionalPart($jobId)
     {
         $jobcard = DB::table('jobcard')->where('Jobc_id', $jobId)->first();
-        if (!$jobcard) abort(404);
-        $parts   = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
+        if (!$jobcard)
+            abort(404);
+        $parts = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
         return view('service.jobcard.additional-part', compact('jobcard', 'parts', 'jobId'));
     }
 
@@ -805,14 +837,28 @@ class JobcardController extends Controller
     {
         if ($request->unitprice) {
             DB::table('jobc_parts')->insert([
-                'RO_no'            => $request->job_id,
+                'RO_no' => $request->job_id,
                 'part_description' => $request->part_description,
-                'qty'              => $request->qty,
-                'req_qty'          => $request->qty,
-                'unitprice'        => $request->unitprice,
-                'total'            => $request->totalprice,
-                'Additional'       => 1,
-                'entry_datetime'   => now(),
+                'qty' => $request->qty,
+                'req_qty' => $request->qty,
+                'unitprice' => $request->unitprice,
+                'total' => $request->totalprice,
+                'Additional' => 1,
+                'part_invoice_no' => 0,
+                'issued_qty' => 0,
+                'issue_to' => 'null',
+                'issue_time' => now(),
+                'Stock_id' => 0,
+                'status' => 0,
+                'issue_by' => 'null',
+                'p_return' => 0,
+                'incentive_status' => 0,
+                'part_number' => 'null',
+
+
+                'entry_datetime' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         return redirect()->route('jobcard.additional.part', $request->job_id)->with('success', 'Part added.');
@@ -823,8 +869,9 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function additionalConsumable($jobId)
     {
-        $jobcard    = DB::table('jobcard')->where('Jobc_id', $jobId)->first();
-        if (!$jobcard) abort(404);
+        $jobcard = DB::table('jobcard')->where('Jobc_id', $jobId)->first();
+        if (!$jobcard)
+            abort(404);
         $consumbles = DB::table('jobc_consumble')->where('RO_no', $jobId)->get();
         return view('service.jobcard.additional-consumable', compact('jobcard', 'consumbles', 'jobId'));
     }
@@ -833,14 +880,26 @@ class JobcardController extends Controller
     {
         if ($request->unitprice) {
             DB::table('jobc_consumble')->insert([
-                'RO_no'            => $request->job_id,
+                'RO_no' => $request->job_id,
                 'cons_description' => $request->part_description,
-                'qty'              => $request->qty,
-                'req_qty'          => $request->qty,
-                'unitprice'        => $request->unitprice,
-                'total'            => $request->totalprice,
-                'Additional'       => 1,
-                'entry_datetime'   => now(),
+                'qty' => $request->qty,
+                'req_qty' => $request->qty,
+                'unitprice' => $request->unitprice,
+                'total' => $request->totalprice,
+                'Additional' => 1,
+                'cons_req_no' => 0,
+                'cons_number' => 'null',
+                'issue_to' => 'null',
+                'issue_time' => now(),
+                'status' => 0,
+                'issue_by' => 'null',
+                'p_return' => 0,
+                'incentive_status' => 0,
+                'issued_qty' => 0,
+                'Stock_id' => 0,
+                'entry_datetime' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         return redirect()->route('jobcard.additional.consumable', $request->job_id)->with('success', 'Consumable added.');
@@ -852,7 +911,8 @@ class JobcardController extends Controller
     public function additionalSublet($jobId)
     {
         $jobcard = DB::table('jobcard')->where('Jobc_id', $jobId)->first();
-        if (!$jobcard) abort(404);
+        if (!$jobcard)
+            abort(404);
         $sublets = DB::table('jobc_sublet')->where('RO_no', $jobId)->get();
         return view('service.jobcard.additional-sublet', compact('jobcard', 'sublets', 'jobId'));
     }
@@ -862,13 +922,22 @@ class JobcardController extends Controller
         if ($request->unitprice) {
             $type = $request->type;
             DB::table('jobc_sublet')->insert([
-                'RO_no'          => $request->job_id,
-                'Sublet'         => $request->sublet,
-                'type'           => $type,
-                'qty'            => $request->qty,
-                'unitprice'      => ($type === 'Workshop') ? $request->unitprice  : 0,
-                'additional'     => 1,
-                'total'          => ($type === 'Workshop') ? $request->totalprice : 0,
+                'RO_no' => $request->job_id,
+                'Sublet' => $request->sublet,
+                'type' => $type,
+                'qty' => $request->qty,
+                'unitprice' => ($type === 'Workshop') ? $request->unitprice : 0,
+                'additional' => 1,
+                'status' => 0,
+                'jc' => 0,
+                'end_time' => now(),
+                'Asign_time' => now(),
+                'parts_details' => 'null',
+                'Vendor' => 'null',
+                'who_taking' => 'null',
+                'Vendor_price' => 0,
+                'logistics' => 0,
+                'total' => ($type === 'Workshop') ? $request->totalprice : 0,
                 'entry_datetime' => now(),
             ]);
         }
@@ -909,8 +978,8 @@ class JobcardController extends Controller
             return response()->json([]);
         }
 
-        $name        = $request->input('name_startsWith', '');
-        $rowNum      = $request->input('row_num', 0);
+        $name = $request->input('name_startsWith', '');
+        $rowNum = $request->input('row_num', 0);
         $searchField = $request->input('search_field', 'Model'); // Model or Variant
 
         // Only allow safe column names
@@ -940,18 +1009,16 @@ class JobcardController extends Controller
 
         $jobs = DB::table('jobcard as jc')
             ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
-            ->join('customer_data as c', 'v.Customer_id', '=', 'c.Customer_id')
-            ->where('jc.status', '1')
+            ->where('jc.status', '1')  // Note: Use integer, not string
             ->where('jc.SA', $SA)
             ->select(
                 'jc.Jobc_id',
                 'jc.Open_date_time',
                 'jc.MSI_cat',
                 'jc.comp_appointed',
+                'jc.Customer_name',  // From jobcard table
                 'v.Registration',
-                'v.Variant',
-                'c.Customer_name',
-                'c.mobile'
+                'v.Variant'
             )
             ->orderByDesc('jc.Jobc_id')
             ->get();
@@ -968,18 +1035,21 @@ class JobcardController extends Controller
 
         $jobs = DB::table('jobcard as jc')
             ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
-            ->join('customer_data as c', 'v.Customer_id', '=', 'c.Customer_id')
-            ->where('jc.status', '1')
+            ->leftJoin('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')  // LEFT JOIN directly from jobcard
+            ->where('jc.status', 1)  // Use integer, not string
             ->where('jc.SA', $SA)
             ->select(
                 'jc.Jobc_id',
-                'jc.Veh_reg_no',
                 'jc.Open_date_time',
-                'v.Registration',
+                'jc.MSI_cat',
+                'jc.comp_appointed',
+                'jc.Customer_name',  // From jobcard table (if exists)
+                DB::raw('COALESCE(jc.Veh_reg_no, v.Registration) as Registration'),  // Use whichever exists
                 'v.Variant',
-                'c.Customer_name',
-                'c.mobile'
+                DB::raw('COALESCE(c.Customer_name, jc.Customer_name) as Customer_name'),
+                DB::raw('COALESCE(c.mobile, "N/A") as mobile')
             )
+            ->orderByDesc('jc.Jobc_id')
             ->get();
 
         return view('service.jobcard.complete', compact('jobs'));
@@ -1050,21 +1120,21 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function newLabor()
     {
-        $SA   = Auth::user()->login_id;
+        $SA = Auth::user()->login_id;
         $jobs = DB::table('jobcard')->where('status', '1')->where('SA', $SA)->orderByDesc('Jobc_id')->get();
         return view('service.jobcard.new-labor', compact('jobs'));
     }
 
     public function newPart()
     {
-        $SA   = Auth::user()->login_id;
+        $SA = Auth::user()->login_id;
         $jobs = DB::table('jobcard')->where('status', '1')->where('SA', $SA)->orderByDesc('Jobc_id')->get();
         return view('service.jobcard.new-part', compact('jobs'));
     }
 
     public function newConsumable()
     {
-        $SA   = Auth::user()->login_id;
+        $SA = Auth::user()->login_id;
         $jobs = DB::table('jobcard')->where('status', '1')->where('SA', $SA)->orderByDesc('Jobc_id')->get();
         return view('service.jobcard.new-consumable', compact('jobs'));
     }
@@ -1078,7 +1148,7 @@ class JobcardController extends Controller
         if ($request->new_labor) {
             DB::table('labor_list')->insert([
                 'Labor' => strtoupper($request->new_labor),
-                'user'  => Auth::user()->login_id,
+                'user' => Auth::user()->login_id,
             ]);
         }
         return back()->with('success', 'Labor description added.');
@@ -1089,7 +1159,7 @@ class JobcardController extends Controller
         if ($request->new_part) {
             DB::table('s_new_parts')->insert([
                 'Description' => strtoupper($request->new_part),
-                'User'        => Auth::user()->login_id,
+                'User' => Auth::user()->login_id,
             ]);
         }
         return back()->with('success', 'Part description added.');
@@ -1100,7 +1170,7 @@ class JobcardController extends Controller
         if ($request->new_part) {
             DB::table('s_list_consumble')->insert([
                 'consumble' => strtoupper($request->new_part),
-                'user'      => Auth::user()->login_id,
+                'user' => Auth::user()->login_id,
             ]);
         }
         return back()->with('success', 'Consumable added.');
@@ -1111,12 +1181,12 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function search(Request $request)
     {
-        $search    = $request->input('search', '');
-        $field     = $request->input('field', '');
-        $results   = collect();
-        $headers   = [];
+        $search = $request->input('search', '');
+        $field = $request->input('field', '');
+        $results = collect();
+        $headers = [];
         $tableType = '';
-        $total     = 0;
+        $total = 0;
 
         if ($field && $search !== '') {
             if ($field === 'jobcard-instail') {
@@ -1216,37 +1286,39 @@ class JobcardController extends Controller
     public function editVehicle(Request $request)
     {
         $vehicleId = $request->query('vehicle_id', $request->input('vehicle_id'));
-        if (!$vehicleId) abort(404);
+        if (!$vehicleId)
+            abort(404);
         $vehicle = DB::table('vehicles_data')->where('Vehicle_id', $vehicleId)->first();
-        if (!$vehicle) abort(404);
+        if (!$vehicle)
+            abort(404);
         return view('service.jobcard.vehicle-edit', compact('vehicle', 'vehicleId'));
     }
 
     public function updateVehicle(Request $request)
     {
         $request->validate([
-            'vehicle_id'   => 'required|integer',
+            'vehicle_id' => 'required|integer',
             'registration' => 'required|string|max:20',
-            'varaint'      => 'required|string|max:100',
+            'varaint' => 'required|string|max:100',
         ]);
 
         $vehicleId = $request->vehicle_id;
-        $intosell  = $request->has('intosell') ? 'on' : 'off';
+        $intosell = $request->has('intosell') ? 'on' : 'off';
 
         DB::table('vehicles_data')->where('Vehicle_id', $vehicleId)->update([
-            'Registration'   => strtoupper($request->registration),
-            'Frame_no'       => strtoupper($request->fram ?? ''),
-            'Model'          => $request->model ?? '',
-            'Variant'        => $request->varaint,
-            'Colour'         => $request->color ?? '',
-            'Make'           => $request->make ?? '',
-            'Engine_Code'    => $request->engine ?? '',
-            'Engine_number'  => $request->engine_no ?? '',
-            'into_sell'      => $intosell,
-            'model_year'     => $request->model_year ?? '',
-            'demand_price'   => ($intosell === 'on') ? ($request->demandprice ?? '') : '',
-            'updated_by'     => Auth::user()->login_id,
-            'Update_date'    => now(),
+            'Registration' => strtoupper($request->registration),
+            'Frame_no' => strtoupper($request->fram ?? ''),
+            'Model' => $request->model ?? '',
+            'Variant' => $request->varaint,
+            'Colour' => $request->color ?? '',
+            'Make' => $request->make ?? '',
+            'Engine_Code' => $request->engine ?? '',
+            'Engine_number' => $request->engine_no ?? '',
+            'into_sell' => $intosell,
+            'model_year' => $request->model_year ?? '',
+            'demand_price' => ($intosell === 'on') ? ($request->demandprice ?? '') : '',
+            'updated_by' => Auth::user()->login_id,
+            'Update_date' => now(),
         ]);
 
         return redirect()->route('jobcard.vehicle-detail', ['vehicle_id' => $vehicleId])
@@ -1260,14 +1332,14 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     public function vehicleHistory(Request $request)
     {
-        $vehId  = $request->input('veh_id')  ?? $request->query('veh_id');
+        $vehId = $request->input('veh_id') ?? $request->query('veh_id');
         $custId = $request->input('cust_id') ?? $request->query('Cust_id');
 
         if ($vehId) {
-            $where  = ['Vehicle_id' => $vehId];
+            $where = ['Vehicle_id' => $vehId];
             $heading = 'Vehicle History';
         } elseif ($custId) {
-            $where  = ['Customer_id' => $custId];
+            $where = ['Customer_id' => $custId];
             $heading = 'Customer History';
         } else {
             abort(404);
@@ -1293,11 +1365,11 @@ class JobcardController extends Controller
 
         // Attach labor/parts/consumable/sublet summary per jobcard
         $jobcards = $jobcards->map(function ($jc) {
-            $jc->labors     = DB::table('jobc_labor')
+            $jc->labors = DB::table('jobc_labor')
                 ->where('RO_no', $jc->Jobc_id)
                 ->selectRaw("GROUP_CONCAT(Labor SEPARATOR '.<br>') as labor_list, SUM(cost) as total_labor")
                 ->first();
-            $jc->parts      = DB::table('jobc_parts')
+            $jc->parts = DB::table('jobc_parts')
                 ->where('RO_no', $jc->Jobc_id)
                 ->selectRaw("GROUP_CONCAT(part_description SEPARATOR '.<br>') as parts_list, SUM(total) as total_parts")
                 ->first();
@@ -1305,7 +1377,7 @@ class JobcardController extends Controller
                 ->where('RO_no', $jc->Jobc_id)
                 ->selectRaw("GROUP_CONCAT(cons_description SEPARATOR '.<br>') as cons_list, SUM(total) as total_cons")
                 ->first();
-            $jc->sublets    = DB::table('jobc_sublet')
+            $jc->sublets = DB::table('jobc_sublet')
                 ->where('RO_no', $jc->Jobc_id)
                 ->selectRaw("GROUP_CONCAT(Sublet SEPARATOR '.<br>') as sub_list, SUM(total) as total_sub")
                 ->first();
@@ -1322,7 +1394,8 @@ class JobcardController extends Controller
     public function invoiceView(Request $request)
     {
         $jobId = $request->input('job_id') ?? $request->query('job_id');
-        if (!$jobId) abort(404);
+        if (!$jobId)
+            abort(404);
 
         $jobcard = DB::table('jobcard as jc')
             ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
@@ -1331,7 +1404,8 @@ class JobcardController extends Controller
             ->select('jc.*', 'v.Variant', 'v.Registration', 'c.Customer_name', 'c.mobile')
             ->first();
 
-        if (!$jobcard) abort(404);
+        if (!$jobcard)
+            abort(404);
 
         $totalLabor = DB::table('jobc_labor')
             ->where('RO_no', $jobId)->where('type', 'Workshop')
@@ -1344,9 +1418,9 @@ class JobcardController extends Controller
         $totalConsumble = DB::table('jobc_consumble')
             ->where('RO_no', $jobId)->sum('total') ?? 0;
 
-        $labors     = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
-        $parts      = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
-        $sublets    = DB::table('jobc_sublet')->where('RO_no', $jobId)->get();
+        $labors = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
+        $parts = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
+        $sublets = DB::table('jobc_sublet')->where('RO_no', $jobId)->get();
         $consumbles = DB::table('jobc_consumble')->where('RO_no', $jobId)->get();
 
         return view('service.jobcard.invoice-view', compact(
@@ -1403,11 +1477,11 @@ class JobcardController extends Controller
 
         if ($request->has('Labor_id')) {
             DB::table('s_warranty')->insert([
-                'jobc_id'    => $request->Labor_id,
-                'wc_no'      => $request->warrantyclaim,
-                'status'     => 'Claimed',
+                'jobc_id' => $request->Labor_id,
+                'wc_no' => $request->warrantyclaim,
+                'status' => 'Claimed',
                 'claim_date' => now(),
-                'user'       => $user,
+                'user' => $user,
             ]);
         }
 
@@ -1462,15 +1536,15 @@ class JobcardController extends Controller
 
         if ($request->has('labor')) {
             $labor = $request->labor;
-            $cost  = $request->cost;
+            $cost = $request->cost;
             DB::table('s_loyal_services')
                 ->where('veh_id', $vehId)
                 ->update([$labor => 'Done']);
             DB::table('jobc_labor')->insert([
-                'RO_no'      => $jobId,
-                'Labor'      => $labor,
-                'type'       => 'Workshop',
-                'cost'       => $cost,
+                'RO_no' => $jobId,
+                'Labor' => $labor,
+                'type' => 'Workshop',
+                'cost' => $cost,
                 'entry_time' => now(),
             ]);
         }
@@ -1487,7 +1561,8 @@ class JobcardController extends Controller
     public function multiCustomerForm(Request $request)
     {
         $vehicleId = $request->query('vehicle_id');
-        if (!$vehicleId) abort(404);
+        if (!$vehicleId)
+            abort(404);
         $customers = DB::table('customer_data')->orderBy('Customer_name')->get();
         return view('service.jobcard.multi-customer', compact('vehicleId', 'customers'));
     }
@@ -1495,7 +1570,7 @@ class JobcardController extends Controller
     public function multiCustomerStore(Request $request)
     {
         $request->validate([
-            'vehicle_id'  => 'required|integer',
+            'vehicle_id' => 'required|integer',
             'customer_id' => 'required|integer',
         ]);
         // Check not already linked
@@ -1506,7 +1581,7 @@ class JobcardController extends Controller
         if (!$exists) {
             DB::table('s_cust_veh')->insert([
                 'cust_id' => $request->customer_id,
-                'veh_id'  => $request->vehicle_id,
+                'veh_id' => $request->vehicle_id,
             ]);
         }
         return redirect()->route('jobcard.vehicle-detail', ['vehicle_id' => $request->vehicle_id])
@@ -1520,12 +1595,15 @@ class JobcardController extends Controller
     public function ajaxMsiDetails(Request $request)
     {
         $msiId = $request->input('msi_id');
-        $row   = DB::table('s_msi_categories')->where('MSI', $msiId)->first();
-        if (!$row) return response()->json([]);
-        return response()->json([[
-            'ro_type'        => $row->ro_type,
-            'service_nature' => $row->service_nature,
-        ]]);
+        $row = DB::table('s_msi_categories')->where('MSI', $msiId)->first();
+        if (!$row)
+            return response()->json([]);
+        return response()->json([
+            [
+                'ro_type' => $row->ro_type,
+                'service_nature' => $row->service_nature,
+            ]
+        ]);
     }
 
     // ─────────────────────────────────────────────
@@ -1535,11 +1613,11 @@ class JobcardController extends Controller
     public function ajaxLaborCost(Request $request)
     {
         $laborTitle = $request->input('partn');
-        $variant    = $request->input('variant');
-        $type       = $request->input('type');
+        $variant = $request->input('variant');
+        $type = $request->input('type');
 
         $varRow = DB::table('variant_codes')->where('Variant', $variant)->first();
-        $cate   = $varRow ? $varRow->Category : null;
+        $cate = $varRow ? $varRow->Category : null;
 
         $price = 0;
         if ($cate) {
@@ -1551,7 +1629,7 @@ class JobcardController extends Controller
                 }
             }
         }
-        return response((string)$price);
+        return response((string) $price);
     }
 
     // ─────────────────────────────────────────────

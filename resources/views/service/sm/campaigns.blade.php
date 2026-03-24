@@ -8,7 +8,7 @@
 @if($errors->any())<div class="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{{ $errors->first() }}</div>@endif
 <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
     {{-- Add Campaign Form --}}
-    <div class="md:col-span-2 bg-white rounded-lg shadow-sm p-6">
+    <div class="md:col-span-2 bg-white rounded shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Add New Campaign</h2>
         <form method="POST" action="{{ route('sm.campaigns.store') }}" class="space-y-3">
             @csrf
@@ -40,7 +40,7 @@
     </div>
 
     {{-- Campaigns List --}}
-    <div class="md:col-span-3 bg-white rounded-lg shadow-sm p-6">
+    <div class="md:col-span-3 bg-white rounded shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Campaigns
             <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $campaigns->count() }}</span>
         </h2>

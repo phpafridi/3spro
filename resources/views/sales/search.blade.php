@@ -2,7 +2,7 @@
 @section('title', 'Sales - Search')
 @section('sidebar-menu') @include('sales.partials.sidebar') @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h2 class="text-2xl font-semibold text-gray-800 mb-5">Search</h2>
     <form method="GET" action="{{ route('sales.search') }}" class="flex flex-wrap gap-3 items-end">
         <div>
@@ -25,7 +25,7 @@
 </div>
 
 @if($results->count())
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h3 class="font-semibold text-gray-700 mb-4">Results
         <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $results->count() }}</span>
     </h3>
@@ -99,6 +99,6 @@
     </div>
 </div>
 @elseif(request()->has('q') && request('q'))
-<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No results found.</div>
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">No results found.</div>
 @endif
 @endsection

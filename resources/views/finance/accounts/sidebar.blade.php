@@ -1,7 +1,7 @@
 @section('sidebar-menu')
     <!-- Finance Reports (Main Menu) -->
     <a href="{{ route('accounts.index') }}"
-       class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200
+       class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200
               {{ request()->routeIs('accounts.index') ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
         <i class="fas fa-chart-line w-6 text-lg"></i>
         <span>Finance Reports</span>
@@ -10,7 +10,7 @@
     <!-- Voucher Entries with Submenu -->
     <div x-data="{ open: {{ request()->routeIs(['accounts.cpv', 'accounts.crv', 'accounts.bpv', 'accounts.brv', 'accounts.jv']) ? 'true' : 'false' }} }" class="relative">
         <button @click="open = !open"
-                class="w-full flex items-center justify-between px-4 py-3 text-sm rounded-xl transition-all duration-200 text-white/80 hover:bg-white/10 hover:text-white">
+                class="w-full flex items-center justify-between px-4 py-3 text-sm rounded transition-all duration-200 text-white/80 hover:bg-white/10 hover:text-white">
             <div class="flex items-center">
                 <i class="fas fa-file-invoice w-6 text-lg"></i>
                 <span>Voucher Entries</span>
@@ -36,7 +36,7 @@
                 ['accounts.jv', 'fas fa-book', 'JV (Journal Voucher)'],
             ] as [$route, $icon, $label])
             <a href="{{ route($route) }}"
-               class="flex items-center px-4 py-2 text-sm rounded-xl transition-all duration-200
+               class="flex items-center px-4 py-2 text-sm rounded transition-all duration-200
                       {{ request()->routeIs($route) ? 'bg-white/20 text-white shadow-lg' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
                 <i class="{{ $icon }} w-6 text-sm"></i>
                 <span>{{ $label }}</span>
@@ -47,7 +47,7 @@
 
     <!-- Search Voucher -->
     <a href="{{ route('accounts.search') }}"
-       class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200
+       class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200
               {{ request()->routeIs('accounts.search') ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
         <i class="fas fa-search w-6 text-lg"></i>
         <span>Search Voucher</span>
@@ -70,7 +70,7 @@
                  class="mt-1 space-y-1">
 
                 <a href="{{ route('accounts.pending-vouchers') }}"
-                   class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200
+                   class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200
                           {{ request()->routeIs('accounts.pending-vouchers') ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-clock w-6 text-lg"></i>
                     <span>Pending</span>
@@ -80,7 +80,7 @@
                 </a>
 
                 <a href="{{ route('accounts.authenticate') }}"
-                   class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200
+                   class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200
                           {{ request()->routeIs('accounts.authenticate') ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-stamp w-6 text-lg"></i>
                     <span>Authenticate</span>
@@ -90,7 +90,7 @@
                 </a>
 
                 <a href="{{ route('accounts.reopened-vouchers') }}"
-                   class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200
+                   class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200
                           {{ request()->routeIs('accounts.reopened-vouchers') ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-redo w-6 text-lg"></i>
                     <span>Reopened</span>
@@ -125,7 +125,7 @@
 
                 ] as [$route, $icon, $label])
                 <a href="{{ route($route) }}"
-                   class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200
+                   class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200
                           {{ request()->routeIs($route) ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
                     <i class="{{ $icon }} w-6 text-lg"></i>
                     <span>{{ $label }}</span>

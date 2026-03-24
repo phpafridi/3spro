@@ -27,7 +27,7 @@
 @endpush
 
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-history text-purple-500 mr-2"></i>
@@ -39,7 +39,7 @@
     </div>
 
     @forelse($history as $record)
-    <div class="mb-8 border border-gray-200 rounded-lg overflow-hidden">
+    <div class="mb-8 border border-gray-200 rounded overflow-hidden">
         <!-- Main Job Card Info -->
         <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">

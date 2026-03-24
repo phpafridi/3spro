@@ -4,7 +4,7 @@
     @include('service.partials.jobcard-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">Open Repair Orders</h2>
         <a href="{{ route('jobcard.add-vehicle') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
@@ -21,7 +21,7 @@
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Vehicle</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Registration</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Customer</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Mobile</th>
+                    
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Open Date</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">Actions</th>
                 </tr>
@@ -33,7 +33,7 @@
                     <td class="px-4 py-3 text-sm text-gray-700">{{ $job->Variant }}</td>
                     <td class="px-4 py-3 text-sm font-medium text-red-600">{{ $job->Registration }}</td>
                     <td class="px-4 py-3 text-sm text-gray-700">{{ $job->Customer_name }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ $job->mobile }}</td>
+                    
                     <td class="px-4 py-3 text-sm text-gray-500">{{ \Carbon\Carbon::parse($job->Open_date_time)->format('d/m/Y g:i A') }}</td>
                     <td class="px-4 py-3">
                         <div class="flex flex-wrap gap-1">

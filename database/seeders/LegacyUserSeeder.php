@@ -14,13 +14,14 @@ class LegacyUserSeeder extends Seeder
         $legacyUsers = [
             [
                 'id' => 47,
-                'login_id' => 'GM',
-                'Name' => 'Abdul Karim',
-                'password' => 'lwc3353',
-                'email' => 'gm@toyotakhyber.com',
+                'login_id' => 'afridi',
+                'Name' => 'Afridi',
+                'password' => 'afridi',
+                'email' => 'nil@gmail.com',
                 'last_login' => '2022-06-18 11:45:46',
-                'mobile' => '0912586931',
+                'mobile' => '03',
                 'dept' => 'Management',
+                'image' => 'default.jpg',
                 'position' => 'IT Manager',
                 'last_logout' => '2026-01-27 14:39:13'
             ],
@@ -41,6 +42,7 @@ class LegacyUserSeeder extends Seeder
                     'dept' => $user['dept'],
                     'position' => $user['position'],
                     'last_logout' => $user['last_logout'],
+                    'image' => $user['image'],
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]

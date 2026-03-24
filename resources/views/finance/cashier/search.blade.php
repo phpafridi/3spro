@@ -14,7 +14,7 @@
             @csrf
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Search Type</label>
-                <select name="field" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <select name="field" class="border border-gray-300 rounded px-3 py-2 text-sm">
                     <option value="jobcard-instail">Initial RO (open)</option>
                     <option value="jobcard-closed">Close RO</option>
                     <option value="Invoice">Invoice Number</option>
@@ -24,10 +24,10 @@
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Number</label>
                 <input type="text" name="search" required placeholder="Enter JC / Invoice no."
-                       class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-52">
+                       class="border border-gray-300 rounded px-3 py-2 text-sm w-52">
             </div>
             <button type="submit"
-                    class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
+                    class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium">
                 Open
             </button>
         </form>
@@ -36,7 +36,7 @@
 @endsection
 
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-search text-blue-500 mr-2"></i>
@@ -49,7 +49,7 @@
             <input type="text"
                    id="searchInput"
                    placeholder="Search by Job ID, Registration, Customer name or mobile..."
-                   class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                   class="w-full px-4 py-3 pl-12 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
             <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
         </div>
     </div>

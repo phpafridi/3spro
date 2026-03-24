@@ -11,7 +11,7 @@
         ['recovery.add-account', 'fas fa-university',  'Add Account'],
     ] as [$route, $icon, $label])
     <a href="{{ route($route) }}"
-       class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200
+       class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200
               {{ request()->routeIs($route) ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
         <i class="{{ $icon }} w-6 text-lg"></i>
         <span>{{ $label }}</span>
@@ -19,7 +19,7 @@
     @endforeach
     <div class="pt-4 mt-4 border-t border-white/20">
         <a href="{{ route('accountant.index') }}"
-           class="flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 text-white/80 hover:bg-white/10 hover:text-white">
+           class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200 text-white/80 hover:bg-white/10 hover:text-white">
             <i class="fas fa-arrow-left w-6 text-lg"></i>
             <span>Back to Accountant</span>
         </a>

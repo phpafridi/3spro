@@ -5,7 +5,7 @@
 @endsection
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
-<div class="bg-white rounded-lg shadow-sm p-6 max-w-2xl">
+<div class="bg-white rounded shadow-sm p-6 max-w-2xl">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Units In Operation (UIO)</h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">

@@ -4,7 +4,7 @@
     @include('service.partials.sm-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">VIN Check</h2>
     <form method="GET" action="{{ route('sm.vin-check') }}" class="flex gap-2">
         <input type="text" name="vin" value="{{ $vin ?? '' }}" required placeholder="Enter VIN / Frame No..."
@@ -15,10 +15,10 @@
     </form>
 </div>
 @if($result)
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h3 class="font-semibold text-gray-700 mb-3">Results for "{{ $vin }}"</h3>
     @if($result->isEmpty())
-        <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">VIN not found in check list.</div>
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">VIN not found in check list.</div>
     @else
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">

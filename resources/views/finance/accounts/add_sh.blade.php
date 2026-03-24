@@ -2,30 +2,30 @@
 @include('finance.accounts.sidebar')
 @section('title', 'Accounts - Sub-Heads')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">
         <i class="fas fa-code-branch text-pink-500 mr-2"></i>GSL Sub-Heads Details
     </h2>
 
-    <form method="POST" action="{{ route('accounts.add-sh') }}" class="mb-8 p-4 bg-pink-50 border border-pink-200 rounded-xl">
+    <form method="POST" action="{{ route('accounts.add-sh') }}" class="mb-8 p-4 bg-pink-50 border border-pink-200 rounded">
         @csrf
         <h3 class="text-sm font-semibold text-pink-700 mb-3">Add Sub-Head</h3>
         <div class="flex flex-wrap gap-3 items-end">
             <div>
                 <label class="block text-xs text-gray-600 mb-1">Sub-Head Title</label>
                 <input type="text" name="SH_title" required placeholder="e.g. HBL Current Account"
-                       class="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-pink-400">
+                       class="border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-pink-400">
             </div>
             <div>
                 <label class="block text-xs text-gray-600 mb-1">Parent GSL</label>
-                <select name="GSL_code" required class="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-pink-400">
+                <select name="GSL_code" required class="border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-pink-400">
                     <option value="">-- Select GSL --</option>
                     @foreach($gslList as $gsl)
                     <option value="{{ $gsl->GSL_code }}">{{ $gsl->GSL_code }} – {{ $gsl->GSL_title }}</option>
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="px-5 py-2 bg-pink-600 text-white rounded-xl text-sm font-medium hover:bg-pink-700">
+            <button type="submit" class="px-5 py-2 bg-pink-600 text-white rounded text-sm font-medium hover:bg-pink-700">
                 <i class="fas fa-plus mr-1"></i>Add Sub-Head
             </button>
         </div>

@@ -4,9 +4,9 @@
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Estimates</h2>
 </div>
-<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
 <table class="w-full text-sm">
-    <thead class="bg-indigo-50"><tr>
+    <thead class="bg-red-50"><tr>
         <th class="px-4 py-3 text-left text-xs text-gray-600 uppercase">Est #</th>
         <th class="px-4 py-3 text-left text-xs text-gray-600 uppercase">Registration</th>
         <th class="px-4 py-3 text-left text-xs text-gray-600 uppercase">Variant</th>
@@ -18,7 +18,7 @@
     </tr></thead>
     <tbody class="divide-y divide-gray-100">
     @forelse($estimates as $e)
-    <tr class="hover:bg-indigo-50/30">
+    <tr class="hover:bg-red-50/30">
         <td class="px-4 py-3 font-medium">{{ $e->est_id }}</td>
         <td class="px-4 py-3">{{ $e->Registration ?? '-' }}</td>
         <td class="px-4 py-3">{{ $e->Variant ?? '-' }}</td>

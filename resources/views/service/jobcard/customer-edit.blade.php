@@ -5,7 +5,7 @@
 @endsection
 @section('content')
 <div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-1">Edit Customer</h2>
         <p class="text-sm text-gray-400 mb-5">ID: {{ $customer->Customer_id }}</p>
         @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif

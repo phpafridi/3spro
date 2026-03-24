@@ -5,14 +5,14 @@
 {{-- Stats Row --}}
 <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6">
     @foreach([
-        ['Total',   $totalc,    'bg-indigo-500'],
+        ['Total',   $totalc,    'bg-red-600'],
         ['New',     $new,       'bg-sky-500'],
         ['Open',    $open,      'bg-orange-500'],
         ['Close',   $close,     'bg-green-500'],
         ['Active',  $active,    'bg-yellow-500'],
         ['Pending', $pending,   'bg-red-500'],
     ] as [$label, $val, $color])
-    <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
+    <div class="bg-white rounded shadow-sm p-4 text-center">
         <div class="text-2xl font-bold text-gray-800">{{ $val }}</div>
         <div class="text-xs text-gray-500 mt-1">{{ $label }}</div>
         <div class="{{ $color }} h-1 rounded-full mt-2 opacity-60"></div>
@@ -21,13 +21,13 @@
 </div>
 
 {{-- Total Debit Banner --}}
-<div class="bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl p-4 mb-6 text-center">
+<div class="bg-red-600 text-white rounded p-4 mb-6 text-center">
     <p class="text-sm opacity-80">Total Outstanding Debit</p>
     <p class="text-3xl font-bold mt-1">Rs {{ number_format($totalDebit) }}</p>
 </div>
 
 {{-- Debtors Table --}}
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-lg font-semibold text-gray-800 mb-4">Outstanding Accounts</h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
@@ -44,7 +44,7 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 text-gray-400">{{ $loop->iteration }}</td>
                     <td class="px-4 py-3 font-medium">
-                        <a href="{{ route('recovery.customer-ledger', ['id'=>$d->cust_name]) }}" class="text-indigo-600 hover:underline">
+                        <a href="{{ route('recovery.customer-ledger', ['id'=>$d->cust_name]) }}" class="text-red-600 hover:underline">
                             {{ $d->cust_name }}
                         </a>
                     </td>

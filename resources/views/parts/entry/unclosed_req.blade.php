@@ -6,7 +6,7 @@
     <p class="text-sm text-gray-500 mt-1">Workshop labor orders that are still open</p>
 </div>
 @if(session('success'))<div class="mb-4 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-r-xl">{{ session('success') }}</div>@endif
-<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gradient-to-r from-red-50 to-orange-50">
@@ -29,7 +29,7 @@
                 <form action="{{ route('parts.unclosed-req.close') }}" method="POST" onsubmit="return confirm('Close this requisition?')">
                     @csrf
                     <input type="hidden" name="Labor_id" value="{{ $u->Labor_id }}">
-                    <button type="submit" class="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors">Close</button>
+                    <button type="submit" class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">Close</button>
                 </form>
             </td>
         </tr>

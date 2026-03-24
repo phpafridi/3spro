@@ -6,10 +6,10 @@
     <p class="text-sm text-gray-500 mt-1">Update availability status for appointment parts</p>
 </div>
 @if(session('success'))<div class="mb-4 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-r-xl">{{ session('success') }}</div>@endif
-<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
     <table class="w-full text-sm">
-        <thead class="bg-gradient-to-r from-indigo-50 to-purple-50">
+        <thead class="bg-gradient-to-r from-red-50 to-red-50">
             <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">App ID</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
@@ -21,7 +21,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
         @forelse($appointments as $app)
-        <tr class="hover:bg-indigo-50/30">
+        <tr class="hover:bg-red-50/30">
             <td class="px-4 py-3 font-medium text-gray-800">{{ $app->app_id }}</td>
             <td class="px-4 py-3 text-gray-700">{{ $app->customer_name ?? '-' }}</td>
             <td class="px-4 py-3 text-gray-500">{{ $app->reg_no ?? '-' }}</td>
@@ -36,12 +36,12 @@
                     <form action="{{ route('parts.appointments.update') }}" method="POST">
                         @csrf
                         <input type="hidden" name="availble" value="{{ $app->app_id }}">
-                        <button type="submit" class="px-3 py-1 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-colors">Available</button>
+                        <button type="submit" class="px-3 py-1 bg-emerald-500 text-white text-xs rounded hover:bg-emerald-600 transition-colors">Available</button>
                     </form>
                     <form action="{{ route('parts.appointments.update') }}" method="POST">
                         @csrf
                         <input type="hidden" name="notavailable" value="{{ $app->app_id }}">
-                        <button type="submit" class="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors">N/A</button>
+                        <button type="submit" class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">N/A</button>
                     </form>
                 </div>
             </td>

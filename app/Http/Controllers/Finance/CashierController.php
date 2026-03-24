@@ -238,6 +238,9 @@ class CashierController extends Controller
             'type' => $data['radiob'],
             'careof' => $data['careoff'] ?? null,
             'cashier' => Auth::user()->login_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+            'Rec_status' => 'null',
             'datetime' => $dateTime
         ];
 

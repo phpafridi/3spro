@@ -61,7 +61,7 @@
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar - Modern Gradient with Glass Effect -->
         <aside class="hidden md:flex md:flex-shrink-0">
-            <div class="w-72 bg-gradient-to-b from-indigo-600 via-purple-600 to-pink-600 text-white flex flex-col relative overflow-hidden">
+            <div class="w-72 bg-gradient-to-b from-red-600 via-purple-600 to-pink-600 text-white flex flex-col relative overflow-hidden">
                 <!-- Decorative Elements -->
                 <div class="absolute top-0 left-0 w-full h-full opacity-10">
                     <div class="absolute top-20 -left-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
@@ -72,7 +72,7 @@
                 <div class="relative z-10 flex flex-col h-full p-6">
                     <!-- Logo Section -->
                     <div class="flex items-center space-x-3 mb-8">
-                        <div class="w-22 h-22 bg-white/20 rounded-xl backdrop-blur-lg flex items-center justify-center">
+                        <div class="w-22 h-22 bg-white/20 rounded backdrop-blur-lg flex items-center justify-center">
                             <img src="{{ asset(config('app.logo', 'src/3spro.png')) }}" alt="Logo" class="w-16 h-16 object-contain">
                         </div>
                         <div>
@@ -88,8 +88,8 @@
 
                     <!-- User Profile Section -->
                     <div class="mt-auto pt-6 border-t border-white/20">
-                        <div class="flex items-center space-x-3 p-3 bg-white/10 rounded-xl backdrop-blur-lg">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                        <div class="flex items-center space-x-3 p-3 bg-white/10 rounded backdrop-blur-lg">
+                            <div class="w-12 h-12 rounded bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                                 {{ substr(session('user_name'), 0, 1) }}
                             </div>
                             <div class="flex-1 min-w-0">
@@ -106,7 +106,7 @@
         <!-- Mobile Sidebar Toggle -->
         <div id="mobileSidebar" class="fixed inset-0 z-50 hidden">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
-            <div class="absolute left-0 top-0 h-full w-72 bg-gradient-to-b from-indigo-600 via-purple-600 to-pink-600 text-white transform transition-transform duration-300 ease-out">
+            <div class="absolute left-0 top-0 h-full w-72 bg-gradient-to-b from-red-600 via-purple-600 to-pink-600 text-white transform transition-transform duration-300 ease-out">
                 <!-- Same sidebar content as above -->
                 <div class="relative h-full p-6">
                     <div class="absolute top-0 left-0 w-full h-full opacity-10">
@@ -115,7 +115,7 @@
 
                     <div class="relative z-10 flex flex-col h-full">
                         <div class="flex items-center space-x-3 mb-8">
-                            <div class="w-12 h-12 bg-white/20 rounded-xl backdrop-blur-lg flex items-center justify-center">
+                            <div class="w-12 h-12 bg-white/20 rounded backdrop-blur-lg flex items-center justify-center">
                                 <img src="{{ asset(config('app.logo', 'src/3spro.png')) }}" alt="Logo" class="w-12 h-12 object-contain">
                             </div>
                             <div>
@@ -129,8 +129,8 @@
                         </nav>
 
                         <div class="mt-auto pt-6 border-t border-white/20">
-                            <div class="flex items-center space-x-3 p-3 bg-white/10 rounded-xl backdrop-blur-lg">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
+                            <div class="flex items-center space-x-3 p-3 bg-white/10 rounded backdrop-blur-lg">
+                                <div class="w-12 h-12 rounded bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
                                     {{ substr(session('user_name'), 0, 1) }}
                                 </div>
                                 <div class="flex-1 min-w-0">
@@ -149,17 +149,17 @@
             <!-- Top Navigation - Glass Effect -->
             <header class="glass-card shadow-sm sticky top-0 z-30">
                 <div class="px-6 py-3 flex justify-between items-center">
-                    <button id="sidebarToggle" class="md:hidden w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center hover:from-indigo-600 hover:to-purple-600 transition-all">
+                    <button id="sidebarToggle" class="md:hidden w-10 h-10 rounded bg-red-600 text-white flex items-center justify-center hover:from-red-600 hover:to-red-700 transition-all">
                         <i class="fas fa-bars"></i>
                     </button>
 
                     <div class="flex-1 flex justify-end items-center space-x-4">
                         <!-- Quick Actions -->
                         <div class="hidden md:flex items-center space-x-2">
-                            <button class="w-10 h-10 rounded-xl bg-white text-gray-600 hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
+                            <button class="w-10 h-10 rounded bg-white text-gray-600 hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
                                 <i class="fas fa-search"></i>
                             </button>
-                            <button class="w-10 h-10 rounded-xl bg-white text-gray-600 hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
+                            <button class="w-10 h-10 rounded bg-white text-gray-600 hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
                                 <i class="fas fa-calendar-alt"></i>
                             </button>
                         </div>
@@ -171,12 +171,12 @@
                         @hasSection('notifications')
                         @else
                             <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" class="relative w-10 h-10 rounded-xl bg-white text-gray-600 hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
+                                <button @click="open = !open" class="relative w-10 h-10 rounded bg-white text-gray-600 hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
                                     <i class="fas fa-bell"></i>
                                     <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                                 </button>
 
-                                <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100">
+                                <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-white rounded shadow-xl py-2 z-50 border border-gray-100">
                                     <div class="px-4 py-2 border-b border-gray-100">
                                         <p class="text-sm font-semibold text-gray-900">Notifications</p>
                                     </div>
@@ -196,25 +196,25 @@
 
                         <!-- User Dropdown -->
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="flex items-center space-x-3 bg-white pl-3 pr-2 py-2 rounded-xl shadow-sm hover:shadow-md transition-all">
-                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                            <button @click="open = !open" class="flex items-center space-x-3 bg-white pl-3 pr-2 py-2 rounded shadow-sm hover:shadow-md transition-all">
+                                <div class="w-8 h-8 rounded bg-gradient-to-br from-red-600 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
                                     {{ substr(session('user_name'), 0, 1) }}
                                 </div>
                                 <span class="hidden md:inline text-sm font-medium text-gray-700">{{ session('login_id') }}</span>
                                 <i class="fas fa-chevron-down text-xs text-gray-500"></i>
                             </button>
 
-                            <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100">
+                            <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-64 bg-white rounded shadow-xl py-2 z-50 border border-gray-100">
                                 <div class="px-4 py-3 border-b border-gray-100">
                                     <p class="text-sm font-semibold text-gray-900">{{ session('user_name') }}</p>
                                     <p class="text-xs text-gray-500">{{ session('position') }} | {{ session('dept') }}</p>
                                 </div>
 
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
                                     <i class="fas fa-user w-5 text-gray-400"></i>
                                     <span>Profile</span>
                                 </a>
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
                                     <i class="fas fa-cog w-5 text-gray-400"></i>
                                     <span>Settings</span>
                                 </a>
@@ -239,7 +239,7 @@
                 <!-- Welcome Banner (only on dashboard) -->
                 @hasSection('showWelcome')
                 <div class="mb-8 animate-fade-in">
-                    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white relative overflow-hidden">
+                    <div class="bg-gradient-to-r from-red-600 via-purple-600 to-pink-600 rounded p-8 text-white relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
                         <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-20 -mb-20 blur-3xl"></div>
 

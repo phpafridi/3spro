@@ -2,29 +2,29 @@
 @include('finance.recovery.sidebar')
 @section('title', 'Customer Ledger')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
-            <i class="fas fa-book text-indigo-500 mr-2"></i> Ledger: {{ $id }}
+            <i class="fas fa-book text-red-500 mr-2"></i> Ledger: {{ $id }}
         </h2>
         <div class="flex gap-3">
             <a href="{{ route('recovery.add-debt', ['id'=>$id]) }}"
-               class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm">+ Debit</a>
+               class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm">+ Debit</a>
             <a href="{{ route('recovery.add-credit', ['inv'=>$id]) }}"
-               class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm">+ Credit</a>
+               class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-sm">+ Credit</a>
         </div>
     </div>
     {{-- Balance Summary --}}
     <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-red-50 rounded-xl p-4 text-center">
+        <div class="bg-red-50 rounded p-4 text-center">
             <p class="text-xs text-gray-500">Total Debit</p>
             <p class="text-xl font-bold text-red-600">Rs {{ number_format($totalDebt) }}</p>
         </div>
-        <div class="bg-green-50 rounded-xl p-4 text-center">
+        <div class="bg-green-50 rounded p-4 text-center">
             <p class="text-xs text-gray-500">Total Credit</p>
             <p class="text-xl font-bold text-green-600">Rs {{ number_format($totalCredit) }}</p>
         </div>
-        <div class="rounded-xl p-4 text-center {{ $balance > 0 ? 'bg-orange-50' : 'bg-emerald-50' }}">
+        <div class="rounded p-4 text-center {{ $balance > 0 ? 'bg-orange-50' : 'bg-emerald-50' }}">
             <p class="text-xs text-gray-500">Balance</p>
             <p class="text-xl font-bold {{ $balance > 0 ? 'text-orange-600' : 'text-emerald-600' }}">Rs {{ number_format($balance) }}</p>
         </div>

@@ -4,7 +4,7 @@
 @section('title', 'Cashier - Open Job Cards')
 
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-folder-open text-green-500 mr-2"></i>
@@ -43,7 +43,7 @@
                         <form action="{{ route('cashier.print-initial-ro') }}" method="POST" target="_blank">
                             @csrf
                             <input type="hidden" name="job_id" value="{{ $job->Jobc_id }}">
-                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors">
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors">
                                 <i class="fas fa-print mr-1"></i> Print RO
                             </button>
                         </form>

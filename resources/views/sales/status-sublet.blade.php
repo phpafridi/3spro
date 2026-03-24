@@ -7,11 +7,11 @@
     <a href="{{ route('sales.index') }}" class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition-colors"><i class="fa fa-home mr-1"></i>Dashboard</a>
 </div>
 @if($jobcards->isEmpty())
-    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg"><i class="fa fa-check-circle mr-2"></i>No jobcards in workshop.</div>
+    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded"><i class="fa fa-check-circle mr-2"></i>No jobcards in workshop.</div>
 @else
     @foreach($jobcards as $jc)
     @if(isset($subletData[$jc->Jobc_id]) && count($subletData[$jc->Jobc_id]))
-    <div class="bg-white rounded-lg shadow-sm p-5 mb-4">
+    <div class="bg-white rounded shadow-sm p-5 mb-4">
         <div class="flex items-center gap-4 mb-3 pb-3 border-b border-gray-100">
             <span class="font-bold text-gray-900">RO# {{ $jc->Jobc_id }}</span>
             <span class="text-gray-500 text-sm">SA: {{ $jc->SA }}</span>

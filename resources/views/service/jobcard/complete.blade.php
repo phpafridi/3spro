@@ -9,7 +9,7 @@
 <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md text-sm">{{ session('success') }}</div>
 @endif
 
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Job Complete</h2>
 
     <div class="overflow-x-auto">
@@ -43,7 +43,7 @@
                     // Sublet: blue=none, red=workshop not done, green=all done
                     $subletAny    = \Illuminate\Support\Facades\DB::table('jobc_sublet')->where('RO_no', $job->Jobc_id)->exists();
                     $subletPending= $subletAny ? \Illuminate\Support\Facades\DB::table('jobc_sublet')
-                        ->where('RO_no', $job->Jobc_id)->where('type','Workshop')->where('status','')->exists() : false;
+                        ->where('RO_no', $job->Jobc_id)->where('type','Workshop')->where('status','Jobclose')->exists() : false;
 
                     // Consumble: blue=none, red=not issued(status=0), green=all issued
                     $consAny    = \Illuminate\Support\Facades\DB::table('jobc_consumble')->where('RO_no', $job->Jobc_id)->exists();

@@ -5,19 +5,19 @@
 
 {{-- Stats --}}
 <div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-blue-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-blue-500">
         <div class="text-2xl font-bold text-blue-500">{{ $customers->total() }}</div>
         <div class="text-sm text-gray-500 mt-1">Total Customers</div>
     </div>
     @foreach($typeStats->take(2) as $ts)
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-purple-400">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-purple-400">
         <div class="text-2xl font-bold text-purple-500">{{ $ts->total }}</div>
         <div class="text-sm text-gray-500 mt-1">{{ $ts->cust_type }}</div>
     </div>
     @endforeach
 </div>
 
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Active Customers</h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">

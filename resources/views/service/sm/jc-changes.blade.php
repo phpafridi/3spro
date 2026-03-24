@@ -4,7 +4,7 @@
     @include('service.partials.sm-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h2 class="text-2xl font-semibold text-gray-800 mb-4">JC Changes Viewer</h2>
     <form method="GET" action="{{ route('sm.jc-changes') }}" class="flex gap-2">
         <input type="text" name="jobc_id" value="{{ $jobId ?? '' }}" required placeholder="RO No..."
@@ -15,7 +15,7 @@
     </form>
 </div>
 @if($changes->isNotEmpty())
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h3 class="font-semibold text-gray-700 mb-4">Labor for RO# {{ $jobId }}</h3>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -50,6 +50,6 @@
     </div>
 </div>
 @elseif($jobId ?? false)
-<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No data for RO# {{ $jobId }}.</div>
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">No data for RO# {{ $jobId }}.</div>
 @endif
 @endsection

@@ -4,7 +4,7 @@
     @include('service.partials.sm-sidebar')
 @endsection
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+<div class="bg-white rounded shadow-sm p-6 mb-4">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Labor History</h2>
     <form method="GET" action="{{ route('sm.history') }}" class="flex gap-2">
         <input type="text" name="job_id" value="{{ $jobId ?? '' }}" required placeholder="Enter RO No..."
@@ -15,7 +15,7 @@
     </form>
 </div>
 @if($labors->isNotEmpty())
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h3 class="font-semibold text-gray-700 mb-3">Labor History — RO# {{ $jobId }}
         <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $labors->count() }}</span>
     </h3>
@@ -51,6 +51,6 @@
     </div>
 </div>
 @elseif($jobId ?? false)
-<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">No labor found for RO# {{ $jobId }}.</div>
+<div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">No labor found for RO# {{ $jobId }}.</div>
 @endif
 @endsection

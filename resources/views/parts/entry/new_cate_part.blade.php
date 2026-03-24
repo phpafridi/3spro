@@ -7,30 +7,30 @@
 @if(session('success'))<div class="mb-4 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-r-xl">{{ session('success') }}</div>@endif
 @if(session('error'))<div class="mb-4 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 rounded-r-xl">{{ session('error') }}</div>@endif
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-<div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+<div class="bg-white rounded shadow-sm border border-gray-200 p-6">
 <form action="{{ route('parts.new-cate-part.store') }}" method="POST">
 @csrf
 <div class="space-y-4">
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Part Number <span class="text-red-500">*</span></label>
         <input type="text" name="typeahead" id="catPartSearch" required autocomplete="off"
-               class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Search part number...">
+               class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500" placeholder="Search part number...">
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
-        <input type="text" name="category" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+        <input type="text" name="category" required class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Sub Category <span class="text-red-500">*</span></label>
-        <input type="text" name="subcategory" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+        <input type="text" name="subcategory" required class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
 </div>
 <div class="mt-6">
-    <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all">Add Category Part</button>
+    <button type="submit" class="w-full bg-red-600 text-white py-2.5 rounded font-medium hover:bg-red-700 transition-all">Add Category Part</button>
 </div>
 </form>
 </div>
-<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
     <div class="p-4 border-b border-gray-100"><h3 class="font-semibold text-gray-800">Category Parts List</h3></div>
     <div class="overflow-y-auto max-h-96">
     <table class="w-full text-sm">
@@ -42,7 +42,7 @@
         </tr></thead>
         <tbody class="divide-y divide-gray-50">
         @foreach($categories as $cat)
-        <tr class="hover:bg-indigo-50/30">
+        <tr class="hover:bg-red-50/30">
             <td class="px-3 py-2 font-medium text-gray-800">{{ $cat->partnumber }}</td>
             <td class="px-3 py-2 text-gray-600 text-xs">{{ $cat->category }}</td>
             <td class="px-3 py-2 text-gray-500 text-xs">{{ $cat->subcategory }}</td>

@@ -21,7 +21,7 @@
 @endif
 
 <div class="max-w-2xl">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <div class="bg-white rounded shadow-sm border border-gray-200 p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-5">Invoice Details</h3>
 
         <form action="{{ route('parts.purchase.store') }}" method="POST">
@@ -33,7 +33,7 @@
                         Jobber / Vendor <span class="text-red-500">*</span>
                     </label>
                     <select name="required_jobber" id="required_jobber" required
-                            class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                         <option value="">-- Select Jobber --</option>
                         @foreach($jobbers as $jobber)
                             <option value="{{ $jobber->jbr_name }}">{{ $jobber->jbr_name }}</option>
@@ -46,7 +46,7 @@
                         Bill Number <span id="billStatus" class="ml-2 text-sm"></span>
                     </label>
                     <input type="text" name="invo" id="billNumber"
-                           class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                           class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                            placeholder="Enter bill/invoice number">
                 </div>
 
@@ -55,7 +55,7 @@
                         Purchase Requisition <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="required_preq" required
-                           class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                           class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                            placeholder="PR number">
                 </div>
 
@@ -64,7 +64,7 @@
                         Payment Method <span class="text-red-500">*</span>
                     </label>
                     <select name="required_payment_method" required
-                            class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                         <option value="">-- Select --</option>
                         <option value="Cash">Cash</option>
                         <option value="Cheque">Cheque</option>
@@ -76,31 +76,31 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
                     <input type="date" name="mdate" value="{{ date('Y-m-d') }}"
-                           class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                           class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Note</label>
                     <input type="text" name="deleverynote"
-                           class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                           class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Consignment Note</label>
                     <input type="text" name="consignmentnote"
-                           class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                           class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Receiver Name</label>
                     <input type="text" name="Receivername"
-                           class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                           class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
             </div>
 
             <div class="mt-6">
                 <button type="submit"
-                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all">
+                        class="w-full bg-red-600 text-white py-2.5 rounded font-medium hover:bg-red-700 transition-all">
                     Create Invoice &rarr; Add Parts
                 </button>
             </div>

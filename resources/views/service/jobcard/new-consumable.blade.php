@@ -5,7 +5,7 @@
 @endsection
 @section('content')
 <div class="max-w-xl mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-6">Add New Consumable</h2>
         <p class="text-sm text-gray-500 mb-4">
             Use this form to add a new consumable item that is not yet in the system.

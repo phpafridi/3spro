@@ -3,12 +3,12 @@
 @section('title', 'Accounts - GSL Details')
 
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-1">
         <i class="fas fa-stream text-purple-500 mr-2"></i>General Sub-Ledger (GSL)
     </h2>
     <p class="text-sm text-gray-400 mb-6">
-        Hierarchy: Main Account → GL → <strong class="text-purple-600">GSL</strong>
+        Hierarchy: Main Account → GL → <strong class="text-red-600">GSL</strong>
     </p>
 
     {{-- Step 1: Select GL --}}
@@ -19,14 +19,14 @@
         </p>
         <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
             <a href="{{ route('accounts.add-gsl') }}"
-               class="px-4 py-2 rounded-xl text-sm border transition
-                      {{ !$filterGlId ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400' }}">
+               class="px-4 py-2 rounded text-sm border transition
+                      {{ !$filterGlId ? 'bg-red-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400' }}">
                 All GSL
             </a>
             @foreach($glList as $gl)
             <a href="{{ route('accounts.add-gsl', ['GL_id' => $gl->GL_id]) }}"
-               class="px-4 py-2 rounded-xl text-sm border transition
-                      {{ $filterGlId == $gl->GL_id ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400' }}">
+               class="px-4 py-2 rounded text-sm border transition
+                      {{ $filterGlId == $gl->GL_id ? 'bg-red-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400' }}">
                 {{ $gl->GL_name }}
                 <span class="text-xs opacity-60 ml-1">({{ number_format($gl->rang_start) }}–{{ number_format($gl->rang_end) }})</span>
             </a>
@@ -37,7 +37,7 @@
     {{-- Add GSL Form — only when a GL is selected --}}
     @if($filterGlId)
     @php $selectedGl = $glList->firstWhere('GL_id', $filterGlId); @endphp
-    <div class="mb-8 p-5 bg-purple-50 border border-purple-200 rounded-xl">
+    <div class="mb-8 p-5 bg-purple-50 border border-purple-200 rounded">
         <h3 class="text-sm font-semibold text-purple-700 mb-4">
             <i class="fas fa-plus-circle mr-1"></i>
             Add GSL under GL: <strong>{{ $selectedGl->GL_name ?? '' }}</strong>
@@ -55,18 +55,18 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">GSL Name <span class="text-red-500">*</span></label>
                     <input type="text" name="GSL_name" required
                            placeholder="e.g. Cash in Hand"
-                           class="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-purple-400">
+                           class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-purple-400">
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
                     <input type="text" name="Description"
                            placeholder="Optional detailed description"
-                           class="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-purple-400">
+                           class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-purple-400">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">GSL Code</label>
                     <input type="number" name="GSL_code" id="inp_gsl_code" readonly required
-                           class="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm bg-yellow-50 font-mono font-bold text-purple-700">
+                           class="w-full border border-gray-200 rounded px-4 py-2 text-sm bg-yellow-50 font-mono font-bold text-purple-700">
                     <p class="text-xs text-gray-400 mt-1">Auto-incremented from last GSL in this GL</p>
                 </div>
             </div>
@@ -74,11 +74,11 @@
             <div class="flex gap-3 items-center flex-wrap">
                 <button type="button" onclick="loadNextGSL()"
                         id="loadGslBtn"
-                        class="px-4 py-2 bg-yellow-500 text-white rounded-xl text-sm font-medium hover:bg-yellow-600 transition">
+                        class="px-4 py-2 bg-yellow-500 text-white rounded text-sm font-medium hover:bg-yellow-600 transition">
                     <i class="fas fa-magic mr-1"></i>Auto-fill GSL Code
                 </button>
                 <button type="submit" id="submitGslBtn" disabled
-                        class="px-5 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                        class="px-5 py-2 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
                     <i class="fas fa-save mr-1"></i>Save GSL
                 </button>
                 <span id="gslHint" class="text-xs text-purple-500 italic"></span>
@@ -90,7 +90,7 @@
     {{-- GSL List --}}
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gradient-to-r from-purple-600 to-pink-500">
+            <thead class="bg-gradient-to-r from-red-600 to-pink-500">
                 <tr>
                     @foreach(['#','GSL Code','GSL Name','Description','GL','Status'] as $h)
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">{{ $h }}</th>

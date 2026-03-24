@@ -13,35 +13,35 @@
     </div>
     <div class="flex gap-2">
         <a href="{{ route('parts.purchase.detail', $invoice->Invoice_no) }}"
-           class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl text-sm hover:bg-indigo-200 transition-colors">
+           class="px-4 py-2 bg-red-100 text-red-700 rounded text-sm hover:bg-red-100 transition-colors">
             + Add Parts
         </a>
         <a href="{{ route('parts.print.purchase', $invoice->Invoice_no) }}" target="_blank"
-           class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm hover:bg-indigo-700 transition-colors">
+           class="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors">
             Print Invoice
         </a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <div class="bg-white rounded border border-gray-200 p-4">
         <p class="text-xs text-gray-500">Payment Method</p>
         <p class="font-semibold text-gray-800">{{ $invoice->payment_method }}</p>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <div class="bg-white rounded border border-gray-200 p-4">
         <p class="text-xs text-gray-500">Purchase Requisition</p>
         <p class="font-semibold text-gray-800">{{ $invoice->Purchase_Requis }}</p>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <div class="bg-white rounded border border-gray-200 p-4">
         <p class="text-xs text-gray-500">Total Amount</p>
         <p class="font-semibold text-gray-800 text-xl">{{ number_format($invoice->Total_amount ?? 0, 2) }}</p>
     </div>
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-gradient-to-r from-indigo-50 to-purple-50">
+            <thead class="bg-gradient-to-r from-red-50 to-red-50">
                 <tr>
                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Part No</th>
@@ -56,7 +56,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach($invoice->stockItems as $i => $item)
-                <tr class="hover:bg-indigo-50/30">
+                <tr class="hover:bg-red-50/30">
                     <td class="px-4 py-3 text-gray-500">{{ $i+1 }}</td>
                     <td class="px-4 py-3 font-medium text-gray-800">{{ $item->part_no }}</td>
                     <td class="px-4 py-3 text-gray-700">{{ $item->Description }}</td>

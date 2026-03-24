@@ -2,7 +2,7 @@
 @include('finance.accounts.sidebar')
 @section('title', 'Accounts - Pending Vouchers')
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">
             <i class="fas fa-clock text-yellow-500 mr-2"></i>Pending Vouchers
@@ -27,7 +27,7 @@
                     <td class="px-4 py-3">{{ $i+1 }}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded-full text-xs font-semibold
-                            {{ in_array($v->vchr_type,['CPV','CRV']) ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">
+                            {{ in_array($v->vchr_type,['CPV','CRV']) ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-purple-700' }}">
                             {{ $v->vchr_type }}
                         </span>
                     </td>
@@ -40,7 +40,7 @@
                         <form method="POST" action="{{ route('accounts.pending-vouchers') }}">
                             @csrf
                             <input type="hidden" name="Submitit" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-green-500 text-white rounded-lg text-xs hover:bg-green-600">
+                            <button class="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
                                 <i class="fas fa-paper-plane mr-1"></i>Submit
                             </button>
                         </form>
@@ -49,7 +49,7 @@
                               onsubmit="return confirm('Trash this voucher?')">
                             @csrf
                             <input type="hidden" name="vch_status_cancel" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600">
+                            <button class="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">
                                 <i class="fas fa-trash mr-1"></i>Trash
                             </button>
                         </form>

@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
 <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-    <div class="md:col-span-2 bg-white rounded-lg shadow-sm p-6">
+    <div class="md:col-span-2 bg-white rounded shadow-sm p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Add Sublet — RO# {{ $jobId }}</h2>
             <a href="{{ route('jobcard.additional', $jobId) }}" class="text-sm text-gray-500 hover:text-gray-700"><i class="fa fa-arrow-left mr-1"></i>Back</a>
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </button>
         </form>
     </div>
-    <div class="md:col-span-3 bg-white rounded-lg shadow-sm p-6">
+    <div class="md:col-span-3 bg-white rounded shadow-sm p-6">
         <h3 class="font-semibold text-gray-700 mb-3">Current Sublets
             <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $sublets->count() }}</span>
         </h3>

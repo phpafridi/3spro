@@ -4,19 +4,19 @@
 @section('title', 'Job Controller - Parts Status')
 
 @section('sidebar-menu')
-    <a href="{{ route('jc.dashboard') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.dashboard') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded-lg transition-colors">
+    <a href="{{ route('jc.dashboard') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.dashboard') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded transition-colors">
         <i class="fas fa-wrench w-6"></i>
         <span>Jobs Requests</span>
     </a>
-    <a href="{{ route('jc.sublet') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.sublet') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded-lg transition-colors">
+    <a href="{{ route('jc.sublet') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.sublet') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded transition-colors">
         <i class="fas fa-sign-out-alt w-6"></i>
         <span>Sublet Requests</span>
     </a>
-    <a href="{{ route('jc.inprogress') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.inprogress') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded-lg transition-colors">
+    <a href="{{ route('jc.inprogress') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.inprogress') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded transition-colors">
         <i class="fas fa-edit w-6"></i>
         <span>Inprogress Jobs</span>
     </a>
-    <a href="{{ route('jc.parts-status') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.parts-status') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded-lg transition-colors">
+    <a href="{{ route('jc.parts-status') }}" class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('jc.parts-status') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded transition-colors">
         <i class="fas fa-search-plus w-6"></i>
         <span>Parts Status</span>
     </a>
@@ -49,7 +49,7 @@
 
     <!-- Parts Tab -->
     <div id="partsTab" class="tab-content">
-        <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="bg-white rounded shadow-sm p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-gray-800">Parts Status</h2>
                 <div class="w-64">
@@ -112,7 +112,7 @@
 
     <!-- Consumable Tab -->
     <div id="consumableTab" class="tab-content hidden">
-        <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="bg-white rounded shadow-sm p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-gray-800">Consumable Status</h2>
                 <div class="w-64">

@@ -4,7 +4,7 @@
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
 
-<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+<div class="bg-white rounded shadow-sm p-6 mb-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-5">Upload VIN / Frame Data</h2>
     <form method="POST" action="{{ route('sales.upload-vin.store') }}">
         @csrf
@@ -27,7 +27,7 @@
     </form>
 </div>
 
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Upload History
         <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $lists->count() }}</span>
     </h2>

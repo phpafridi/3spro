@@ -12,7 +12,7 @@
 @endif
 
 <div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded shadow-sm p-6">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold text-gray-800">Add Vehicle Details</h2>
             <a href="{{ route('jobcard.add-vehicle') }}" class="text-sm text-gray-500 hover:text-gray-700">

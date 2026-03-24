@@ -7,19 +7,19 @@
 
 {{-- Stats Row --}}
 <div class="grid grid-cols-2 gap-4 mb-6">
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-red-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-red-500">
         <div class="text-3xl font-bold text-red-500">{{ $unclosedCount }}</div>
         <div class="text-sm text-gray-500 mt-1">Unclosed Jobcards</div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-yellow-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-yellow-500">
         <div class="text-3xl font-bold text-yellow-500">{{ $pendingProblems }}</div>
         <div class="text-sm text-gray-500 mt-1">Problem Tray Pending</div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-blue-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-blue-500">
         <div class="text-3xl font-bold text-blue-500">{{ $pendingVin }}</div>
         <div class="text-sm text-gray-500 mt-1">VIN Checks Pending</div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-green-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-green-500">
         @php
             $mechLabor = $todayRevenue->where('ro_type','Mechanical')->first();
             $bpLabor   = $todayRevenue->where('ro_type','Body / Paint')->first();
@@ -31,7 +31,7 @@
 
 {{-- Today Revenue Breakdown --}}
 <div class="grid grid-cols-2 gap-4 mb-6">
-    <div class="bg-white rounded-lg shadow-sm p-5">
+    <div class="bg-white rounded shadow-sm p-5">
         <h3 class="text-sm font-semibold text-gray-600 uppercase mb-3">Today — Mechanical</h3>
         <div class="flex justify-between text-sm">
             <span class="text-gray-500">Labor</span>
@@ -42,7 +42,7 @@
             <span class="font-bold text-gray-800">{{ number_format($mechLabor->Parts ?? 0) }}</span>
         </div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5">
+    <div class="bg-white rounded shadow-sm p-5">
         <h3 class="text-sm font-semibold text-gray-600 uppercase mb-3">Today — Body &amp; Paint</h3>
         <div class="flex justify-between text-sm">
             <span class="text-gray-500">Labor</span>
@@ -57,7 +57,7 @@
 
 {{-- Customer Ratings --}}
 @if($ratings)
-<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+<div class="bg-white rounded shadow-sm p-6 mb-6">
     <h2 class="text-lg font-semibold text-gray-800 mb-4">Customer Ratings (Average)</h2>
     <div class="grid grid-cols-4 gap-4">
         @foreach(['management'=>'Management','services'=>'Services','prices'=>'Pricing','cleanance'=>'Cleanliness'] as $key=>$label)
@@ -78,7 +78,7 @@
 @endif
 
 {{-- Last 20 Days Chart --}}
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-lg font-semibold text-gray-800 mb-4">Last 20 Days — Business Summary</h2>
     @if($chartData->count())
     <div class="overflow-x-auto">

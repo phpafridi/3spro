@@ -3,21 +3,21 @@
 @section('sidebar-menu') @include('sales.partials.sidebar') @endsection
 @section('content')
 <div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-blue-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-blue-500">
         <div class="text-2xl font-bold text-blue-500">{{ number_format($totalVehicles) }}</div>
         <div class="text-sm text-gray-500 mt-1">Total Vehicles</div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-green-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-green-500">
         <div class="text-2xl font-bold text-green-500">{{ number_format($registeredCount) }}</div>
         <div class="text-sm text-gray-500 mt-1">Registered</div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5 border-l-4 border-{{ $regRate >= 80 ? 'green' : ($regRate >= 50 ? 'yellow' : 'red') }}-500">
+    <div class="bg-white rounded shadow-sm p-5 border-l-4 border-{{ $regRate >= 80 ? 'green' : ($regRate >= 50 ? 'yellow' : 'red') }}-500">
         <div class="text-2xl font-bold text-gray-700">{{ $regRate }}%</div>
         <div class="text-sm text-gray-500 mt-1">Registration Rate</div>
     </div>
 </div>
 
-<div class="bg-white rounded-lg shadow-sm p-6">
+<div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Vehicles by Make</h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
