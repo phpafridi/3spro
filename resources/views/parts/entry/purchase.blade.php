@@ -81,19 +81,19 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Note</label>
-                    <input type="text" name="deleverynote"
+                    <input type="text" name="deleverynote"value="nil"
                            class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Consignment Note</label>
-                    <input type="text" name="consignmentnote"
+                    <input type="text" name="consignmentnote"value="nil"
                            class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Receiver Name</label>
-                    <input type="text" name="Receivername"
+                    <input type="text" name="Receivername"value="nil"
                            class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
             </div>

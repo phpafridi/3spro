@@ -45,16 +45,7 @@
             {{-- Customer Source --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Customer Source <span class="text-red-500">*</span>
-                    </label>
-                    <select name="cust_source" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="None">None</option>
-                        @foreach($custSources as $src)
-                        <option value="{{ $src }}" {{ old('cust_source') === $src ? 'selected' : '' }}>{{ $src }}</option>
-                        @endforeach
-                    </select>
+
                 </div>
 
                 {{-- Recent Campaign --}}
@@ -195,45 +186,122 @@
 </div>
 @push('scripts')
 <script>
-// ── Mileage check — matches original files/check.php exactly
-// POST: NIC=mileage&veh_id=X  → returns 'OK' or '<img src=cross.gif/>'
-document.getElementById('NIC').addEventListener('change', function () {
-    var nic    = this.value;
-    var vehId  = '{{ $vehicleId }}';
-    var status = document.getElementById('mileage_status');
-    status.innerHTML = '<i class="fa fa-spinner fa-spin text-gray-400"></i>';
+// Debug logs
 
-    $.ajax({
-        type: 'POST',
-        url:  '{{ route("jobcard.check-mileage") }}',
-        data: { _token: '{{ csrf_token() }}', NIC: nic, veh_id: vehId },
-        success: function (msg) {
-            if ($.trim(msg) === 'OK') {
-                status.innerHTML = '<i class="fa fa-check text-green-500"></i>';
-            } else {
-                status.innerHTML = '<span class="text-red-500 text-xs font-semibold">⚠ Mileage lower than last visit!</span>';
-            }
+
+// ── Mileage check
+var mileageInput = document.getElementById('NIC');
+
+
+if (mileageInput) {
+    
+    
+    mileageInput.addEventListener('change', function () {
+    
+        
+        var nic    = this.value;
+        var vehId  = '{{ $vehicleId }}';
+        var status = document.getElementById('mileage_status');
+        
+    
+        
+        if (!nic || nic === '') {
+            console.log('Mileage is empty, skipping');
+            status.innerHTML = '';
+            return;
         }
+        
+        status.innerHTML = '<i class="fa fa-spinner fa-spin text-gray-400"></i> Checking...';
+        
+        // Use Fetch API instead of jQuery
+        fetch('{{ route("jobcard.check-mileage") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'text/plain'
+            },
+            body: new URLSearchParams({
+                '_token': '{{ csrf_token() }}',
+                'NIC': nic,
+                'veh_id': vehId
+            })
+        })
+        .then(response => {
+    
+            return response.text();
+        })
+        .then(data => {
+    
+            var msg = data.trim();
+            if (msg === 'OK') {
+                status.innerHTML = '<i class="fa fa-check text-green-500"></i> OK';
+            } else {
+                status.innerHTML = '<span class="text-red-500 text-xs font-semibold">⚠ ' + msg + '</span>';
+            }
+        })
+        .catch(error => {
+    
+            status.innerHTML = '<span class="text-red-500 text-xs font-semibold">⚠ Error checking mileage</span>';
+        });
     });
-});
+} else {
+    console.error('Could not find element with id "NIC"');
+}
 
 // ── MSI Category → auto-fill RO Type + Service Nature
-// Matches original files/getmsiDetails.php: POST msi_id → [{ro_type, service_nature}]
-document.getElementById('msi_category').addEventListener('change', function () {
-    var msiId = this.value;
-    $.ajax({
-        type:     'POST',
-        url:      '{{ route("jobcard.ajax.msi-details") }}',
-        dataType: 'json',
-        data:     { _token: '{{ csrf_token() }}', msi_id: msiId },
-        success:  function (response) {
-            if (response && response[0]) {
-                document.getElementById('ro_type').value     = response[0].ro_type;
-                document.getElementById('serv_nature').value = response[0].service_nature;
-            }
+var msiSelect = document.getElementById('msi_category');
+if (msiSelect) {
+    
+    
+    msiSelect.addEventListener('change', function () {
+        var msiId = this.value;
+        
+        
+        // Skip if NILL is selected
+        if (msiId === 'NILL' || !msiId) {
+            return;
         }
+        
+        fetch('{{ route("jobcard.ajax.msi-details") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: new URLSearchParams({
+                '_token': '{{ csrf_token() }}',
+                'msi_id': msiId
+            })
+        })
+        .then(response => {
+        
+            return response.json();
+        })
+        .then(response => {
+        
+            if (response && response.length > 0) {
+                var roType = document.getElementById('ro_type');
+                var servNature = document.getElementById('serv_nature');
+                
+                if (response[0].ro_type && roType) {
+                    roType.value = response[0].ro_type;
+        
+                }
+                if (response[0].service_nature && servNature) {
+                    servNature.value = response[0].service_nature;
+        
+                }
+            }
+        })
+        .catch(error => {
+            console.error('MSI Fetch Error:', error);
+        });
     });
-});
+} else {
+    console.error('Could not find element with id "msi_category"');
+}
 </script>
 @endpush
 @endsection

@@ -2,37 +2,24 @@
 @section('title', 'Add Labor - RO# ' . $jobId)
 @section('sidebar-menu')
     @include('service.partials.jobcard-sidebar')
-
-@push('scripts')
-<script>
-// Delete item — matches original delete_labor.php
-// POST: id=id
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            if (!confirm('Delete this item?')) return;
-            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
-            postData['id'] = this.dataset.id;
-            fetch('{{ route("jobcard.delete-item") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(postData)
-            }).then(function () { location.reload(); });
-        });
-    });
-});
-</script>
-@endpush
 @endsection
+
 @section('content')
 @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>@endif
+
+@php
+    $storeRoute = ($jobcard->status >= 1)
+        ? route('jobcard.additional.jobrequest.post-store')
+        : route('jobcard.additional.jobrequest.store');
+@endphp
+
 <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
     <div class="md:col-span-2 bg-white rounded shadow-sm p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Add Labor — RO# {{ $jobId }}</h2>
             <a href="{{ route('jobcard.additional', $jobId) }}" class="text-sm text-gray-500 hover:text-gray-700"><i class="fa fa-arrow-left mr-1"></i>Back</a>
         </div>
-        <form method="POST" action="{{ route('jobcard.additional.jobrequest.store') }}" class="space-y-3">
+        <form method="POST" action="{{ $storeRoute }}" class="space-y-3">
             @csrf
             <input type="hidden" name="job_id" value="{{ $jobId }}">
             <div>
@@ -66,14 +53,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 <i class="fa fa-plus mr-2"></i> Add Labor
             </button>
         </form>
-        {{-- Navigate to other sections — matches original form buttons --}}
         <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
-            <a href="{{ route('jobcard.additional.part', $jobId) }}"
-               class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded">Spare Parts</a>
-            <a href="{{ route('jobcard.additional.sublet', $jobId) }}"
-               class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded">Sublet</a>
-            <a href="{{ route('jobcard.additional.consumable', $jobId) }}"
-               class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded">Consumble</a>
+            <a href="{{ route('jobcard.additional.part', $jobId) }}" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded">Spare Parts</a>
+            <a href="{{ route('jobcard.additional.sublet', $jobId) }}" class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded">Sublet</a>
+            <a href="{{ route('jobcard.additional.consumable', $jobId) }}" class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded">Consumble</a>
         </div>
     </div>
     <div class="md:col-span-3 bg-white rounded shadow-sm p-6">
@@ -87,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Added</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Del</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -96,9 +79,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-4 py-2 text-sm font-medium text-gray-800">{{ $l->Labor }}</td>
                     <td class="px-4 py-2 text-sm text-gray-500">{{ $l->type }}</td>
                     <td class="px-4 py-2 text-sm text-gray-700">{{ number_format($l->cost,0) }}</td>
-                    <td class="px-4 py-2 text-sm text-gray-500">{{ $l->status ?: 'Pending' }}</td>
                     <td class="px-4 py-2 text-sm">
-                        @if($l->Additional)<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">Additional</span>@endif
+                        @if($l->Additional == 1 && (!$l->status || $l->status == '0'))
+                            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">Additional</span>
+                        @elseif($l->status && $l->status != '0')
+                            <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">{{ $l->status }}</span>
+                        @else
+                            <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">Pending</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        @if(!$l->status || $l->status == '' || $l->status == '0')
+                        <button class="delete-item-btn px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded"
+                                data-id="{{ $l->Labor_id }}" data-type="labor">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                        @else
+                        <span class="text-gray-300 text-xs">—</span>
+                        @endif
                     </td>
                 </tr>
                 @empty
@@ -108,51 +106,34 @@ document.addEventListener('DOMContentLoaded', function () {
         </table>
     </div>
 </div>
+
 @push('scripts')
 <script>
-// ── Toggle price row based on type (same as original myfunction())
 function togglePrice(sel) {
     document.getElementById('price_row').style.display = sel.value === 'Workshop' ? '' : 'none';
     if (sel.value !== 'Workshop') document.getElementById('price_input').value = 0;
 }
 document.addEventListener('DOMContentLoaded', function () {
     togglePrice(document.getElementById('labor_type'));
-});
 
-// ── Auto-fill labor price from variant — matches original files/Labor_cost.php
-// POST: partn=laborName, variant=variantCode, type=contractType → returns price as plain text
-document.querySelector('select[name="jobrequest"]').addEventListener('change', function () {
-    var partn   = this.value;
-    var variant = '{{ $jobcard->Variant ?? "" }}';
-    var type    = document.getElementById('labor_type') ? document.getElementById('labor_type').value : 'Workshop';
-
-    if (!partn || !variant) return;
-
-    $.ajax({
-        type:    'POST',
-        url:     '{{ route("jobcard.ajax.labor-cost") }}',
-        data:    { _token: '{{ csrf_token() }}', partn: partn, variant: variant, type: type },
-        success: function (price) {
-            var priceInput = document.getElementById('price_input');
-            if (priceInput && parseFloat(price) > 0) {
-                priceInput.value = price;
+    document.querySelector('select[name="jobrequest"]').addEventListener('change', function () {
+        var partn   = this.value;
+        var variant = '{{ $jobcard->Variant ?? "" }}';
+        var type    = document.getElementById('labor_type').value;
+        if (!partn || !variant) return;
+        $.ajax({
+            type: 'POST', url: '{{ route("jobcard.ajax.labor-cost") }}',
+            data: { _token: '{{ csrf_token() }}', partn: partn, variant: variant, type: type },
+            success: function (price) {
+                if (parseFloat(price) > 0) document.getElementById('price_input').value = price;
             }
-        }
+        });
     });
-});
-</script>
-@endpush
 
-@push('scripts')
-<script>
-// Delete item — matches original delete_labor.php
-// POST: id=id
-document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             if (!confirm('Delete this item?')) return;
-            var postData = { _token: document.querySelector('meta[name=csrf-token]').content };
-            postData['id'] = this.dataset.id;
+            var postData = { _token: document.querySelector('meta[name=csrf-token]').content, id: this.dataset.id };
             fetch('{{ route("jobcard.delete-item") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

@@ -107,7 +107,7 @@ class JobcardController extends Controller
             'Engine_code' => $request->engine ?? '',
             'Engine_number' => $request->engine_no ?? '',
             'cust_id' => 0,
-            'Customer_id' => 0,
+            
             'Wrnty_book_no' => 'nil',
             'Insurance' => 'nil',
             'user' => Auth::user()->login_id ?? 'unkown',
@@ -119,7 +119,7 @@ class JobcardController extends Controller
             'Colour' => $request->color ?? '',
             'Make' => $request->make ?? '',
             'into_sell' => $intosell,
-            'model_year' => $intosell ? ($request->model_year ?? '') : '',
+            'model_year' => $request->model_year ?? '',
             'demand_price' => $intosell ? ($request->demandprice ?? '') : '',
             'Update_date' => now()->toDateString(),
         ]);
@@ -315,16 +315,11 @@ class JobcardController extends Controller
         $campaigns = DB::table('s_campaigns')
             ->whereDate('c_to', '>=', now()->toDateString())
             ->whereDate('c_from', '<=', now()->toDateString())
-            ->where('status', '')
-            ->where('nature', 'Campaign')
+            ->where('status', 'Active')
+            
             ->orderByDesc('campaign_id')
             ->pluck('campaign_name');
 
-        $custSources = DB::table('s_campaigns')
-            ->where('status', '')
-            ->where('nature', 'CustType')
-            ->orderByDesc('campaign_id')
-            ->pluck('campaign_name');
 
         return view('service.jobcard.create-jobcard', compact(
             'vehicle',
@@ -332,7 +327,7 @@ class JobcardController extends Controller
             'vehicleId',
             'customerId',
             'campaigns',
-            'custSources'
+
         ));
     }
 
@@ -561,9 +556,20 @@ class JobcardController extends Controller
             DB::table('jobc_labor')->insert([
                 'RO_no' => $jobId,
                 'Labor' => $labor->labour_des,
+                'Additional' => 0,
+                'reason' => 'nul',
                 'type' => 'Workshop',
                 'cost' => $labor->labour_cost,
                 'entry_time' => now(),
+                'estimated_time' => now(),
+                'Assign_time' => now(),
+                'end_time' => now(),
+                'team' => 'nul',
+                'bay' => 'nul',
+                'remarks' => 'nul',
+                'resumetime' => now(),
+                'jc' => 'nil',
+                'status' => 0,
             ]);
         }
 
@@ -805,7 +811,7 @@ class JobcardController extends Controller
                 'type' => $type,
                 'cost' => $price,
                 'reason' => $request->reason ?? '',
-                'Additional' => 1,
+                'Additional' => 0,
                 'status' => 0,
                 'team' => 'null',
                 'bay' => "null",
@@ -843,7 +849,7 @@ class JobcardController extends Controller
                 'req_qty' => $request->qty,
                 'unitprice' => $request->unitprice,
                 'total' => $request->totalprice,
-                'Additional' => 1,
+                'Additional' => 0,
                 'part_invoice_no' => 0,
                 'issued_qty' => 0,
                 'issue_to' => 'null',
@@ -886,7 +892,7 @@ class JobcardController extends Controller
                 'req_qty' => $request->qty,
                 'unitprice' => $request->unitprice,
                 'total' => $request->totalprice,
-                'Additional' => 1,
+                'Additional' => 0,
                 'cons_req_no' => 0,
                 'cons_number' => 'null',
                 'issue_to' => 'null',
@@ -927,7 +933,7 @@ class JobcardController extends Controller
                 'type' => $type,
                 'qty' => $request->qty,
                 'unitprice' => ($type === 'Workshop') ? $request->unitprice : 0,
-                'additional' => 1,
+                'additional' => 0,
                 'status' => 0,
                 'jc' => 0,
                 'end_time' => now(),
@@ -944,24 +950,175 @@ class JobcardController extends Controller
         return redirect()->route('jobcard.additional.sublet', $request->job_id)->with('success', 'Sublet added.');
     }
 
+
+    // ─────────────────────────────────────────────
+    //  POST-WORK ADDITIONAL STORES
+    //  Called ONLY from Additional screens after Start Working
+    //  Always sets Additional = 1
+    // ─────────────────────────────────────────────
+
+    public function postWorkJobrequestStore(Request $request)
+    {
+        if ($request->jobrequest) {
+            $type  = $request->type;
+            $price = ($type === 'Workshop') ? $request->price : 0;
+            DB::table('jobc_labor')->insert([
+                'RO_no'          => $request->job_id,
+                'Labor'          => $request->jobrequest,
+                'type'           => $type,
+                'cost'           => $price,
+                'reason'         => $request->reason ?? '',
+                'Additional'     => 1,
+                'status'         => 0,
+                'team'           => 'null',
+                'bay'            => 'null',
+                'remarks'        => 'null',
+                'resumetime'     => 'null',
+                'jc'             => 'null',
+                'end_time'       => now(),
+                'Assign_time'    => now(),
+                'estimated_time' => now(),
+                'entry_time'     => now(),
+            ]);
+        }
+        return redirect()->route('jobcard.additional.jobrequest', $request->job_id)->with('success', 'Labor added.');
+    }
+
+    public function postWorkPartStore(Request $request)
+    {
+        if ($request->unitprice) {
+            DB::table('jobc_parts')->insert([
+                'RO_no'            => $request->job_id,
+                'part_description' => $request->part_description,
+                'qty'              => $request->qty,
+                'req_qty'          => $request->qty,
+                'unitprice'        => $request->unitprice,
+                'total'            => $request->totalprice,
+                'Additional'       => 1,
+                'part_invoice_no'  => 0,
+                'issued_qty'       => 0,
+                'issue_to'         => 'null',
+                'issue_time'       => now(),
+                'Stock_id'         => 0,
+                'status'           => 0,
+                'issue_by'         => 'null',
+                'p_return'         => 0,
+                'incentive_status' => 0,
+                'part_number'      => 'null',
+                'entry_datetime'   => now(),
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        }
+        return redirect()->route('jobcard.additional.part', $request->job_id)->with('success', 'Part added.');
+    }
+
+    public function postWorkConsumableStore(Request $request)
+    {
+        if ($request->unitprice) {
+            DB::table('jobc_consumble')->insert([
+                'RO_no'            => $request->job_id,
+                'cons_description' => $request->part_description,
+                'qty'              => $request->qty,
+                'req_qty'          => $request->qty,
+                'unitprice'        => $request->unitprice,
+                'total'            => $request->totalprice,
+                'Additional'       => 1,
+                'cons_req_no'      => 0,
+                'cons_number'      => 'null',
+                'issue_to'         => 'null',
+                'issue_time'       => now(),
+                'status'           => 0,
+                'issue_by'         => 'null',
+                'p_return'         => 0,
+                'incentive_status' => 0,
+                'issued_qty'       => 0,
+                'Stock_id'         => 0,
+                'entry_datetime'   => now(),
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        }
+        return redirect()->route('jobcard.additional.consumable', $request->job_id)->with('success', 'Consumable added.');
+    }
+
+    public function postWorkSubletStore(Request $request)
+    {
+        if ($request->unitprice) {
+            $type = $request->type;
+            DB::table('jobc_sublet')->insert([
+                'RO_no'         => $request->job_id,
+                'Sublet'        => $request->sublet,
+                'type'          => $type,
+                'qty'           => $request->qty,
+                'unitprice'     => ($type === 'Workshop') ? $request->unitprice : 0,
+                'additional'    => 1,
+                'status'        => 0,
+                'jc'            => 0,
+                'end_time'      => now(),
+                'Asign_time'    => now(),
+                'parts_details' => 'null',
+                'Vendor'        => 'null',
+                'who_taking'    => 'null',
+                'Vendor_price'  => 0,
+                'logistics'     => 0,
+                'total'         => ($type === 'Workshop') ? $request->totalprice : 0,
+                'entry_datetime' => now(),
+            ]);
+        }
+        return redirect()->route('jobcard.additional.sublet', $request->job_id)->with('success', 'Sublet added.');
+    }
+
     // ─────────────────────────────────────────────
     //  DELETE ITEM  (delete_labor.php)
     // ─────────────────────────────────────────────
     public function deleteItem(Request $request)
     {
         if ($request->id) {
-            DB::table('jobc_labor')->where('Labor_id', $request->id)->where('status', '')->delete();
+            // Labor: delete if not yet started (status empty/null)
+            DB::table('jobc_labor')
+                ->where('Labor_id', $request->id)
+                ->where(function ($q) {
+                    $q->whereNull('status')->orWhere('status', '')->orWhere('status', '0');
+                })
+                ->delete();
+
         } elseif ($request->Pid) {
-            if (!DB::table('jobc_parts_p')->where('parts_sale_id', $request->Pid)->exists()) {
-                DB::table('jobc_parts')->where('parts_sale_id', $request->Pid)->where('status', '0')->delete();
+            // Parts: only delete if not yet issued to parts dept
+            $alreadyIssued = DB::table('jobc_parts_p')
+                ->where('parts_sale_id', $request->Pid)
+                ->exists();
+            if (!$alreadyIssued) {
+                DB::table('jobc_parts')
+                    ->where('parts_sale_id', $request->Pid)
+                    ->where('status', 0)
+                    ->where('issued_qty', 0)
+                    ->delete();
             }
+
         } elseif ($request->sid) {
-            DB::table('jobc_sublet')->where('sublet_id', $request->sid)->where('status', '')->delete();
+            // Sublet: delete if status empty/null
+            DB::table('jobc_sublet')
+                ->where('sublet_id', $request->sid)
+                ->where(function ($q) {
+                    $q->whereNull('status')->orWhere('status', '')->orWhere('status', '0');
+                })
+                ->delete();
+
         } elseif ($request->cnid) {
-            if (!DB::table('jobc_consumble_p')->where('parts_sale_id', $request->cnid)->exists()) {
-                DB::table('jobc_consumble')->where('cons_sale_id', $request->cnid)->where('status', '0')->delete();
+            // Consumable: only delete if not yet issued
+            $alreadyIssued = DB::table('jobc_consumble_p')
+                ->where('parts_sale_id', $request->cnid)
+                ->exists();
+            if (!$alreadyIssued) {
+                DB::table('jobc_consumble')
+                    ->where('cons_sale_id', $request->cnid)
+                    ->where('status', 0)
+                    ->where('issued_qty', 0)
+                    ->delete();
             }
         }
+
         return response()->json(['status' => 'ok']);
     }
 
@@ -1148,7 +1305,7 @@ class JobcardController extends Controller
         if ($request->new_labor) {
             DB::table('labor_list')->insert([
                 'Labor' => strtoupper($request->new_labor),
-                'user' => Auth::user()->login_id,
+              
             ]);
         }
         return back()->with('success', 'Labor description added.');

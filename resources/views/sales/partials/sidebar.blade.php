@@ -110,6 +110,13 @@
     </div>
 </div>
 
+<!-- CRM Follow-Up Reminder -->
+<a href="{{ route('sales.crm-reminder') }}"
+   class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('sales.crm-reminder') ? 'bg-white/20' : 'hover:bg-white/10' }} rounded transition-colors">
+    <i class="fas fa-phone-alt w-6"></i><span>CRM Reminder</span>
+    <span class="ml-auto px-1.5 py-0.5 bg-orange-400 text-white text-xs rounded-full">Calls</span>
+</a>
+
 <!-- Campaigns -->
 <a href="{{ route('sales.campaigns') }}"
    class="flex items-center px-4 py-3 text-sm {{ request()->routeIs('sales.campaigns') ? 'bg-white/20' : 'hover:bg-white/10' }} rounded transition-colors">

@@ -43,7 +43,7 @@
                 <select name="catetype" required
                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                     <option value="">-- Select Category --</option>
-                    <option value="TGMO"         {{ old('catetype')=='TGMO'         ? 'selected':'' }}>TGMO</option>
+                   
                     <option value="Chemical"     {{ old('catetype')=='Chemical'     ? 'selected':'' }}>Chemical</option>
                     <option value="Accessories"  {{ old('catetype')=='Accessories'  ? 'selected':'' }}>Accessories</option>
                     <optgroup label="Parts">

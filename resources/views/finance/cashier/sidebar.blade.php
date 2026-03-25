@@ -4,7 +4,7 @@
               {{ request()->routeIs('cashier.index') ? 'bg-white/20 text-white shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
         <i class="fas fa-home w-6 text-lg"></i>
         <span>Jobcard Invoice</span>
-        <span class="ml-auto bg-white/20 px-2 py-0.5 rounded-full text-xs">{{ session('pending_count', 0) }}</span>
+        <!-- <span class="ml-auto bg-white/20 px-2 py-0.5 rounded-full text-xs"></span> -->
     </a>
 
     <a href="{{ route('cashier.search') }}"

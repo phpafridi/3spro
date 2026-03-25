@@ -50,12 +50,10 @@
                     <select name="category" id="partCategory"
                             class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                         <option value="">-- Select --</option>
-                        <option value="TGMO">TGMO</option>
                         <option value="Chemical">Chemical</option>
                         <option value="Accessories">Accessories</option>
                         <option value="KMP">KMP</option>
                         <option value="Body&amp;Paint">Body&amp;Paint</option>
-                        <option value="IMC-imported">IMC-imported</option>
                         <option value="Others">Others</option>
                     </select>
                 </div>
@@ -119,6 +117,7 @@
                         <th class="px-3 py-2 text-right text-xs text-gray-500 uppercase">R-Qty</th>
                         <th class="px-3 py-2 text-right text-xs text-gray-500 uppercase">Price</th>
                         <th class="px-3 py-2 text-right text-xs text-gray-500 uppercase">Net</th>
+                        <th class="px-3 py-2 text-center text-xs text-gray-500 uppercase">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -132,13 +131,29 @@
                         <td class="px-3 py-2 text-right {{ $s->remain_qty == 0 ? 'text-red-500' : 'text-green-600' }}">{{ $s->remain_qty }}</td>
                         <td class="px-3 py-2 text-right">{{ number_format($s->Price, 2) }}</td>
                         <td class="px-3 py-2 text-right font-medium">{{ number_format($s->Netamount, 2) }}</td>
+                        <td class="px-3 py-2 text-center">
+                            <form action="{{ route('parts.purchase.detail.delete', ['invoice_no' => $invoice->Invoice_no, 'id' => $s->stock_id]) }}" 
+                                  method="POST" 
+                                  onsubmit="return confirm('Are you sure you want to remove {{ $s->part_no }}?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Remove
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     @empty
-                    <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No parts added yet</td></tr>
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center text-gray-400">No parts added yet</td>
+                    </tr>
                     @endforelse
                     @if($stocks->count())
                     <tr class="bg-gray-100 font-bold">
-                        <td colspan="7" class="px-3 py-2 text-right text-sm">Grand Total</td>
+                        <td colspan="8" class="px-3 py-2 text-right text-sm">Grand Total</td>
                         <td class="px-3 py-2 text-right text-sm text-red-600">{{ number_format($stocks->sum('Netamount'), 2) }}</td>
                     </tr>
                     @endif

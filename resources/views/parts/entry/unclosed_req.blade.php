@@ -13,17 +13,18 @@
             <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Labor ID</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">RO No</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
+             
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Action</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
+            
         @forelse($unclosed as $u)
         <tr class="hover:bg-red-50/30">
             <td class="px-4 py-3 font-medium text-gray-800">{{ $u->Labor_id }}</td>
             <td class="px-4 py-3 text-gray-700">{{ $u->RO_no }}</td>
-            <td class="px-4 py-3 text-gray-600">{{ $u->customer_name }}</td>
+            
             <td class="px-4 py-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">{{ $u->status }}</span></td>
             <td class="px-4 py-3 text-center">
                 <form action="{{ route('parts.unclosed-req.close') }}" method="POST" onsubmit="return confirm('Close this requisition?')">

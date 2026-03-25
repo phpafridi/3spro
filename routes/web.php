@@ -128,6 +128,7 @@ Route::middleware(['auth', 'role:PManager,DataOperator,IT Manager'])
     ->group(function () {
 
         // Dashboard / Workshop Requisitions
+        Route::delete('/purchase/detail/{invoice_no}/{id}', [PartsController::class, 'destroy'])->name('purchase.detail.delete');
         Route::get('/', [PartsController::class, 'index'])->name('index');
 
         // Workshop Return
@@ -309,6 +310,11 @@ Route::middleware(['auth', 'role:SerAdvisor,IT Manager'])
         Route::post('/additional/consumable/store', [JobcardController::class, 'additionalConsumableStore'])->name('additional.consumable.store');
         Route::get('/{jobId}/additional/sublet', [JobcardController::class, 'additionalSublet'])->name('additional.sublet');
         Route::post('/additional/sublet/store', [JobcardController::class, 'additionalSubletStore'])->name('additional.sublet.store');
+        // Post-work Additional routes — always set Additional=1
+        Route::post('/additional/jobrequest/post-store', [JobcardController::class, 'postWorkJobrequestStore'])->name('additional.jobrequest.post-store');
+        Route::post('/additional/part/post-store', [JobcardController::class, 'postWorkPartStore'])->name('additional.part.post-store');
+        Route::post('/additional/consumable/post-store', [JobcardController::class, 'postWorkConsumableStore'])->name('additional.consumable.post-store');
+        Route::post('/additional/sublet/post-store', [JobcardController::class, 'postWorkSubletStore'])->name('additional.sublet.post-store');
         Route::post('/delete-item', [JobcardController::class, 'deleteItem'])->name('delete-item');
         Route::match(['get', 'post'], '/ajax/variant', [JobcardController::class, 'ajaxVariant'])->name('ajax.variant');
         Route::get('/additional-list', [JobcardController::class, 'additionalList'])->name('additional-list');
@@ -465,6 +471,7 @@ Route::middleware(['auth', 'role:SManager,IMCc,IT Manager'])
         Route::get('/status/parts', [SalesController::class, 'statusParts'])->name('status.parts');
         Route::get('/status/sublet', [SalesController::class, 'statusSublet'])->name('status.sublet');
         Route::get('/status/consumable', [SalesController::class, 'statusConsumable'])->name('status.consumable');
+        Route::get('/crm-reminder', [SalesController::class, 'followUpReminder'])->name('crm-reminder');
     });
 
 

@@ -379,4 +379,56 @@ class SalesController extends Controller
         }
         return view('sales.status-consumable', compact('jobcards', 'consData'));
     }
+
+    // ─── CRM: FOLLOW-UP REMINDER ─────────────────────────────────────────────────
+    // Shows recently closed jobcards (status >= 3) where consumables were used —
+    // so SA knows to call the customer for a post-service checkup.
+    public function followUpReminder()
+    {
+        // Recently completed jobcards — last 60 days, closed status (>= 3)
+        $recentJobs = DB::table('jobcard as jc')
+            ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+            ->join('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
+            ->where('jc.status', '>=', 3)
+            ->where('jc.Open_date_time', '>=', now()->subDays(60))
+            ->select(
+                'jc.Jobc_id',
+                'jc.Open_date_time',
+                'jc.SA',
+                'jc.RO_type',
+                'v.Registration',
+                'v.Variant',
+                'v.Make',
+                'c.Customer_name',
+                'c.mobile',
+                'c.Customer_id'
+            )
+            ->orderByDesc('jc.Jobc_id')
+            ->get();
+
+        // For each jobcard, check if consumables were used and get totals
+        $jobIds = $recentJobs->pluck('Jobc_id')->toArray();
+
+        // Get consumable counts per jobcard
+        $consumableCounts = DB::table('jobc_consumble')
+            ->whereIn('RO_no', $jobIds)
+            ->selectRaw('RO_no, COUNT(*) as cnt, SUM(total) as total_amount')
+            ->groupBy('RO_no')
+            ->get()
+            ->keyBy('RO_no');
+
+        // Mark jobs that had consumables
+        $jobs = $recentJobs->map(function ($job) use ($consumableCounts) {
+            $job->had_consumable = isset($consumableCounts[$job->Jobc_id]);
+            $job->consumable_count = $consumableCounts[$job->Jobc_id]->cnt ?? 0;
+            $job->consumable_total = $consumableCounts[$job->Jobc_id]->total_amount ?? 0;
+            return $job;
+        });
+
+        // Separate: all recent jobs + consumable-flagged
+        $allJobs       = $jobs;
+        $consumableJobs = $jobs->filter(fn($j) => $j->had_consumable);
+
+        return view('sales.crm-reminder', compact('allJobs', 'consumableJobs'));
+    }
 }

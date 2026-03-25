@@ -1028,7 +1028,7 @@ public function reportDailySale(Request $request)
                      DB::raw('ps.remain_qty * ps.Price as stock_value'),
                      'ps.cate_type', 'pp.Location', 'ps.date');
 
-        if ($stockType === 'imc')   $query->where('ps.cate_type', 'LIKE', '%IMC%');
+
         if ($stockType === 'local') $query->where('ps.cate_type', 'NOT LIKE', '%IMC%');
         if ($category)              $query->where('ps.cate_type', $category);
 
@@ -1257,6 +1257,21 @@ public function reportDailySale(Request $request)
         return view('parts.entry.reports.lost_sale', compact('lost', 'totalLost', 'from', 'to'));
     }
 
+ public function destroy($invoice_no, $id)
+{
+    // Use the correct model - PPurchStock instead of PartStock
+    $stock = PPurchStock::where('Invoice_no', $invoice_no)
+                        ->where('stock_id', $id)  // Using stock_id instead of id
+                        ->firstOrFail();
+    
+    $stock->delete();
+    
+    // Update the invoice total after deletion
+    $total = PPurchStock::where('Invoice_no', $invoice_no)->sum('Netamount');
+    PPurchInv::where('Invoice_no', $invoice_no)->update(['Total_amount' => $total]);
+    
+    return redirect()->back()->with('success', 'Item removed successfully');
+}
 public function reportRevenue(Request $request)
 {
     $from = $request->from ?? today()->subMonth()->toDateString();
