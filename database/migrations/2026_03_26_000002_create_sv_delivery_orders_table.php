@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('customer_address')->nullable();
 
             // Payment — pricing
-            $table->enum('payment_type', ['Cash', 'Installment'])->default('Cash');
+            $table->enum('payment_type', ['Cash', 'Installment', 'Direct'])->default('Cash');
             $table->decimal('onroad_price', 12, 2)->default(0)->comment('Ex-factory + registration + insurance');
             $table->decimal('discount', 12, 2)->default(0)->comment('Discount given to customer');
             $table->decimal('customer_paid_amount', 12, 2)->default(0)->comment('onroad_price - discount');

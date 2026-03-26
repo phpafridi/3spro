@@ -74,8 +74,10 @@
                         <td class="px-4 py-3">
                             @if($do->payment_type === 'Cash')
                                 <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Cash</span>
+                            @elseif($do->payment_type === 'Direct')
+                                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">Direct</span>
                             @else
-                                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">Installment</span>
+                                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">Bank Finance</span>
                                 @if($do->bank_name)
                                     <p class="text-xs text-gray-400 mt-0.5">{{ $do->bank_name }}</p>
                                 @endif

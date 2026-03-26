@@ -406,10 +406,9 @@ class SalesController extends Controller
             ->orderByDesc('jc.Jobc_id')
             ->get();
 
-        // For each jobcard, check if consumables were used and get totals
         $jobIds = $recentJobs->pluck('Jobc_id')->toArray();
 
-        // Get consumable counts per jobcard
+        // Consumable counts per jobcard
         $consumableCounts = DB::table('jobc_consumble')
             ->whereIn('RO_no', $jobIds)
             ->selectRaw('RO_no, COUNT(*) as cnt, SUM(total) as total_amount')
@@ -419,17 +418,84 @@ class SalesController extends Controller
 
         // Mark jobs that had consumables
         $jobs = $recentJobs->map(function ($job) use ($consumableCounts) {
-            $job->had_consumable = isset($consumableCounts[$job->Jobc_id]);
+            $job->had_consumable   = isset($consumableCounts[$job->Jobc_id]);
             $job->consumable_count = $consumableCounts[$job->Jobc_id]->cnt ?? 0;
             $job->consumable_total = $consumableCounts[$job->Jobc_id]->total_amount ?? 0;
             return $job;
         });
 
-        // Separate: all recent jobs + consumable-flagged
-        $allJobs       = $jobs;
+        $allJobs        = $jobs;
         $consumableJobs = $jobs->filter(fn($j) => $j->had_consumable);
 
-        return view('sales.crm-reminder', compact('allJobs', 'consumableJobs'));
+        // Call logs grouped by jobc_id (latest first per job)
+        $callLogsRaw = DB::table('crm_call_logs')
+            ->whereIn('jobc_id', $jobIds)
+            ->orderByDesc('called_at')
+            ->get();
+
+        $callLogs = $callLogsRaw->groupBy('jobc_id');
+
+        // All logs for JS (history modal)
+        $callLogsAll = $callLogsRaw->values();
+
+        // Due today / overdue — latest log per job where next_followup_date <= today
+        $dueToday = DB::table('crm_call_logs')
+            ->whereNotNull('next_followup_date')
+            ->where('next_followup_date', '<=', now()->toDateString())
+            ->orderBy('next_followup_date')
+            ->get()
+            // Keep only the most recent log per jobc_id
+            ->unique('jobc_id')
+            ->values();
+
+        // Recent call history (all logs, last 200)
+        $recentLogs = DB::table('crm_call_logs')
+            ->orderByDesc('called_at')
+            ->limit(200)
+            ->get();
+
+        return view('sales.crm-reminder', compact(
+            'allJobs', 'consumableJobs', 'callLogs', 'callLogsAll', 'dueToday', 'recentLogs'
+        ));
+    }
+
+    // ─────────────────────────────────────────────
+    //  CRM — LOG A CALL
+    // ─────────────────────────────────────────────
+    public function crmLogCall(Request $request)
+    {
+        $request->validate([
+            'jobc_id'    => 'required|integer',
+            'call_type'  => 'required|in:FFS,PSFU,ASFU,CSF,CFU',
+            'call_status'=> 'required|in:Contacted,Not Reachable,Callback Requested,Voicemail,Wrong Number',
+            'called_at'  => 'required|date',
+        ]);
+
+        // Fetch customer info from the jobcard for denormalized storage
+        $jobInfo = DB::table('jobcard as jc')
+            ->join('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
+            ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+            ->where('jc.Jobc_id', $request->jobc_id)
+            ->select('c.Customer_name', 'c.mobile', 'c.Customer_id', 'v.Registration')
+            ->first();
+
+        DB::table('crm_call_logs')->insert([
+            'jobc_id'           => $request->jobc_id,
+            'customer_id'       => $jobInfo?->Customer_id,
+            'customer_name'     => $jobInfo?->Customer_name,
+            'mobile'            => $jobInfo?->mobile,
+            'registration'      => $jobInfo?->Registration,
+            'call_type'         => $request->call_type,
+            'call_status'       => $request->call_status,
+            'remarks'           => $request->remarks,
+            'next_followup_date'=> $request->next_followup_date ?: null,
+            'called_at'         => $request->called_at,
+            'called_by'         => Auth::user()->login_id ?? Auth::user()->name ?? 'System',
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+
+        return redirect()->route('sales.crm-reminder')->with('crm_success', 'Call logged successfully.');
     }
     // ─────────────────────────────────────────────
     //  PARTS FILTER — Filter cars by recent parts used

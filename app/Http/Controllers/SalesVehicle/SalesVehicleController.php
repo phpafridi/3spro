@@ -146,7 +146,7 @@ class SalesVehicleController extends Controller
             'vehicle_id'           => 'required|exists:sv_vehicles,id',
             'customer_name'        => 'required',
             'customer_phone'       => 'required',
-            'payment_type'         => 'required|in:Cash,Installment',
+            'payment_type'         => 'required|in:Cash,Installment,Direct',
             'onroad_price'         => 'required|numeric|min:1',
             'discount'             => 'nullable|numeric|min:0',
             'do_date'              => 'required|date',
@@ -156,24 +156,52 @@ class SalesVehicleController extends Controller
             $request->validate([
                 'cash_received' => 'required|numeric|min:0',
             ]);
-        } else {
+        } elseif ($request->payment_type === 'Installment') {
             $request->validate([
                 'bank_name'           => 'required',
                 'down_payment'        => 'required|numeric|min:0',
                 'tenure_months'       => 'required|integer|min:1',
-                'monthly_installment' => 'required|numeric|min:0',
+            ]);
+        } else {
+            // Direct
+            $request->validate([
+                'direct_down_payment'        => 'required|numeric|min:0',
+                'direct_tenure_months'       => 'required|integer|min:1',
             ]);
         }
 
         $onroadPrice        = (float) $request->onroad_price;
         $discount           = (float) ($request->discount ?? 0);
         $customerPaidAmount = $onroadPrice - $discount;
-        $downPayment        = (float) ($request->down_payment ?? 0);
-        $loanAmount         = $request->payment_type === 'Installment'
-                                ? max(0, $customerPaidAmount - $downPayment)
-                                : 0;
 
-        DB::transaction(function () use ($request, $onroadPrice, $discount, $customerPaidAmount, $downPayment, $loanAmount) {
+        // Determine down payment / loan / installment based on payment type
+        if ($request->payment_type === 'Cash') {
+            $downPayment         = 0;
+            $loanAmount          = 0;
+            $tenureMonths        = null;
+            $monthlyInstallment  = 0;
+            $bankName            = null;
+            $financeScheme       = null;
+        } elseif ($request->payment_type === 'Installment') {
+            $downPayment        = (float) ($request->down_payment ?? 0);
+            $loanAmount         = max(0, $customerPaidAmount - $downPayment);
+            $tenureMonths       = (int) $request->tenure_months;
+            $monthlyInstallment = $tenureMonths > 0 ? ceil($loanAmount / $tenureMonths) : 0;
+            $bankName           = $request->bank_name;
+            $financeScheme      = $request->finance_scheme;
+        } else {
+            // Direct
+            $downPayment        = (float) ($request->direct_down_payment ?? 0);
+            $loanAmount         = max(0, $customerPaidAmount - $downPayment);
+            $tenureMonths       = (int) $request->direct_tenure_months;
+            $monthlyInstallment = $tenureMonths > 0 ? ceil($loanAmount / $tenureMonths) : 0;
+            $bankName           = 'DIRECT — ' . ($request->guarantor_name ? 'Guarantor: ' . strtoupper($request->guarantor_name) : 'No Bank');
+            $financeScheme      = $request->guarantor_phone ? 'Guarantor Phone: ' . $request->guarantor_phone : null;
+        }
+
+        $deliveryDate = $request->delivery_date ?? $request->direct_delivery_date ?? null;
+
+        DB::transaction(function () use ($request, $onroadPrice, $discount, $customerPaidAmount, $downPayment, $loanAmount, $tenureMonths, $monthlyInstallment, $bankName, $financeScheme, $deliveryDate) {
             SvDeliveryOrder::create([
                 'do_no'                => SvDeliveryOrder::generateDoNo(),
                 'vehicle_id'           => $request->vehicle_id,
@@ -186,14 +214,14 @@ class SalesVehicleController extends Controller
                 'discount'             => $discount,
                 'customer_paid_amount' => $customerPaidAmount,
                 'cash_received'        => $request->payment_type === 'Cash' ? $request->cash_received : 0,
-                'bank_name'            => $request->bank_name,
-                'finance_scheme'       => $request->finance_scheme,
+                'bank_name'            => $bankName,
+                'finance_scheme'       => $financeScheme,
                 'down_payment'         => $downPayment,
                 'loan_amount'          => $loanAmount,
-                'tenure_months'        => $request->tenure_months,
-                'monthly_installment'  => $request->monthly_installment ?? 0,
+                'tenure_months'        => $tenureMonths,
+                'monthly_installment'  => $monthlyInstallment,
                 'do_date'              => $request->do_date,
-                'delivery_date'        => $request->delivery_date,
+                'delivery_date'        => $deliveryDate,
                 'status'               => 'Pending',
                 'remarks'              => $request->remarks,
                 'created_by'           => Auth::user()->login_id,

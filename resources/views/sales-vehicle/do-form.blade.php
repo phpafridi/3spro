@@ -86,7 +86,6 @@
                     <i class="fas fa-tags mr-1"></i> Pricing
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             On-road Price (PKR) <span class="text-red-500">*</span>
@@ -94,12 +93,11 @@
                         </label>
                         <input type="number" name="onroad_price"
                                x-model.number="onroadPrice"
-                               @input="calcCustomerPaid()"
+                               @input="calcAll()"
                                value="{{ old('onroad_price') }}"
                                required min="1" step="1000"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Discount (PKR)
@@ -107,28 +105,24 @@
                         </label>
                         <input type="number" name="discount"
                                x-model.number="discount"
-                               @input="calcCustomerPaid()"
+                               @input="calcAll()"
                                value="{{ old('discount', 0) }}"
                                min="0" step="1000"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Customer Paid Amount (PKR)
-                            <span class="block text-xs text-green-600 font-semibold">auto = On-road − Discount</span>
+                            <span class="block text-xs text-green-600 font-semibold">auto = On-road minus Discount</span>
                         </label>
                         <div class="relative">
                             <input type="number" name="customer_paid_amount"
                                    :value="customerPaidAmount"
                                    readonly
                                    class="w-full border-2 border-green-300 bg-green-50 rounded-lg px-3 py-2 text-sm font-bold text-green-800 cursor-not-allowed">
-                            <span class="absolute right-3 top-2.5 text-green-400 text-xs">
-                                <i class="fas fa-lock"></i>
-                            </span>
+                            <span class="absolute right-3 top-2.5 text-green-400 text-xs"><i class="fas fa-lock"></i></span>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -138,29 +132,28 @@
                     <i class="fas fa-wallet mr-1"></i> Payment Method
                 </h3>
 
-                <div class="flex gap-3 mb-5">
-                    <button type="button"
-                            @click="paymentType = 'Cash'"
-                            :class="paymentType === 'Cash'
-                                ? 'bg-green-600 text-white border-green-600 shadow-md'
-                                : 'bg-white text-gray-500 border-gray-300 hover:border-green-400'"
-                            class="flex items-center gap-2 px-6 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all">
+                <div class="flex flex-wrap gap-3 mb-5">
+                    <button type="button" @click="paymentType = 'Cash'; calcAll()"
+                            :class="paymentType === 'Cash' ? 'bg-green-600 text-white border-green-600 shadow-md' : 'bg-white text-gray-500 border-gray-300 hover:border-green-400'"
+                            class="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all">
                         <i class="fas fa-money-bill-wave"></i> Cash
                     </button>
-                    <button type="button"
-                            @click="paymentType = 'Installment'"
-                            :class="paymentType === 'Installment'
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                : 'bg-white text-gray-500 border-gray-300 hover:border-blue-400'"
-                            class="flex items-center gap-2 px-6 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all">
-                        <i class="fas fa-university"></i> Installment / Finance
+                    <button type="button" @click="paymentType = 'Installment'; calcAll()"
+                            :class="paymentType === 'Installment' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-500 border-gray-300 hover:border-blue-400'"
+                            class="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all">
+                        <i class="fas fa-university"></i> Bank Finance
+                    </button>
+                    <button type="button" @click="paymentType = 'Direct'; calcAll()"
+                            :class="paymentType === 'Direct' ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'bg-white text-gray-500 border-gray-300 hover:border-purple-400'"
+                            class="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all">
+                        <i class="fas fa-handshake"></i> Direct Instalment <span class="text-xs opacity-75 ml-1">(no bank)</span>
                     </button>
                 </div>
 
                 <input type="hidden" name="payment_type" :value="paymentType">
 
                 {{-- CASH --}}
-                <div x-show="paymentType === 'Cash'"
+                <div x-show="paymentType === 'Cash'" x-cloak
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -170,139 +163,174 @@
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Cash Received (PKR) <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" name="cash_received"
-                                   value="{{ old('cash_received') }}"
-                                   :required="paymentType === 'Cash'"
-                                   min="0" step="1000"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cash Received (PKR) <span class="text-red-500">*</span></label>
+                            <input type="number" name="cash_received" value="{{ old('cash_received') }}"
+                                   :required="paymentType === 'Cash'" min="0" step="1000"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Date</label>
-                            <input type="date" name="delivery_date"
-                                   value="{{ old('delivery_date') }}"
+                            <input type="date" name="delivery_date" value="{{ old('delivery_date') }}"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
                         </div>
                     </div>
                 </div>
 
-                {{-- INSTALLMENT --}}
-                <div x-show="paymentType === 'Installment'"
+                {{-- BANK FINANCE --}}
+                <div x-show="paymentType === 'Installment'" x-cloak
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0"
                      class="p-4 bg-blue-50 rounded-xl border border-blue-100">
                     <p class="text-xs font-bold text-blue-700 uppercase tracking-wide mb-3">
-                        <i class="fas fa-university mr-1"></i> Finance / Installment Details
+                        <i class="fas fa-university mr-1"></i> Bank Finance / Instalment Details
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Bank / Leasing Company <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" name="bank_name"
-                                   value="{{ old('bank_name') }}"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bank / Leasing Company <span class="text-red-500">*</span></label>
+                            <input type="text" name="bank_name" value="{{ old('bank_name') }}"
                                    :required="paymentType === 'Installment'"
                                    placeholder="e.g. Meezan Bank, HBL, MCB Leasing"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Finance Scheme</label>
-                            <input type="text" name="finance_scheme"
-                                   value="{{ old('finance_scheme') }}"
+                            <input type="text" name="finance_scheme" value="{{ old('finance_scheme') }}"
                                    placeholder="e.g. Meezan Easy Auto Finance"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Down Payment (PKR) <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" name="down_payment"
-                                   x-model.number="downPayment"
-                                   @input="calcLoanAmount()"
-                                   value="{{ old('down_payment', 0) }}"
-                                   :required="paymentType === 'Installment'"
-                                   min="0" step="1000"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Down Payment (PKR) <span class="text-red-500">*</span></label>
+                            <input type="number" name="down_payment" x-model.number="downPayment" @input="calcAll()"
+                                   value="{{ old('down_payment', 0) }}" :required="paymentType === 'Installment'" min="0" step="1000"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Loan Amount (PKR)
-                                <span class="block text-xs text-blue-600 font-semibold">auto = Customer Paid − Down Payment</span>
+                                <span class="block text-xs text-blue-600 font-semibold">auto = Customer Paid minus Down Payment</span>
                             </label>
                             <div class="relative">
-                                <input type="number" name="loan_amount"
-                                       :value="loanAmount"
-                                       readonly
+                                <input type="number" name="loan_amount" :value="loanAmount" readonly
                                        class="w-full border-2 border-blue-300 bg-blue-50 rounded-lg px-3 py-2 text-sm font-bold text-blue-800 cursor-not-allowed">
-                                <span class="absolute right-3 top-2.5 text-blue-400 text-xs">
-                                    <i class="fas fa-lock"></i>
-                                </span>
+                                <span class="absolute right-3 top-2.5 text-blue-400 text-xs"><i class="fas fa-lock"></i></span>
                             </div>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Tenure <span class="text-red-500">*</span>
-                            </label>
-                            <select name="tenure_months"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tenure <span class="text-red-500">*</span></label>
+                            <select name="tenure_months" x-model.number="tenureMonths" @change="calcAll()"
                                     :required="paymentType === 'Installment'"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                                 <option value="">— Select —</option>
                                 @foreach([12, 18, 24, 30, 36, 48, 60, 72] as $t)
-                                    <option value="{{ $t }}" {{ old('tenure_months') == $t ? 'selected' : '' }}>
-                                        {{ $t }} months
-                                    </option>
+                                    <option value="{{ $t }}" {{ old('tenure_months') == $t ? 'selected' : '' }}>{{ $t }} months</option>
                                 @endforeach
                             </select>
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Monthly Installment (PKR) <span class="text-red-500">*</span>
+                                Monthly Instalment (PKR)
+                                <span class="block text-xs text-blue-600 font-semibold">auto = Loan Amount / Tenure</span>
                             </label>
-                            <input type="number" name="monthly_installment"
-                                   value="{{ old('monthly_installment') }}"
-                                   :required="paymentType === 'Installment'"
-                                   min="0" step="100"
-                                   placeholder="As per bank approval letter"
-                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <div class="relative">
+                                <input type="number" name="monthly_installment" :value="monthlyInstallment" readonly
+                                       class="w-full border-2 border-blue-300 bg-blue-50 rounded-lg px-3 py-2 text-sm font-bold text-blue-800 cursor-not-allowed">
+                                <span class="absolute right-3 top-2.5 text-blue-400 text-xs"><i class="fas fa-calculator"></i></span>
+                            </div>
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date</label>
-                            <input type="date" name="delivery_date"
-                                   value="{{ old('delivery_date') }}"
+                            <input type="date" name="delivery_date" value="{{ old('delivery_date') }}"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                         </div>
-
                     </div>
-
-                    {{-- Summary Box --}}
                     <div class="mt-4 p-3 bg-white rounded-lg border border-blue-200">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Installment Summary</p>
-                        <div class="grid grid-cols-3 gap-3 text-center text-sm">
-                            <div>
-                                <p class="text-gray-400 text-xs mb-0.5">On-road Price</p>
-                                <p class="font-bold text-gray-700" x-text="'PKR ' + Number(onroadPrice).toLocaleString()"></p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 text-xs mb-0.5">Down Payment</p>
-                                <p class="font-bold text-green-700" x-text="'PKR ' + Number(downPayment).toLocaleString()"></p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 text-xs mb-0.5">Bank Finances</p>
-                                <p class="font-bold text-blue-700" x-text="'PKR ' + Number(loanAmount).toLocaleString()"></p>
-                            </div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Finance Summary</p>
+                        <div class="grid grid-cols-4 gap-3 text-center text-sm">
+                            <div><p class="text-gray-400 text-xs mb-0.5">On-road Price</p><p class="font-bold text-gray-700" x-text="'PKR ' + Number(onroadPrice).toLocaleString()"></p></div>
+                            <div><p class="text-gray-400 text-xs mb-0.5">Down Payment</p><p class="font-bold text-green-700" x-text="'PKR ' + Number(downPayment).toLocaleString()"></p></div>
+                            <div><p class="text-gray-400 text-xs mb-0.5">Bank Finances</p><p class="font-bold text-blue-700" x-text="'PKR ' + Number(loanAmount).toLocaleString()"></p></div>
+                            <div><p class="text-gray-400 text-xs mb-0.5">Monthly EMI</p><p class="font-bold text-purple-700" x-text="tenureMonths ? 'PKR ' + Number(monthlyInstallment).toLocaleString() : '—'"></p></div>
                         </div>
                     </div>
+                </div>
 
+                {{-- DIRECT INSTALMENT --}}
+                <div x-show="paymentType === 'Direct'" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                    <p class="text-xs font-bold text-purple-700 uppercase tracking-wide mb-3">
+                        <i class="fas fa-handshake mr-1"></i> Direct Instalment — Company / Dealer Financed (No Bank)
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Down Payment (PKR) <span class="text-red-500">*</span></label>
+                            <input type="number" name="direct_down_payment" x-model.number="directDownPayment" @input="calcAll()"
+                                   value="{{ old('direct_down_payment', 0) }}" :required="paymentType === 'Direct'" min="0" step="1000"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Remaining Balance (PKR)
+                                <span class="block text-xs text-purple-600 font-semibold">auto = Customer Paid minus Down Payment</span>
+                            </label>
+                            <div class="relative">
+                                <input type="number" name="direct_balance" :value="directBalance" readonly
+                                       class="w-full border-2 border-purple-300 bg-purple-50 rounded-lg px-3 py-2 text-sm font-bold text-purple-800 cursor-not-allowed">
+                                <span class="absolute right-3 top-2.5 text-purple-400 text-xs"><i class="fas fa-lock"></i></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">No. of Instalments <span class="text-red-500">*</span></label>
+                            <select name="direct_tenure_months" x-model.number="directTenure" @change="calcAll()"
+                                    :required="paymentType === 'Direct'"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                <option value="">— Select —</option>
+                                @foreach([3, 6, 9, 12, 18, 24, 30, 36] as $t)
+                                    <option value="{{ $t }}" {{ old('direct_tenure_months') == $t ? 'selected' : '' }}>{{ $t }} months</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Monthly Instalment (PKR)
+                                <span class="block text-xs text-purple-600 font-semibold">auto = Balance / No. of Instalments</span>
+                            </label>
+                            <div class="relative">
+                                <input type="number" name="direct_monthly_instalment" :value="directMonthly" readonly
+                                       class="w-full border-2 border-purple-300 bg-purple-50 rounded-lg px-3 py-2 text-sm font-bold text-purple-800 cursor-not-allowed">
+                                <span class="absolute right-3 top-2.5 text-purple-400 text-xs"><i class="fas fa-calculator"></i></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Guarantor Name</label>
+                            <input type="text" name="guarantor_name" value="{{ old('guarantor_name') }}"
+                                   style="text-transform:uppercase" placeholder="Optional"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Guarantor Phone</label>
+                            <input type="text" name="guarantor_phone" value="{{ old('guarantor_phone') }}"
+                                   placeholder="Optional"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Date</label>
+                            <input type="date" name="direct_delivery_date" value="{{ old('direct_delivery_date') }}"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-white rounded-lg border border-purple-200">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Direct Instalment Summary</p>
+                        <div class="grid grid-cols-4 gap-3 text-center text-sm">
+                            <div><p class="text-gray-400 text-xs mb-0.5">Total Price</p><p class="font-bold text-gray-700" x-text="'PKR ' + Number(customerPaidAmount).toLocaleString()"></p></div>
+                            <div><p class="text-gray-400 text-xs mb-0.5">Down Payment</p><p class="font-bold text-green-700" x-text="'PKR ' + Number(directDownPayment).toLocaleString()"></p></div>
+                            <div><p class="text-gray-400 text-xs mb-0.5">Balance</p><p class="font-bold text-purple-700" x-text="'PKR ' + Number(directBalance).toLocaleString()"></p></div>
+                            <div><p class="text-gray-400 text-xs mb-0.5">Monthly</p><p class="font-bold text-red-600" x-text="directTenure ? 'PKR ' + Number(directMonthly).toLocaleString() : '—'"></p></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -313,7 +341,6 @@
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('remarks') }}</textarea>
             </div>
 
-            {{-- SUBMIT --}}
             <div class="flex gap-3">
                 <button type="submit"
                         class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
@@ -324,7 +351,6 @@
                     Cancel
                 </a>
             </div>
-
         </form>
     </div>
 </div>
@@ -332,24 +358,31 @@
 <script>
 function doForm() {
     return {
-        paymentType:        '{{ old("payment_type", "Cash") }}',
-        onroadPrice:         {{ (float) old('onroad_price', 0) }},
-        discount:            {{ (float) old('discount', 0) }},
-        customerPaidAmount:  {{ (float) old('onroad_price', 0) - (float) old('discount', 0) }},
-        downPayment:         {{ (float) old('down_payment', 0) }},
-        loanAmount:          0,
+        paymentType:         '{{ old("payment_type", "Cash") }}',
+        onroadPrice:          {{ (float) old('onroad_price', 0) }},
+        discount:             {{ (float) old('discount', 0) }},
+        customerPaidAmount:   0,
+        // Bank
+        downPayment:          {{ (float) old('down_payment', 0) }},
+        loanAmount:           0,
+        tenureMonths:         {{ (int) old('tenure_months', 0) }},
+        monthlyInstallment:   0,
+        // Direct
+        directDownPayment:    {{ (float) old('direct_down_payment', 0) }},
+        directBalance:        0,
+        directTenure:         {{ (int) old('direct_tenure_months', 0) }},
+        directMonthly:        0,
 
-        init() {
-            this.calcCustomerPaid();
-        },
+        init() { this.calcAll(); },
 
-        calcCustomerPaid() {
+        calcAll() {
             this.customerPaidAmount = Math.max(0, this.onroadPrice - this.discount);
-            this.calcLoanAmount();
-        },
-
-        calcLoanAmount() {
+            // Bank
             this.loanAmount = Math.max(0, this.customerPaidAmount - this.downPayment);
+            this.monthlyInstallment = this.tenureMonths > 0 ? Math.ceil(this.loanAmount / this.tenureMonths) : 0;
+            // Direct
+            this.directBalance = Math.max(0, this.customerPaidAmount - this.directDownPayment);
+            this.directMonthly = this.directTenure > 0 ? Math.ceil(this.directBalance / this.directTenure) : 0;
         },
     }
 }
