@@ -836,7 +836,8 @@ class JobcardController extends Controller
         if (!$jobcard)
             abort(404);
         $parts = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
-        return view('service.jobcard.additional-part', compact('jobcard', 'parts', 'jobId'));
+        $partsList = DB::table('s_new_parts')->orderBy('Description')->pluck('Description');
+        return view('service.jobcard.additional-part', compact('jobcard', 'parts', 'jobId', 'partsList'));
     }
 
     public function additionalPartStore(Request $request)
@@ -879,7 +880,8 @@ class JobcardController extends Controller
         if (!$jobcard)
             abort(404);
         $consumbles = DB::table('jobc_consumble')->where('RO_no', $jobId)->get();
-        return view('service.jobcard.additional-consumable', compact('jobcard', 'consumbles', 'jobId'));
+        $consumableList = DB::table('s_list_consumble')->orderBy('consumble')->pluck('consumble');
+        return view('service.jobcard.additional-consumable', compact('jobcard', 'consumbles', 'jobId', 'consumableList'));
     }
 
     public function additionalConsumableStore(Request $request)

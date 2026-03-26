@@ -53,8 +53,6 @@
         <i class="fa fa-chevron-down text-xs" :class="open ? 'rotate-180' : ''"></i>
     </button>
     <div x-show="open" x-cloak class="ml-6 space-y-1">
-        <a href="{{ route('jobcard.new.labor') }}"
-           class="flex items-center px-4 py-2 text-sm {{ request()->routeIs('jobcard.new.labor') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded transition-colors">New Labor</a>
         <a href="{{ route('jobcard.new.part') }}"
            class="flex items-center px-4 py-2 text-sm {{ request()->routeIs('jobcard.new.part') ? 'bg-blue-700' : 'hover:bg-blue-700' }} rounded transition-colors">Spare Part</a>
         <a href="{{ route('jobcard.new.consumable') }}"

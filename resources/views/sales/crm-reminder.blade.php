@@ -68,7 +68,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100">
                         @forelse($allJobs as $job)
-                        @php $daysAgo = \Carbon\Carbon::parse($job->Open_date_time)->diffInDays(now()); @endphp
+                        @php $daysAgo = (int) \Carbon\Carbon::parse($job->Open_date_time)->diffInDays(now()); @endphp
                         <tr class="hover:bg-gray-50 {{ $job->had_consumable ? 'border-l-4 border-orange-400' : '' }}">
                             <td class="px-4 py-3 text-sm font-bold text-gray-900">#{{ $job->Jobc_id }}</td>
                             <td class="px-4 py-3 text-sm font-semibold text-blue-700">{{ $job->Registration ?: '—' }}</td>
@@ -141,7 +141,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100">
                         @forelse($consumableJobs as $job)
-                        @php $daysAgo = \Carbon\Carbon::parse($job->Open_date_time)->diffInDays(now()); @endphp
+                        @php $daysAgo = (int) \Carbon\Carbon::parse($job->Open_date_time)->diffInDays(now()); @endphp
                         <tr class="hover:bg-orange-50 border-l-4 border-orange-400">
                             <td class="px-4 py-3 text-sm font-bold text-gray-900">#{{ $job->Jobc_id }}</td>
                             <td class="px-4 py-3 text-sm font-semibold text-blue-700">{{ $job->Registration ?: '—' }}</td>

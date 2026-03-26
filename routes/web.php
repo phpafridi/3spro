@@ -472,6 +472,7 @@ Route::middleware(['auth', 'role:SManager,IMCc,IT Manager'])
         Route::get('/status/sublet', [SalesController::class, 'statusSublet'])->name('status.sublet');
         Route::get('/status/consumable', [SalesController::class, 'statusConsumable'])->name('status.consumable');
         Route::get('/crm-reminder', [SalesController::class, 'followUpReminder'])->name('crm-reminder');
+        Route::get('/parts-filter', [SalesController::class, 'partsFilter'])->name('parts-filter');
     });
 
 

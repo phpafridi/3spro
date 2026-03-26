@@ -11,9 +11,11 @@
     $storeRoute = ($jobcard->status >= 1)
         ? route('jobcard.additional.part.post-store')
         : route('jobcard.additional.part.store');
+    $grandTotal = $parts->sum('total');
 @endphp
 
 <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+    {{-- ADD PART FORM --}}
     <div class="md:col-span-2 bg-white rounded shadow-sm p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Add Part — RO# {{ $jobId }}</h2>
@@ -24,8 +26,15 @@
             <input type="hidden" name="job_id" value="{{ $jobId }}">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Part Description <span class="text-red-500">*</span></label>
-                <input type="text" name="part_description" id="part_input" required autocomplete="off" placeholder="Search part name..."
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="relative">
+                    <input type="text" name="part_description" id="part_input" required autocomplete="off"
+                           placeholder="Type to search part..."
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div id="parts_dropdown"
+                         class="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto hidden">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-0.5">Select from list or type a custom description</p>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -49,10 +58,20 @@
             </button>
         </form>
     </div>
+
+    {{-- CURRENT PARTS TABLE --}}
     <div class="md:col-span-3 bg-white rounded shadow-sm p-6">
-        <h3 class="font-semibold text-gray-700 mb-3">Current Parts
-            <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $parts->count() }}</span>
-        </h3>
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-700">Current Parts
+                <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $parts->count() }}</span>
+            </h3>
+            @if($grandTotal > 0)
+            <div class="text-right">
+                <span class="text-xs text-gray-500 block">Parts Total</span>
+                <span class="text-lg font-bold text-green-700">{{ number_format($grandTotal, 2) }}</span>
+            </div>
+            @endif
+        </div>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50"><tr>
                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
@@ -93,18 +112,67 @@
                 <tr><td colspan="6" class="px-4 py-4 text-center text-gray-400 text-sm italic">No parts added yet.</td></tr>
                 @endforelse
             </tbody>
+            @if($grandTotal > 0)
+            <tfoot>
+                <tr class="bg-green-50 border-t-2 border-green-200">
+                    <td colspan="3" class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">Grand Total:</td>
+                    <td class="px-4 py-2 text-sm font-bold text-green-700">{{ number_format($grandTotal, 2) }}</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+            @endif
         </table>
     </div>
 </div>
 
 @push('scripts')
 <script>
+const partsList = @json($partsList ?? []);
+
 function calcTotal() {
     var qty = parseFloat(document.getElementById('qty_input').value) || 0;
     var up  = parseFloat(document.getElementById('unitprice_input').value) || 0;
     document.getElementById('total_input').value = (qty * up).toFixed(2);
 }
+
 document.addEventListener('DOMContentLoaded', function () {
+    const input    = document.getElementById('part_input');
+    const dropdown = document.getElementById('parts_dropdown');
+
+    function renderDropdown(items) {
+        dropdown.innerHTML = '';
+        if (!items.length) { dropdown.classList.add('hidden'); return; }
+        items.forEach(function(item) {
+            const div = document.createElement('div');
+            div.textContent = item;
+            div.className = 'px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer border-b border-gray-50 last:border-0';
+            div.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                input.value = item;
+                dropdown.classList.add('hidden');
+            });
+            dropdown.appendChild(div);
+        });
+        dropdown.classList.remove('hidden');
+    }
+
+    input.addEventListener('input', function () {
+        const q = this.value.toLowerCase().trim();
+        if (!q) { renderDropdown(partsList.slice(0, 20)); return; }
+        const filtered = partsList.filter(function(p) { return p.toLowerCase().includes(q); }).slice(0, 20);
+        renderDropdown(filtered);
+    });
+
+    input.addEventListener('focus', function () {
+        const q = this.value.toLowerCase().trim();
+        const items = q ? partsList.filter(function(p) { return p.toLowerCase().includes(q); }).slice(0, 20) : partsList.slice(0, 20);
+        renderDropdown(items);
+    });
+
+    input.addEventListener('blur', function () {
+        setTimeout(function() { dropdown.classList.add('hidden'); }, 150);
+    });
+
     document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             if (!confirm('Delete this item?')) return;

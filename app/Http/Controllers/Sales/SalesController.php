@@ -431,4 +431,51 @@ class SalesController extends Controller
 
         return view('sales.crm-reminder', compact('allJobs', 'consumableJobs'));
     }
+    // ─────────────────────────────────────────────
+    //  PARTS FILTER — Filter cars by recent parts used
+    // ─────────────────────────────────────────────
+    public function partsFilter(Request $request)
+    {
+        $part     = $request->input('part');
+        $dateFrom = $request->input('date_from');
+        $dateTo   = $request->input('date_to');
+
+        $results = null;
+
+        if ($part || $dateFrom || $dateTo) {
+            $query = DB::table('jobc_parts as jp')
+                ->join('jobcard as jc', 'jp.RO_no', '=', 'jc.Jobc_id')
+                ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+                ->join('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
+                ->select(
+                    'jc.Jobc_id',
+                    'jc.Open_date_time as job_date',
+                    'v.Registration',
+                    'v.Make',
+                    'v.Variant',
+                    'c.Customer_name',
+                    'c.mobile',
+                    'jp.part_description',
+                    'jp.qty',
+                    'jp.total'
+                );
+
+            if ($part) {
+                $query->where('jp.part_description', 'LIKE', '%' . $part . '%');
+            }
+
+            if ($dateFrom) {
+                $query->whereDate('jc.Open_date_time', '>=', $dateFrom);
+            }
+
+            if ($dateTo) {
+                $query->whereDate('jc.Open_date_time', '<=', $dateTo);
+            }
+
+            $results = $query->orderByDesc('jc.Open_date_time')->get();
+        }
+
+        return view('sales.parts-filter', compact('results', 'part', 'dateFrom', 'dateTo'));
+    }
+
 }
