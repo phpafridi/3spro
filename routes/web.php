@@ -19,6 +19,7 @@ use App\Http\Controllers\Service\Jobcard\JobcardController;
 use App\Http\Controllers\Service\BPJC\BPJobController;
 use App\Http\Controllers\Service\SM\SMController;
 use App\Http\Controllers\Sales\SalesController;
+use App\Http\Controllers\SalesVehicle\SalesVehicleController;
 
 // ==================== LOGIN ROUTES ====================
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
@@ -580,4 +581,23 @@ Route::middleware(['auth', 'role:FManager,Accountant,IT Manager'])
         Route::post('/report/profit-loss-overall', [AccountsController::class, 'reportProfitLossOverall'])->name('report.profit-loss-overall');
         Route::post('/report/cash-flow', [AccountsController::class, 'reportCashFlow'])->name('report.cash-flow');
         Route::post('/report/cash-flow-gsl', [AccountsController::class, 'reportCashFlowGsl'])->name('report.cash-flow-gsl');
+    });
+
+
+// ==================== SALES VEHICLE MODULE ====================
+Route::middleware(['auth', 'role:SVManager,SVExec,IT Manager'])
+    ->prefix('sales-vehicle')
+    ->name('sv.')
+    ->group(function () {
+        Route::get('/',                  [SalesVehicleController::class, 'index'])->name('index');
+        Route::get('/inventory',         [SalesVehicleController::class, 'inventory'])->name('inventory');
+        Route::get('/add-vehicle',       [SalesVehicleController::class, 'addVehicle'])->name('add-vehicle');
+        Route::post('/add-vehicle',      [SalesVehicleController::class, 'storeVehicle'])->name('store-vehicle');
+        Route::get('/edit-vehicle/{id}', [SalesVehicleController::class, 'editVehicle'])->name('edit-vehicle');
+        Route::put('/edit-vehicle/{id}', [SalesVehicleController::class, 'updateVehicle'])->name('update-vehicle');
+        Route::get('/do-form',           [SalesVehicleController::class, 'doForm'])->name('do-form');
+        Route::post('/do-form',          [SalesVehicleController::class, 'storeDO'])->name('store-do');
+        Route::get('/do-list',           [SalesVehicleController::class, 'doList'])->name('do-list');
+        Route::post('/do-status',        [SalesVehicleController::class, 'doUpdateStatus'])->name('do-status');
+        Route::get('/search-sold',       [SalesVehicleController::class, 'searchSold'])->name('search-sold');
     });

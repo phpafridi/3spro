@@ -33,7 +33,7 @@ class DashboardController extends Controller
             ['title'=>'Finance Ledger',     'url'=>route('accounts.index'), 'icon'=>'book',       'description'=>'Finance Ledger'],
             ['title'=>'Recovery Executive', 'url'=>route('recovery.index'),'icon'=>'recovery','description'=>'Debt collection and recovery'],
             ['title'=>'Cashier',            'url'=>route('cashier.index'),  'icon'=>'cashier',  'description'=>'Cashier operations and payments'],
-            
+            ['title'=>'Sales Vehicle',      'url'=>route('sv.index'),       'icon'=>'car',      'description'=>'New car inventory, delivery orders & sold vehicle search'],
         ];
     }
 }
