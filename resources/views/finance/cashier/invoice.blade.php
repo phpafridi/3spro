@@ -209,7 +209,7 @@
         <!-- Care Of (for DM) -->
         <div id="careof-container" class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Care Of *</label>
-            <input type="text" name="careoff" class="w-full md:w-96 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" />
+            <input type="text" name="careoff" value="NILL" required class="w-full md:w-96 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" />
         </div>
 
         <!-- Submit Buttons -->

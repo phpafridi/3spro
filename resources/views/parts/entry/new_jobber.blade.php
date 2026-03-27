@@ -16,31 +16,31 @@
         <input type="text" name="jobber" required class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Type<span class="text-red-500">*</span></label>
         <select name="cust_jobber" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
             <option value="Jobber">Jobber</option>
             <option value="Customer">Customer</option>
         </select>
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
-        <input type="text" name="contactperson" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person<span class="text-red-500">*</span></label>
+        <input type="text" name="contactperson" required placeholder="...John Doe" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
-        <input type="text" name="contact" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number<span class="text-red-500">*</span></label>
+        <input type="text" name="contact" required placeholder="..03333" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-        <input type="text" name="address" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Address<span class="text-red-500">*</span></label>
+        <input type="text" name="address" required placeholder="nil" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input type="email" name="email" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email<span class="text-red-500">*</span></label>
+        <input type="email" name="email" required placeholder="nil@gmail.com" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">CNIC</label>
-        <input type="text" name="CNIC" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
+    <label class="block text-sm font-medium text-gray-700 mb-1">CNIC<span class="text-red-500">*</span></label>
+        <input type="text" name="CNIC" required placeholder="123" class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500">
     </div>
 </div>
 <div class="mt-6">

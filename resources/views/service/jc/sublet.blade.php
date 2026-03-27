@@ -57,13 +57,7 @@
                                class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
                                 <i class="fas fa-tasks mr-1"></i> ASSIGN
                             </a>
-                            <form action="{{ route('jc.sublet-done.process') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="sublet_id" value="{{ $sublet->sublet_id }}">
-                                <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors">
-                                    <i class="fas fa-check mr-1"></i> DONE
-                                </button>
-                            </form>
+
                         </div>
                     </td>
                 </tr>

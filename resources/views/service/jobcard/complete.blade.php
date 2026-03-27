@@ -43,7 +43,7 @@
                     // Sublet: blue=none, red=workshop not done, green=all done
                     $subletAny    = \Illuminate\Support\Facades\DB::table('jobc_sublet')->where('RO_no', $job->Jobc_id)->exists();
                     $subletPending= $subletAny ? \Illuminate\Support\Facades\DB::table('jobc_sublet')
-                        ->where('RO_no', $job->Jobc_id)->where('type','Workshop')->where('status','Jobclose')->exists() : false;
+                        ->where('RO_no', $job->Jobc_id)->where('type','Workshop')->where('status','0')->exists() : false;
 
                     // Consumble: blue=none, red=not issued(status=0), green=all issued
                     $consAny    = \Illuminate\Support\Facades\DB::table('jobc_consumble')->where('RO_no', $job->Jobc_id)->exists();
