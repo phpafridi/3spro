@@ -790,40 +790,6 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     //  ADDITIONAL OVERVIEW  (JSON for modal)
     // ─────────────────────────────────────────────
-    public function additionalOverviewJson($jobId)
-    {
-        $jobcard = DB::table('jobcard as jc')
-            ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
-            ->join('customer_data as c', 'v.Customer_id', '=', 'c.Customer_id')
-            ->where('jc.Jobc_id', $jobId)
-            ->select('jc.*', 'v.Registration', 'v.Variant', 'c.Customer_name', 'c.mobile')
-            ->first();
-
-        if (!$jobcard) return response()->json(['error' => 'Not found'], 404);
-
-        $labors    = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
-        $parts     = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
-        $consumbles= DB::table('jobc_consumble')->where('RO_no', $jobId)->get();
-        $sublets   = DB::table('jobc_sublet')->where('RO_no', $jobId)->get();
-
-        return response()->json([
-            'jobcard'   => $jobcard,
-            'labors'    => $labors,
-            'parts'     => $parts,
-            'consumbles'=> $consumbles,
-            'sublets'   => $sublets,
-            'totals' => [
-                'labor'     => $labors->where('type', 'Workshop')->sum('cost'),
-                'parts'     => $parts->sum('total'),
-                'consumble' => $consumbles->sum('total'),
-                'sublet'    => $sublets->where('type', 'Workshop')->sum('total'),
-                'grand'     => $labors->where('type','Workshop')->sum('cost')
-                             + $parts->sum('total')
-                             + $consumbles->sum('total')
-                             + $sublets->where('type','Workshop')->sum('total'),
-            ],
-        ]);
-    }
 
     // ─────────────────────────────────────────────
     //  ADDITIONAL JOBREQUEST  (Additional_Jobrequest.php)

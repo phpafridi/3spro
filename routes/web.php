@@ -303,7 +303,6 @@ Route::middleware(['auth', 'role:SerAdvisor,IT Manager'])
         Route::get('/estimate/{id}/sublet', [JobcardController::class, 'estimateSublet'])->name('estimate.sublet');
         Route::post('/estimate/sublet/store', [JobcardController::class, 'estimateSubletStore'])->name('estimate.sublet.store');
         Route::get('/{jobId}/additional', [JobcardController::class, 'additional'])->name('additional');
-        Route::get('/{jobId}/additional/overview-json', [JobcardController::class, 'additionalOverviewJson'])->name('additional.overview-json');
         Route::get('/{jobId}/additional/jobrequest', [JobcardController::class, 'additionalJobrequest'])->name('additional.jobrequest');
         Route::post('/additional/jobrequest/store', [JobcardController::class, 'additionalJobrequestStore'])->name('additional.jobrequest.store');
         Route::get('/{jobId}/additional/part', [JobcardController::class, 'additionalPart'])->name('additional.part');

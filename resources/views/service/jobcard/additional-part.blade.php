@@ -130,7 +130,6 @@
     </div>
 </div>
 
-@include('service.jobcard.partials.ro-overview-modal')
 
 @push('scripts')
 <script>

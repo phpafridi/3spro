@@ -20,9 +20,7 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Add Consumable — RO# {{ $jobId }}</h2>
             <a href="{{ route('jobcard.additional', $jobId) }}" class="text-sm text-gray-500 hover:text-gray-700"><i class="fa fa-arrow-left mr-1"></i>Back</a>
-            <a href="{{ route('jobcard.additional', $jobId) }}" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors ml-1">
-                <i class="fa fa-eye mr-1"></i> View RO
-            </a>
+
         </div>
         <form method="POST" action="{{ $storeRoute }}" class="space-y-3">
             @csrf
@@ -128,7 +126,6 @@
     </div>
 </div>
 
-@include('service.jobcard.partials.ro-overview-modal')
 
 @push('scripts')
 <script>
