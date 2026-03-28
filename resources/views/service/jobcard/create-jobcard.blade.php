@@ -138,7 +138,7 @@
                 {{-- Estimated Delivery Time --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Delivery Time</label>
-                    <input type="datetime-local" name="estimat_time"
+                    <input type="datetime-local" name="estimat_time"required
                            value="{{ old('estimat_time') }}"
                            min="{{ now()->format('Y-m-d\TH:i') }}"
                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">

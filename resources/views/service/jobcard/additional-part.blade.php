@@ -19,7 +19,12 @@
     <div class="md:col-span-2 bg-white rounded shadow-sm p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Add Part — RO# {{ $jobId }}</h2>
-            <a href="{{ route('jobcard.additional', $jobId) }}" class="text-sm text-gray-500 hover:text-gray-700"><i class="fa fa-arrow-left mr-1"></i>Back</a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('jobcard.additional', $jobId) }}" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors">
+                    <i class="fa fa-eye mr-1"></i> View RO
+                </a>
+                <a href="{{ route('jobcard.additional-list') }}" class="text-sm text-gray-500 hover:text-gray-700"><i class="fa fa-arrow-left mr-1"></i>Back</a>
+            </div>
         </div>
         <form method="POST" action="{{ $storeRoute }}" class="space-y-3">
             @csrf
@@ -124,6 +129,8 @@
         </table>
     </div>
 </div>
+
+@include('service.jobcard.partials.ro-overview-modal')
 
 @push('scripts')
 <script>

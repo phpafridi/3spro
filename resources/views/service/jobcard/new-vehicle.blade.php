@@ -190,7 +190,19 @@ function showDropdown(inputEl, items) {
         var engine  = parts[3];
 
         var row = document.createElement('div');
-        row.textContent = model;   // show Model code in dropdown — e.g. "2002"
+        // Show "Variant — ModelCode" e.g. "Corolla XLI 1.3 — AXV50"
+        var label = document.createElement('span');
+        label.textContent = variant;
+        label.style.fontWeight = '600';
+        var sep = document.createTextNode('  —  ');
+        var code = document.createElement('span');
+        code.textContent = model;
+        code.style.fontSize = '11px';
+        code.style.color = '#6b7280';
+        code.style.fontFamily = 'monospace';
+        row.appendChild(label);
+        row.appendChild(sep);
+        row.appendChild(code);
         row.addEventListener('mousedown', function(e) {
             e.preventDefault();   // stop blur firing before click
             fillFields(model, variant, make, engine);
