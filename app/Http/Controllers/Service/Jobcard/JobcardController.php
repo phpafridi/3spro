@@ -107,7 +107,7 @@ class JobcardController extends Controller
             'Engine_code' => $request->engine ?? '',
             'Engine_number' => $request->engine_no ?? '',
             'cust_id' => 0,
-            
+
             'Wrnty_book_no' => 'nil',
             'Insurance' => 'nil',
             'user' => Auth::user()->login_id ?? 'unkown',
@@ -316,7 +316,7 @@ class JobcardController extends Controller
             ->whereDate('c_to', '>=', now()->toDateString())
             ->whereDate('c_from', '<=', now()->toDateString())
             ->where('status', 'Active')
-            
+
             ->orderByDesc('campaign_id')
             ->pluck('campaign_name');
 
@@ -794,6 +794,47 @@ class JobcardController extends Controller
     // ─────────────────────────────────────────────
     //  ADDITIONAL JOBREQUEST  (Additional_Jobrequest.php)
     // ─────────────────────────────────────────────
+
+    public function additionalOverviewJson($jobId)
+    {
+
+        $jobcard = DB::table('jobcard as jc')
+            // ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+            // ->join('customer_data as c', 'v.Customer_id', '=', 'c.Customer_id')
+            ->where('jc.Jobc_id', $jobId)
+            // ->select('jc.*', 'v.Registration', 'v.Variant', 'c.Customer_name', 'c.mobile')
+            ->first();
+
+
+
+        if (!$jobcard) return response()->json(['error' => 'Not found'], 404);
+
+        $labors     = DB::table('jobc_labor')->where('RO_no', $jobId)->get();
+        $parts      = DB::table('jobc_parts')->where('RO_no', $jobId)->get();
+        $consumbles = DB::table('jobc_consumble')->where('RO_no', $jobId)->get();
+        $sublets    = DB::table('jobc_sublet')->where('RO_no', $jobId)->get();
+
+        $laborTotal  = $labors->filter(fn($r) => $r->type === 'Workshop')->sum(fn($r) => $r->cost ?? 0);
+        $partsTotal  = $parts->sum(fn($r) => $r->total ?? 0);
+        $consTotal   = $consumbles->sum(fn($r) => $r->total ?? 0);
+        $subletTotal = $sublets->filter(fn($r) => $r->type === 'Workshop')->sum(fn($r) => $r->total ?? 0);
+
+        return response()->json([
+            'jobcard'    => $jobcard,
+            'labors'     => $labors,
+            'parts'      => $parts,
+            'consumbles' => $consumbles,
+            'sublets'    => $sublets,
+            'totals' => [
+                'labor'    => $laborTotal,
+                'parts'    => $partsTotal,
+                'consumble'=> $consTotal,
+                'sublet'   => $subletTotal,
+                'grand'    => $laborTotal + $partsTotal + $consTotal + $subletTotal,
+            ],
+        ]);
+    }
+
     public function additionalJobrequest($jobId)
     {
         $jobcard = DB::table('jobcard')->where('Jobc_id', $jobId)->first();
@@ -1311,7 +1352,7 @@ class JobcardController extends Controller
         if ($request->new_labor) {
             DB::table('labor_list')->insert([
                 'Labor' => strtoupper($request->new_labor),
-              
+
             ]);
         }
         return back()->with('success', 'Labor description added.');
