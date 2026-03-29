@@ -1257,7 +1257,386 @@ public function reportDailySale(Request $request)
         return view('parts.entry.reports.lost_sale', compact('lost', 'totalLost', 'from', 'to'));
     }
 
- public function destroy($invoice_no, $id)
+    // ─────────────────────────────────────────────────────────────────────────
+    // NEW ENTRY REPORT STUBS
+    // Each method mirrors the corresponding legacy Entry/files/*.php report.
+    // Replace the stub body with real DB queries as needed.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function reportCounterReturn(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_sale_return as sr')
+            ->join('p_sale_inv as si', 'sr.sale_inv', '=', 'si.sale_inv')
+            ->select('sr.*', 'si.datetime', 'si.customer_name')
+            ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('si.datetime')->get();
+        $total = $rows->sum('netamount');
+        return view('parts.entry.reports.counter_return', compact('rows', 'total', 'from', 'to'));
+    }
+
+    public function reportPurchaseReturn(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_purch_return')
+            ->whereBetween(DB::raw("DATE_FORMAT(datetime,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('datetime')->get();
+        $total = $rows->sum('total_amount');
+        return view('parts.entry.reports.purchase_return', compact('rows', 'total', 'from', 'to'));
+    }
+
+    public function reportPurchCreCash(Request $request)
+    {
+        $from       = $request->from        ?? today()->subMonth()->toDateString();
+        $to         = $request->to          ?? today()->toDateString();
+        $reportType = $request->report_type ?? 'Credit';
+        $rows = DB::table('p_purchase')
+            ->where('purch_type', $reportType)
+            ->whereBetween(DB::raw("DATE_FORMAT(purch_date,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('purch_date')->get();
+        $grandTotal  = $rows->sum('total_amount');
+        $returnTotal = 0; // populate from p_purch_return if needed
+        return view('parts.entry.reports.purch_cre_cash', compact('rows', 'grandTotal', 'returnTotal', 'from', 'to', 'reportType'));
+    }
+
+    public function reportPurchProfit(Request $request)
+    {
+        $grn  = $request->grn ?? null;
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = collect();
+        $totalSale = $totalProfit = 0;
+        if ($grn) {
+            $rows = DB::table('p_purch_detail as pd')
+                ->join('p_purchase as p', 'pd.purch_id', '=', 'p.id')
+                ->where('p.invoice_no', $grn)
+                ->select('pd.*', 'p.invoice_no', 'p.supplier_name', 'p.purch_date')
+                ->get();
+            $totalSale   = $rows->sum('sale_price');
+            $totalProfit = $rows->sum(fn($r) => ($r->sale_price - $r->cost_price) * $r->quantity);
+        }
+        return view('parts.entry.reports.purch_prof', compact('rows', 'grn', 'totalSale', 'totalProfit', 'from', 'to'));
+    }
+
+    public function reportPartStock(Request $request)
+    {
+        $partNo = $request->part_no ?? null;
+        $rows   = collect();
+        if ($partNo) {
+            $rows = DB::table('p_purch_stock')
+                ->where('part_no', $partNo)
+                ->orderByDesc('stock_id')->get();
+        }
+        return view('parts.entry.reports.part_stock', compact('rows', 'partNo'));
+    }
+
+    public function reportStockCate(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_purch_stock as ps')
+            ->select('ps.cate_type',
+                DB::raw('SUM(ps.Quantity * ps.Price) as total_value'),
+                DB::raw('COUNT(*) as total_parts'))
+            ->whereBetween(DB::raw("DATE_FORMAT(ps.purch_date,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('ps.cate_type')
+            ->orderByDesc('total_value')->get();
+        return view('parts.entry.reports.stock_cate', compact('rows', 'from', 'to'));
+    }
+
+    public function reportCateWise(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_sale_part as sp')
+            ->join('p_sale_inv as si', 'sp.sale_inv', '=', 'si.sale_inv')
+            ->join('p_purch_stock as ps', 'sp.stock_id', '=', 'ps.stock_id')
+            ->select('ps.cate_type',
+                DB::raw('SUM(sp.quantity) as qty'),
+                DB::raw('SUM(sp.netamount + sp.tax) as sale'),
+                DB::raw('SUM(ps.Price * sp.quantity) as cost'))
+            ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('ps.cate_type')->orderByDesc('sale')->get();
+        return view('parts.entry.reports.cate_wise', compact('rows', 'from', 'to'));
+    }
+
+    public function reportStockHistory(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_purch_stock')
+            ->whereBetween(DB::raw("DATE_FORMAT(purch_date,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('purch_date')->get();
+        $totalValue = $rows->sum(fn($r) => $r->Quantity * $r->Price);
+        return view('parts.entry.reports.stock_history', compact('rows', 'totalValue', 'from', 'to'));
+    }
+
+    public function reportMovingStock(Request $request)
+    {
+        $months = (int)($request->months ?? 3);
+        $from   = today()->subMonths($months)->toDateString();
+        $to     = today()->toDateString();
+        $rows = DB::table('p_sale_part as sp')
+            ->join('p_sale_inv as si', 'sp.sale_inv', '=', 'si.sale_inv')
+            ->select('sp.part_no', 'sp.Description',
+                DB::raw('SUM(sp.quantity) as total_qty'),
+                DB::raw('ROUND(SUM(sp.quantity) / ' . max($months, 1) . ', 2) as avg_monthly'))
+            ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('sp.part_no', 'sp.Description')
+            ->orderByDesc('total_qty')->get();
+        return view('parts.entry.reports.moving_stock', compact('rows', 'months', 'from', 'to'));
+    }
+
+    public function reportWorkshop(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_issue_part as ip')
+            ->join('jobcards as jc', 'ip.jobcard_no', '=', 'jc.jobcard_no')
+            ->select('ip.jobcard_no', 'jc.customer_name', 'jc.vehicle_no',
+                DB::raw('SUM(ip.netamount + ip.tax) as total_amount'),
+                DB::raw('COUNT(*) as parts_count'))
+            ->whereBetween(DB::raw("DATE_FORMAT(ip.issue_date,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('ip.jobcard_no', 'jc.customer_name', 'jc.vehicle_no')
+            ->orderByDesc('total_amount')->get();
+        $totalSale = $rows->sum('total_amount');
+        return view('parts.entry.reports.workshop', compact('rows', 'totalSale', 'from', 'to'));
+    }
+
+    public function reportWorkshopBusiness(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_issue_part as ip')
+            ->select(
+                DB::raw("DATE_FORMAT(ip.issue_date,'%Y-%m-%d') as sale_date"),
+                DB::raw('SUM(ip.netamount + ip.tax) as total'),
+                DB::raw('COUNT(DISTINCT ip.jobcard_no) as ros'))
+            ->whereBetween(DB::raw("DATE_FORMAT(ip.issue_date,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('sale_date')->orderByDesc('sale_date')->get();
+        $grandTotal = $rows->sum('total');
+        return view('parts.entry.reports.workshop_business', compact('rows', 'grandTotal', 'from', 'to'));
+    }
+
+    public function reportWorkshopDiscount(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_issue_part')
+            ->select('jobcard_no', 'part_no', 'Description', 'quantity',
+                'sale_price', 'discount', 'tax', 'netamount', 'issue_date')
+            ->whereBetween(DB::raw("DATE_FORMAT(issue_date,'%Y-%m-%d')"), [$from, $to])
+            ->where('discount', '>', 0)
+            ->orderByDesc('issue_date')->get();
+        $totalDiscount = $rows->sum('discount');
+        $totalTax      = $rows->sum('tax');
+        return view('parts.entry.reports.workshop_discount', compact('rows', 'totalDiscount', 'totalTax', 'from', 'to'));
+    }
+
+    public function reportWorkshopReturn(Request $request)
+    {
+        $from       = $request->from        ?? today()->subMonth()->toDateString();
+        $to         = $request->to          ?? today()->toDateString();
+        $natureType = $request->nature_type ?? 'Parts';
+        $rows = DB::table('p_wp_return')
+            ->where('nature_type', $natureType)
+            ->whereBetween(DB::raw("DATE_FORMAT(return_date,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('return_date')->get();
+        $totalReturn = $rows->sum('netamount');
+        return view('parts.entry.reports.workshop_return', compact('rows', 'totalReturn', 'natureType', 'from', 'to'));
+    }
+
+    public function reportPartsClosing(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_issue_part as ip')
+            ->join('jobcards as jc', 'ip.jobcard_no', '=', 'jc.jobcard_no')
+            ->select('ip.part_no', 'ip.Description',
+                DB::raw('SUM(ip.quantity) as qty'),
+                DB::raw('SUM(ip.netamount + ip.tax) as sale'),
+                DB::raw('SUM(ip.cost_price * ip.quantity) as cost'))
+            ->whereBetween(DB::raw("DATE_FORMAT(ip.issue_date,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('ip.part_no', 'ip.Description')
+            ->orderByDesc('sale')->get();
+        $totalSale = $rows->sum('sale');
+        $totalCost = $rows->sum('cost');
+        return view('parts.entry.reports.parts_closing', compact('rows', 'totalSale', 'totalCost', 'from', 'to'));
+    }
+
+    public function reportPmgr(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_issue_part as ip')
+            ->join('jobcards as jc', 'ip.jobcard_no', '=', 'jc.jobcard_no')
+            ->select('ip.jobcard_no', 'ip.part_no', 'ip.Description',
+                'ip.quantity', 'ip.netamount', 'ip.tax',
+                'jc.customer_name', 'jc.vehicle_no', 'ip.issue_date')
+            ->whereBetween(DB::raw("DATE_FORMAT(ip.issue_date,'%Y-%m-%d')"), [$from, $to])
+            ->orderBy('ip.jobcard_no')->get();
+        $totalROs = $rows->groupBy('jobcard_no')->count();
+        $totalQty = $rows->sum('quantity');
+        $totalSum = $rows->sum(fn($r) => $r->netamount + $r->tax);
+        return view('parts.entry.reports.pmgr', compact('rows', 'totalROs', 'totalQty', 'totalSum', 'from', 'to'));
+    }
+
+    public function reportApptPmgr(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('cr_appointments as a')
+            ->select('a.CRO', 'a.CustomerName', 'a.Variant', 'a.parts',
+                'a.Parts_cost', 'a.appt_datetime', 'a.parts_status')
+            ->whereBetween(DB::raw("DATE_FORMAT(a.appt_datetime,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('a.appt_datetime')->get();
+        $totalReqs = $rows->count();
+        $totalSum  = $rows->sum('Parts_cost');
+        return view('parts.entry.reports.appt_pmgr', compact('rows', 'totalReqs', 'totalSum', 'from', 'to'));
+    }
+
+    public function reportMrsSheet(Request $request)
+    {
+        $date = $request->date ?? today()->toDateString();
+        $rows = DB::table('cr_appointments')
+            ->whereDate('appt_datetime', $date)
+            ->orderBy('appt_datetime')->get();
+        return view('parts.entry.reports.mrs_sheet', compact('rows', 'date'));
+    }
+
+    public function reportKpiSale(Request $request)
+    {
+        $from       = $request->from        ?? today()->subMonth()->toDateString();
+        $to         = $request->to          ?? today()->toDateString();
+        $reportType = $request->report_type ?? 'Monthly';
+        $rows = DB::table('p_sale_part as sp')
+            ->join('p_sale_inv as si', 'sp.sale_inv', '=', 'si.sale_inv')
+            ->join('p_purch_stock as ps', 'sp.stock_id', '=', 'ps.stock_id')
+            ->where('ps.cate_type', 'LIKE', '%IMC%')
+            ->select(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m') as period"),
+                DB::raw('SUM(sp.netamount + sp.tax) as sale'),
+                DB::raw('SUM(ps.Price * sp.quantity) as cost'))
+            ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('period')->orderBy('period')->get();
+        return view('parts.entry.reports.kpi_sale', compact('rows', 'reportType', 'from', 'to'));
+    }
+
+    public function reportKpiPurch(Request $request)
+    {
+        $from       = $request->from        ?? today()->subMonth()->toDateString();
+        $to         = $request->to          ?? today()->toDateString();
+        $reportType = $request->report_type ?? 'Monthly';
+        $rows = DB::table('p_purchase as p')
+            ->where('supplier_type', 'LIKE', '%IMC%')
+            ->select(DB::raw("DATE_FORMAT(purch_date,'%Y-%m') as period"),
+                DB::raw('SUM(total_amount) as total'),
+                DB::raw('COUNT(*) as invoices'))
+            ->whereBetween(DB::raw("DATE_FORMAT(purch_date,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('period')->orderBy('period')->get();
+        return view('parts.entry.reports.kpi_purch', compact('rows', 'reportType', 'from', 'to'));
+    }
+
+    public function reportKpiProfit(Request $request)
+    {
+        $from       = $request->from        ?? today()->subMonth()->toDateString();
+        $to         = $request->to          ?? today()->toDateString();
+        $reportType = $request->report_type ?? 'Monthly';
+        $rows = DB::table('p_sale_part as sp')
+            ->join('p_sale_inv as si', 'sp.sale_inv', '=', 'si.sale_inv')
+            ->join('p_purch_stock as ps', 'sp.stock_id', '=', 'ps.stock_id')
+            ->where('ps.cate_type', 'LIKE', '%IMC%')
+            ->select(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m') as period"),
+                DB::raw('SUM(sp.netamount + sp.tax) as sale'),
+                DB::raw('SUM(ps.Price * sp.quantity) as cost'),
+                DB::raw('SUM(sp.netamount + sp.tax) - SUM(ps.Price * sp.quantity) as profit'))
+            ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('period')->orderBy('period')->get();
+        return view('parts.entry.reports.kpi_profit', compact('rows', 'reportType', 'from', 'to'));
+    }
+
+    public function reportKpiStock(Request $request)
+    {
+        $rows = DB::table('p_purch_stock')
+            ->select('cate_type',
+                DB::raw('SUM(Quantity * Price) as stock_value'),
+                DB::raw('SUM(Quantity) as qty'),
+                DB::raw('COUNT(*) as lines'))
+            ->where('Quantity', '>', 0)
+            ->groupBy('cate_type')->orderByDesc('stock_value')->get();
+        $totalValue = $rows->sum('stock_value');
+        return view('parts.entry.reports.kpi_stock', compact('rows', 'totalValue'));
+    }
+
+    public function reportKpiWorkshop(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_issue_part as ip')
+            ->join('p_purch_stock as ps', 'ip.stock_id', '=', 'ps.stock_id')
+            ->where('ps.cate_type', 'LIKE', '%IMC%')
+            ->select(DB::raw("DATE_FORMAT(ip.issue_date,'%Y-%m') as period"),
+                DB::raw('COUNT(DISTINCT ip.jobcard_no) as total_ros'),
+                DB::raw('SUM(ip.netamount + ip.tax) as total_sum'))
+            ->whereBetween(DB::raw("DATE_FORMAT(ip.issue_date,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('period')->orderBy('period')->get();
+        $totalRos = $rows->sum('total_ros');
+        $totalSum = $rows->sum('total_sum');
+        return view('parts.entry.reports.kpi_workshop', compact('rows', 'totalRos', 'totalSum', 'from', 'to'));
+    }
+
+    public function reportMad(Request $request)
+    {
+        $months = (int)($request->months ?? 6);
+        $from   = today()->subMonths($months)->toDateString();
+        $to     = today()->toDateString();
+        $rows = DB::table('p_sale_part as sp')
+            ->join('p_sale_inv as si', 'sp.sale_inv', '=', 'si.sale_inv')
+            ->join('p_purch_stock as ps', 'sp.stock_id', '=', 'ps.stock_id')
+            ->where('ps.cate_type', 'LIKE', '%IMC%')
+            ->select('sp.part_no', 'sp.Description',
+                DB::raw('SUM(sp.quantity) as total_qty'),
+                DB::raw('ROUND(SUM(sp.quantity) / ' . max($months, 1) . ', 2) as mad'),
+                DB::raw('SUM(sp.netamount + sp.tax) as total_sale'))
+            ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('sp.part_no', 'sp.Description')
+            ->orderByDesc('mad')->get();
+        return view('parts.entry.reports.mad', compact('rows', 'months', 'from', 'to'));
+    }
+
+    public function reportImcLocal(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_sale_part as sp')
+            ->join('p_sale_inv as si', 'sp.sale_inv', '=', 'si.sale_inv')
+            ->join('p_purch_stock as ps', 'sp.stock_id', '=', 'ps.stock_id')
+            ->select('ps.cate_type',
+                DB::raw('SUM(sp.quantity) as qty'),
+                DB::raw('SUM(sp.netamount + sp.tax) as sale'))
+            ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
+            ->groupBy('ps.cate_type')->orderByDesc('sale')->get();
+        $totalSale = $rows->sum('sale');
+        return view('parts.entry.reports.imc_local', compact('rows', 'totalSale', 'from', 'to'));
+    }
+
+    public function reportIncentive(Request $request)
+    {
+        $from = $request->from ?? today()->subMonth()->toDateString();
+        $to   = $request->to   ?? today()->toDateString();
+        $rows = DB::table('p_incentive as inc')
+            ->join('jobcards as jc', 'inc.jobcard_no', '=', 'jc.jobcard_no')
+            ->select('inc.*', 'jc.customer_name', 'jc.vehicle_no')
+            ->whereBetween(DB::raw("DATE_FORMAT(inc.created_at,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('inc.created_at')->get();
+        $totalIncentive = $rows->sum('incentive_amount');
+        return view('parts.entry.reports.incentive', compact('rows', 'totalIncentive', 'from', 'to'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function destroy($invoice_no, $id)
 {
     // Use the correct model - PPurchStock instead of PartStock
     $stock = PPurchStock::where('Invoice_no', $invoice_no)

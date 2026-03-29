@@ -231,6 +231,33 @@ Route::middleware(['auth', 'role:PManager,DataOperator,IT Manager'])
         Route::get('/kpi-report',             [PartsController::class, 'kpiReport'])->name('kpi-report');
         Route::get('/dpok-report',            [PartsController::class, 'dpokReport'])->name('dpok-report');
 
+        // ── Entry reports (new) ───────────────────────────────────────────────
+        Route::get('/reports/counter-return',    [PartsController::class, 'reportCounterReturn'])->name('reports.counter-return');
+        Route::get('/reports/purchase-return',   [PartsController::class, 'reportPurchaseReturn'])->name('reports.purchase-return');
+        Route::get('/reports/purch-cre-cash',    [PartsController::class, 'reportPurchCreCash'])->name('reports.purch-cre-cash');
+        Route::get('/reports/purch-profit',      [PartsController::class, 'reportPurchProfit'])->name('reports.purch-profit');
+        Route::get('/reports/part-stock',        [PartsController::class, 'reportPartStock'])->name('reports.part-stock');
+        Route::get('/reports/stock-cate',        [PartsController::class, 'reportStockCate'])->name('reports.stock-cate');
+        Route::get('/reports/cate-wise',         [PartsController::class, 'reportCateWise'])->name('reports.cate-wise');
+        Route::get('/reports/stock-history',     [PartsController::class, 'reportStockHistory'])->name('reports.stock-history');
+        Route::get('/reports/moving-stock',      [PartsController::class, 'reportMovingStock'])->name('reports.moving-stock');
+        Route::get('/reports/workshop',          [PartsController::class, 'reportWorkshop'])->name('reports.workshop');
+        Route::get('/reports/workshop-business', [PartsController::class, 'reportWorkshopBusiness'])->name('reports.workshop-business');
+        Route::get('/reports/workshop-discount', [PartsController::class, 'reportWorkshopDiscount'])->name('reports.workshop-discount');
+        Route::get('/reports/workshop-return',   [PartsController::class, 'reportWorkshopReturn'])->name('reports.workshop-return');
+        Route::get('/reports/parts-closing',     [PartsController::class, 'reportPartsClosing'])->name('reports.parts-closing');
+        Route::get('/reports/pmgr',              [PartsController::class, 'reportPmgr'])->name('reports.pmgr');
+        Route::get('/reports/appt-pmgr',         [PartsController::class, 'reportApptPmgr'])->name('reports.appt-pmgr');
+        Route::get('/reports/mrs-sheet',         [PartsController::class, 'reportMrsSheet'])->name('reports.mrs-sheet');
+        Route::get('/reports/kpi-sale',          [PartsController::class, 'reportKpiSale'])->name('reports.kpi-sale');
+        Route::get('/reports/kpi-purch',         [PartsController::class, 'reportKpiPurch'])->name('reports.kpi-purch');
+        Route::get('/reports/kpi-profit',        [PartsController::class, 'reportKpiProfit'])->name('reports.kpi-profit');
+        Route::get('/reports/kpi-stock',         [PartsController::class, 'reportKpiStock'])->name('reports.kpi-stock');
+        Route::get('/reports/kpi-workshop',      [PartsController::class, 'reportKpiWorkshop'])->name('reports.kpi-workshop');
+        Route::get('/reports/mad',               [PartsController::class, 'reportMad'])->name('reports.mad');
+        Route::get('/reports/imc-local',         [PartsController::class, 'reportImcLocal'])->name('reports.imc-local');
+        Route::get('/reports/incentive',         [PartsController::class, 'reportIncentive'])->name('reports.incentive');
+
         // ==================== AJAX Endpoints ====================
         Route::get('/ajax/search-part',           [PartsController::class, 'searchPart'])->name('ajax.search-part');
         Route::get('/ajax/search-part-desc',      [PartsController::class, 'searchPartDesc'])->name('ajax.search-part-desc');
