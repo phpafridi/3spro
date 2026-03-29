@@ -1,0 +1,379 @@
+================================================================
+   COMPLETE STATUS REFERENCE — DEALERSHIP SYSTEM
+   Source: Full codebase analysis (Finance.zip)
+   Verified against actual PHP source files
+================================================================
+
+
+----------------------------------------------------------------
+1. jobcard TABLE — status column (numeric)
+----------------------------------------------------------------
+
+  0 = New / Just Opened
+        Jobcard created, not yet active in workshop
+        Set by: Jobcard_3.php on INSERT (no explicit status=0,
+                defaults to 0 in DB)
+        Also:   Unclosed_JC.php — estimates start at status=0
+
+  1 = In Progress
+        SA active, workshop working on vehicle
+        Set by: Unclosed_JC.php
+                UPDATE jobcard SET status='1', Open_date_time=NOW()
+                Unclosed_estimates.php — same UPDATE
+                Finance/Accountant/unclose.php — reopened RO → back to 1
+        Used in: status_parts.php    WHERE status='1'
+                 status_labor.php    WHERE status='1'
+                 status_consumble.php WHERE status='1'
+                 status_sublet.php   WHERE status='1'
+                 BP_JC/index.php     WHERE status='1'
+                 print_open_ro.php   WHERE status='1'
+
+  2 = Job Complete
+        Technician done, ready for Cashier to generate invoice
+        Set by: SERVICE/Jobcard/jobcomplete.php
+                UPDATE jobcard SET status='2', closing_time=NOW()
+        Used in: Finance/Cashier/index.php WHERE status='2'
+                 Finance/Cashier/files/MSI.php WHERE status='2'
+
+  3 = Invoiced / Billed
+        Cashier has generated and printed the invoice
+        Set by: Finance/Cashier/print_invoice.php
+                UPDATE jobcard SET status='3'
+                Finance/Cashier/files/taxinvoice.php
+                UPDATE jobcard SET status='3'
+        Used in: print_close_ro.php WHERE status='3'
+                 (lists ROs ready for gate pass / vehicle delivery)
+
+  4 = Closed RO / Vehicle Delivered
+        Cashier clicked "Close RO" — closing document / gate pass
+        printed and vehicle handed back to customer
+        Set by: Finance/Cashier/files/print2.php
+                UPDATE jobcard SET status='4'
+                Triggered by "Close RO" button in print_close_ro.php
+                via POST with change_status field
+        Used in: Finance/Cashier/files/Excel_PM.php
+                 WHERE (jobcard.status='4' OR jobcard.status='3')
+                 Sales/CRM/files/PM_NEW.php — same condition
+                 SERVICE/SM/files/PM_NEW.php — same condition
+
+  NOTE — Status 4 is NOT "Cancelled". There is no cancellation
+  logic anywhere in the codebase that sets status to 4.
+  Status 4 is the final delivery step of a completed RO.
+
+  QUERY TIPS:
+    Open ROs        → WHERE jobcard.status < 3
+    Closed ROs      → WHERE jobcard.status >= 3
+    Invoiced only   → WHERE jobcard.status = 3
+    Delivered ROs   → WHERE jobcard.status = 4
+    PM reports      → WHERE jobcard.status IN ('3','4')
+    Print close RO  → WHERE jobcard.status = 3
+
+
+----------------------------------------------------------------
+2. jobc_parts TABLE — status column (numeric)
+----------------------------------------------------------------
+
+  0 = Requested — Not Issued Yet
+        Part requested from parts store, pending issue
+        Can be deleted at this stage (delete_labor.php)
+        Display: Orange colour — "Not Issue yet!!"
+
+  1 = Fully Issued
+        All required quantity issued to workshop
+        Set by: Parts/Entry/issue_part.php
+                if(require_qty == total_issued) status = 1
+        Display: Green colour — "Issued"
+
+  2 = Not Available
+        Parts store cannot supply this part
+        Display: Red colour — "Not Available"
+
+  3 = Issued + Invoice Confirmed
+        Part issued AND the jobcard invoice has been closed/confirmed
+        Used in financial and revenue reports
+        Display: Green colour — "Issued"
+
+  QUERY TIPS:
+    For financial reports → WHERE status IN ('1','3')
+    Pending parts         → WHERE status = '0'
+    Unavailable parts     → WHERE status = '2'
+    Deletable parts       → WHERE status = '0' (only status=0 can be deleted)
+
+  jobc_parts also has a separate p_return column:
+    0 = Not Returned (default)
+    1 = Return Processed
+          Set by: Finance/Cashier/part_return.php
+    2 = Not Available for Return
+          Set by: Parts/Entry/wp_return.php
+    3 = Return Confirmed
+          Set by: Parts/Entry/wp_return2.php
+
+  NOTE: part_return.php only allows return if status IN ('1','3')
+        AND p_return = '0'
+
+
+----------------------------------------------------------------
+3. jobc_consumble TABLE — status column (numeric)
+----------------------------------------------------------------
+
+  Identical structure to jobc_parts:
+
+  0 = Requested — Not Issued Yet
+        Display: Orange — "Not Issue yet!!"
+
+  1 = Fully Issued
+        Display: Green — "Issued"
+
+  2 = Not Available
+        Display: Red — "Not Available"
+
+  3 = Issued + Invoice Confirmed
+        Display: Green — "Issued"
+
+  QUERY TIPS:
+    For financial reports → WHERE status IN ('1','3')
+
+  jobc_consumble also has p_return column — same values as jobc_parts:
+    0 = Not Returned
+    1 = Return Processed   (Finance/Cashier/part_return.php)
+    2 = Not Available for Return (Parts/Entry/wp_return.php)
+    3 = Return Confirmed   (Parts/Entry/wp_return2.php)
+
+
+----------------------------------------------------------------
+4. jobc_labor TABLE — status column (TEXT, not numeric)
+----------------------------------------------------------------
+
+  '' (empty string) = Not Assigned Yet
+        Labor item added to jobcard, no technician assigned
+        Can be deleted at this stage (delete_labor.php)
+        Display: Orange — "Job not Assign yet!!"
+
+  'Job Assign'      = Assigned to Technician
+        Technician has been assigned, work in progress
+        Set by: SERVICE/BP_JC/JobAssign.php
+                SERVICE/JC/JobAssign.php
+                UPDATE jobc_labor SET status='Job Assign'
+        Display: In-progress indicator
+
+  'Job Not Done'    = Assigned But Not Completed
+        Technician assigned but work not finished / blocked
+        Display: Red — "Job not Done!!"
+
+  'Jobclose'        = Labor Completed
+        Work finished by technician
+        Set by: SERVICE/BP_JC/inprogress_jobs.php
+                SERVICE/BP_JC/Customers.php
+                SERVICE/JC/sublet.php
+                UPDATE jobc_labor SET status='Jobclose', end_time=NOW()
+        Display: Green
+
+  QUERY TIPS:
+    Completed labor   → WHERE status = 'Jobclose'
+    Assigned labor    → WHERE status = 'Job Assign'
+    Unassigned labor  → WHERE status = ''
+    Blocking jobclose → WHERE status NOT IN ('Job Not Done','Jobclose')
+    Deletable labor   → WHERE status = ''
+
+
+----------------------------------------------------------------
+5. jobc_sublet TABLE — status column (TEXT, not numeric)
+----------------------------------------------------------------
+
+  '' (empty string) = Not Assigned / Pending
+        Sublet work not yet started
+        Can be deleted at this stage (delete_labor.php)
+        Display: Red — "Job not Assign yet!!"
+
+  'JobDone'         = Sublet Work Completed
+        External work completed and confirmed
+        Set by: SERVICE/BP_JC/sublet.php
+                SERVICE/JC/sublet.php
+                UPDATE jobc_sublet SET status='JobDone', end_time=NOW()
+        Display: Green
+
+  QUERY TIPS:
+    Completed sublet  → WHERE status = 'JobDone'
+    Pending sublet    → WHERE status = ''
+    For invoice total → WHERE status = 'JobDone'
+    Blocking jobclose → WHERE type='Workshop' AND status = ''
+
+
+----------------------------------------------------------------
+6. jobc_invoice TABLE
+----------------------------------------------------------------
+
+  *** jobc_invoice has NO status column ***
+
+  A row existing in jobc_invoice means an invoice was generated.
+  To find closed invoices always join with jobcard and filter:
+      WHERE jobcard.status >= 3
+
+  jobc_invoice DOES have:
+
+  Rec_status column (for Recovery dept):
+    ''  (empty) = Not yet recovered / payment pending
+                  Default when invoice is created
+    '1'         = Recovered / payment collected
+                  Set by: Finance/Recovery/add_debt.php
+                  UPDATE jobc_invoice SET Rec_status='1'
+    Used in: DM_bills.php WHERE Rec_status='' (shows unpaid DM invoices)
+
+  type column (invoice type — set from radio buttons in invoice.php):
+    'CM'   = Cash / Normal invoice (default, checked by default)
+    'DM'   = Deferred Money       (customer pays later — goes to Recovery)
+    'DMC'  = Deferred Money Corporate (corporate credit invoice)
+    'JND'  = Job Not Done
+    'GW'   = Goodwill
+    'COMP' = Complimentary
+    'FFS'  = Free Field Service
+    'PDS'  = Pre-Delivery Service
+    'WC'   = Warranty Claim       (manufacturer warranty)
+    'CBJ'  = Cash Before Job
+    'CNI'  = Cash No Invoice
+
+  QUERY TIPS:
+    DM invoices pending recovery → WHERE type IN ('DM','DMC')
+                                   AND Rec_status=''
+    Warranty invoices            → WHERE type='WC'
+
+
+----------------------------------------------------------------
+7. p_purch_inv TABLE — status column (purchase invoices)
+----------------------------------------------------------------
+
+  0 = Open / Active
+        Invoice being edited, parts can still be added/removed
+        Used in: Parts/Entry/pur_det2.php  WHERE status='0'
+                 Parts/Entry/unclosed_req.php WHERE status=0
+
+  1 = Closed / Finalized
+        Invoice finalized, no more changes allowed,
+        stock counted in reports
+        Set by: Parts/Entry/sale/files/print_purch.php
+                UPDATE p_purch_inv SET status='1'
+        Used in: stock reports WHERE p_purch_inv.status='1'
+
+  QUERY TIPS:
+    Open invoices   → WHERE status = 0
+    Closed invoices → WHERE status = 1
+    Active stock    → WHERE p_purch_inv.status = '1'
+
+
+----------------------------------------------------------------
+8. p_sale_inv TABLE — status column (counter sale invoices)
+----------------------------------------------------------------
+
+  0 = Open / Active invoice
+        Counter sale being processed
+        Used in: unclosed_req.php WHERE status=0
+
+  1 = Closed / Completed invoice
+        Sale finalized
+        Used in: KPI and profit reports WHERE p_sale_inv.status='1'
+
+  QUERY TIPS:
+    Active invoices → WHERE status = 0
+    Closed invoices → WHERE status = 1
+
+
+----------------------------------------------------------------
+9. s_unclosed_jc TABLE — status column (reopen requests)
+----------------------------------------------------------------
+
+  0 = Pending
+        Service Manager submitted reopen request,
+        waiting for Finance/Accountant decision
+        Used in: Finance/Accountant/unclose.php WHERE status=0
+
+  2 = Accepted
+        Finance approved the reopen request
+        jobcard status is then set back to 1
+        Set by: Finance/Accountant/unclose.php
+                UPDATE s_Unclosed_jc SET status='2'
+                UPDATE jobcard SET status='1'
+
+  3 = Rejected
+        Finance rejected the reopen request
+        Set by: Finance/Accountant/unclose.php
+                UPDATE s_Unclosed_jc SET status='3'
+
+  NOTE: Status value '1' does not appear to be used in
+  s_unclosed_jc based on the codebase.
+
+
+----------------------------------------------------------------
+10. QUICK REFERENCE CARD
+----------------------------------------------------------------
+
+  TABLE               COLUMN      VALUES
+  ─────────────────────────────────────────────────────────────
+  jobcard             status      0=New/Opened
+                                  1=InProgress
+                                  2=JobComplete
+                                  3=Invoiced/Billed
+                                  4=Closed/Delivered (NOT Cancelled)
+
+  jobc_parts          status      0=Pending/NotIssued
+                                  1=Issued
+                                  2=NotAvailable
+                                  3=IssuedAndConfirmed
+
+  jobc_consumble      status      0=Pending/NotIssued
+                                  1=Issued
+                                  2=NotAvailable
+                                  3=IssuedAndConfirmed
+
+  jobc_labor          status      ''=NotAssigned
+                                  'Job Assign'=AssignedInProgress
+                                  'Job Not Done'=NotCompleted
+                                  'Jobclose'=Done
+
+  jobc_sublet         status      ''=Pending
+                                  'JobDone'=Completed
+
+  jobc_invoice        status      NO STATUS COLUMN
+  jobc_invoice        Rec_status  ''=Unpaid/Pending
+                                  '1'=Recovered/Collected
+  jobc_invoice        type        'CM'=Cash(default),'DM'=DeferredMoney,
+                                  'DMC'=DeferredCorporate,'JND'=JobNotDone,
+                                  'GW'=Goodwill,'COMP'=Complimentary,
+                                  'FFS'=FreeFieldService,'PDS'=PreDelivery,
+                                  'WC'=WarrantyClaim,'CBJ'=CashBeforeJob,
+                                  'CNI'=CashNoInvoice
+
+  p_purch_inv         status      0=Open, 1=Closed
+
+  p_sale_inv          status      0=Open, 1=Closed
+
+  s_unclosed_jc       status      0=Pending, 2=Accepted, 3=Rejected
+
+  jobc_parts          p_return    0=NotReturned, 1=Returned,
+                                  2=ReturnNA, 3=ReturnConfirmed
+
+  jobc_consumble      p_return    0=NotReturned, 1=Returned,
+                                  2=ReturnNA, 3=ReturnConfirmed
+
+================================================================
+   CORRECTIONS FROM PREVIOUS VERSION
+================================================================
+
+  1. jobcard status=4
+     WRONG:   4 = Cancelled
+     CORRECT: 4 = Closed RO / Vehicle Delivered
+              (Triggered by "Close RO" button in print_close_ro.php,
+               sets status via Finance/Cashier/files/print2.php.
+               No cancellation logic exists in the codebase.)
+
+  2. jobc_labor status
+     MISSING: 'Job Assign' was not documented
+     ADDED:   'Job Assign' = Assigned to Technician (set by JobAssign.php)
+
+  3. jobc_invoice type column
+     INCOMPLETE: Only DM, DMC, WC were listed
+     ADDED:      CM (default), JND, GW, COMP, FFS, PDS, CBJ, CNI
+                 (all found in invoice.php radio button values)
+
+================================================================
+   END OF STATUS REFERENCE
+================================================================

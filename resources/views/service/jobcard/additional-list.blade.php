@@ -45,8 +45,7 @@
                                class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded">Sublet</a>
                             <a href="{{ route('jobcard.additional.consumable', $job->Jobc_id) }}"
                                class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded">Consumble</a>
-                            <a href="{{ route('jobcard.additional', $job->Jobc_id) }}"
-                               class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded">View RO</a>
+                            
                         </div>
                     </td>
                 </tr>
