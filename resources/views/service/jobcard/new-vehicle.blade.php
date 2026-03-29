@@ -53,17 +53,17 @@
 
             {{-- Model code — autocomplete via countryname_1 (auto.js) --}}
             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Variant <span class="text-red-500">*</span></label>
+                <input type="text" name="varaint" id="country_no_1" required minlength="2"
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="e.g. Corolla XLI 1.3">
+            </div>
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Model Code <span class="text-red-500">*</span></label>
                 <input type="text" name="model" id="countryname_1" required minlength="2"
                        style="text-transform:uppercase"
                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                        placeholder="e.g. AXV50">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Variant <span class="text-red-500">*</span></label>
-                <input type="text" name="varaint" id="country_no_1" required minlength="2"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       placeholder="e.g. Corolla XLI 1.3">
             </div>
 
             {{-- Variant — auto-filled by auto.js via country_no_1 --}}

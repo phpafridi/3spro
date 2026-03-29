@@ -1,0 +1,19 @@
+0New / Just opened (initial entry)
+1In Progress (workshop working on it, SA active)
+2Job Complete — technician done, ready for invoice
+3Invoiced / Closed by Cashier (invoice generated, closing_time set)
+4Cancelled
+
+
+
+
+
+
+--------------------
+
+
+jobc_parts status values:
+StatusMeaning0Requested but not issued yet (pending)1
+Issued to workshop (billed)2
+Not Available / cancelled
+3Issued and invoice closed (confirmed on invoice)
