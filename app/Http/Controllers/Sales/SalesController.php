@@ -16,8 +16,8 @@ class SalesController extends Controller
         $todayRevenue = DB::table('jobc_invoice')
             ->join('jobcard', 'jobc_invoice.Jobc_id', '=', 'jobcard.Jobc_id')
             ->whereDate('jobc_invoice.datetime', today())
-            ->selectRaw('jobcard.ro_type, SUM(jobc_invoice.Lnet) AS Labor, SUM(jobc_invoice.Pnet+jobc_invoice.Cnet) AS Parts')
-            ->groupBy('jobcard.ro_type')
+            ->selectRaw('jobcard.RO_type, SUM(jobc_invoice.Lnet) AS Labor, SUM(jobc_invoice.Pnet+jobc_invoice.Cnet) AS Parts')
+            ->groupBy('jobcard.RO_type')
             ->get();
 
         // Last 20 days chart data

@@ -681,9 +681,10 @@ class SMController extends Controller
         // Jobs that are stopped or have problem status
         $problems = DB::table('jobc_labor')
             ->join('jobcard', 'jobc_labor.RO_no', '=', 'jobcard.Jobc_id')
+            ->leftJoin('vehicles_data', 'jobcard.Vehicle_id', '=', 'vehicles_data.Vehicle_id')
             ->where('jobcard.status', '<', 2)
             ->whereIn('jobc_labor.status', ['Job Stopage', 'Job Not Done'])
-            ->select('jobc_labor.*', 'jobcard.Registration', 'jobcard.Variant', 'jobcard.SA')
+            ->select('jobc_labor.*', 'vehicles_data.Registration', 'vehicles_data.Variant', 'jobcard.SA')
             ->orderBy('jobc_labor.Labor_id', 'desc')
             ->get();
 
@@ -843,7 +844,7 @@ class SMController extends Controller
                 AVG(professionalism) AS prof, AVG(Tech_expertize) AS exprt")
             ->groupBy('SA')->get();
         $byType = DB::table('customer_ratings')
-            ->join('jobcard','customer_ratings.jobc_id','=','jobcard.Jobc_id')
+            ->join('jobcard','customer_ratings.RO','=','jobcard.Jobc_id')
             ->whereBetween(DB::raw("DATE_FORMAT(customer_ratings.datetime,'%Y-%m-%d')"),[$from,$to])
             ->selectRaw("jobcard.RO_type, COUNT(*) AS total,
                 AVG(Management) AS mgmt, AVG(Services) AS svc,
