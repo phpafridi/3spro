@@ -120,7 +120,7 @@
                                x-model.number="onroadPrice"
                                @input="calcAll()"
                                value="{{ old('onroad_price') }}"
-                               required min="1" step="1000"
+                               required min="1"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                     </div>
                     <div>
@@ -132,7 +132,7 @@
                                x-model.number="discount"
                                @input="calcAll()"
                                value="{{ old('discount', 0) }}"
-                               min="0" step="1000"
+                               min="0"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                     </div>
                     <div>
@@ -190,12 +190,12 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Cash Received (PKR) <span class="text-red-500">*</span></label>
                             <input type="number" name="cash_received" value="{{ old('cash_received') }}"
-                                   :required="paymentType === 'Cash'" min="0" step="1000"
+                                   :required="paymentType === 'Cash'" min="0"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Date *</label>
-                            <input type="date" name="delivery_date" value="{{ old('delivery_date', date('Y-m-d')) }}" required
+                            <input type="date" name="do_date" value="{{ old('do_date', date('Y-m-d')) }}" required
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
                         </div>
                     </div>
@@ -227,7 +227,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Down Payment (PKR) <span class="text-red-500">*</span></label>
                             <input type="number" name="down_payment" x-model.number="downPayment" @input="calcAll()"
-                                   value="{{ old('down_payment', 0) }}" :required="paymentType === 'Installment'" min="0" step="1000"
+                                   value="{{ old('down_payment', 0) }}" :required="paymentType === 'Installment'" min="0"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                         </div>
                         <div>
@@ -293,7 +293,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Down Payment (PKR) <span class="text-red-500">*</span></label>
                             <input type="number" name="direct_down_payment" x-model.number="directDownPayment" @input="calcAll()"
-                                   value="{{ old('direct_down_payment', 0) }}" :required="paymentType === 'Direct'" min="0" step="1000"
+                                   value="{{ old('direct_down_payment', 0) }}" :required="paymentType === 'Direct'" min="0"
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
                         </div>
                         <div>

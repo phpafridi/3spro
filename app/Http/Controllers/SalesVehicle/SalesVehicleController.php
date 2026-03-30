@@ -229,7 +229,7 @@ class SalesVehicleController extends Controller
                 'tenure_months'        => $tenureMonths,
                 'monthly_installment'  => $monthlyInstallment,
                 // DO meta
-                'do_date'              => now(),
+                'do_date'              => $request->do_date,
                 'delivery_date'        => $deliveryDate,
                 'status'               => 'Pending',
                 'remarks'              => $request->remarks,
