@@ -89,6 +89,11 @@
                         </td>
                         <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ $do->do_date?->format('d M Y') }}</td>
                         <td class="px-4 py-3 text-center">
+                            {{-- Print NVD always visible --}}
+                            <a href="{{ route('sv.print-do', $do->id) }}" target="_blank"
+                               class="px-2 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded text-xs transition inline-block mb-1">
+                                <i class="fas fa-print mr-1"></i>NVD
+                            </a>
                             @if($do->status === 'Pending')
                             <div class="flex items-center justify-center gap-1">
                                 <form method="POST" action="{{ route('sv.do-status') }}" class="inline">

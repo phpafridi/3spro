@@ -149,7 +149,7 @@ class SalesVehicleController extends Controller
             'payment_type'         => 'required|in:Cash,Installment,Direct',
             'onroad_price'         => 'required|numeric|min:1',
             'discount'             => 'nullable|numeric|min:0',
-            'do_date'              => 'required|date',
+
         ]);
 
         if ($request->payment_type === 'Cash') {
@@ -204,11 +204,19 @@ class SalesVehicleController extends Controller
         DB::transaction(function () use ($request, $onroadPrice, $discount, $customerPaidAmount, $downPayment, $loanAmount, $tenureMonths, $monthlyInstallment, $bankName, $financeScheme, $deliveryDate) {
             SvDeliveryOrder::create([
                 'do_no'                => SvDeliveryOrder::generateDoNo(),
+                // NVD header
+                'pbo_no'               => $request->pbo_no,
+                'customer_type'        => $request->customer_type ?? 'Individual',
+                'sale_price'           => $request->sale_price ?? $onroadPrice - $discount,
+                // Vehicle
                 'vehicle_id'           => $request->vehicle_id,
+                // Customer
                 'customer_name'        => strtoupper($request->customer_name),
                 'customer_cnic'        => $request->customer_cnic,
                 'customer_phone'       => $request->customer_phone,
                 'customer_address'     => $request->customer_address,
+                'customer_son_wife_of' => $request->customer_son_wife_of,
+                // Payment
                 'payment_type'         => $request->payment_type,
                 'onroad_price'         => $onroadPrice,
                 'discount'             => $discount,
@@ -220,17 +228,50 @@ class SalesVehicleController extends Controller
                 'loan_amount'          => $loanAmount,
                 'tenure_months'        => $tenureMonths,
                 'monthly_installment'  => $monthlyInstallment,
-                'do_date'              => $request->do_date,
+                // DO meta
+                'do_date'              => now(),
                 'delivery_date'        => $deliveryDate,
                 'status'               => 'Pending',
                 'remarks'              => $request->remarks,
                 'created_by'           => Auth::user()->login_id,
+                // Receiver
+                'receiver_name'        => $request->receiver_name ? strtoupper($request->receiver_name) : strtoupper($request->customer_name),
+                'receiver_father_name' => $request->receiver_father_name,
+                'receiver_cnic'        => $request->receiver_cnic ?? $request->customer_cnic,
+                'receiver_phone'       => $request->receiver_phone ?? $request->customer_phone,
+                'receiver_address'     => $request->receiver_address ?? $request->customer_address,
+                // Accessories
+                'acc_keys_qty'         => (int) ($request->acc_keys_qty ?? 1),
+                'acc_remote_control'   => $request->boolean('acc_remote_control', true),
+                'acc_toolkit_jack'     => $request->boolean('acc_toolkit_jack', true),
+                'acc_spare_wheel'      => $request->boolean('acc_spare_wheel'),
+                'acc_battery_warranty' => $request->boolean('acc_battery_warranty'),
+                'acc_service_warranty' => $request->boolean('acc_service_warranty', true),
+                // Documents
+                'doc_sales_invoice'           => $request->boolean('doc_sales_invoice'),
+                'doc_sales_certificate'       => $request->boolean('doc_sales_certificate'),
+                'doc_sales_cert_verification' => $request->boolean('doc_sales_cert_verification'),
+                // NVD Checklist
+                'nvd_warranty_terms'   => $request->boolean('nvd_warranty_terms'),
+                'nvd_owners_manual'    => $request->boolean('nvd_owners_manual'),
+                'nvd_ffs_pm_schedule'  => $request->boolean('nvd_ffs_pm_schedule'),
+                'nvd_3s_visit'         => $request->boolean('nvd_3s_visit'),
+                'nvd_ew_ppm'           => $request->boolean('nvd_ew_ppm'),
+                'nvd_safety_features'  => $request->boolean('nvd_safety_features'),
+                'nvd_demonstrated_ops' => $request->boolean('nvd_demonstrated_ops'),
             ]);
 
             SvVehicle::where('id', $request->vehicle_id)->update(['status' => 'Reserved']);
         });
 
         return redirect()->route('sv.do-list')->with('success', 'Delivery Order created successfully.');
+    }
+
+    // ─── PRINT DO (NVD) ───────────────────────────────────────────────────────
+    public function printDO($id)
+    {
+        $do = SvDeliveryOrder::with('vehicle')->findOrFail($id);
+        return view('sales-vehicle.print-do', compact('do'));
     }
 
     // ─── DO LIST ──────────────────────────────────────────────────────────────

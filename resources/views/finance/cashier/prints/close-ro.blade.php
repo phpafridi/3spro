@@ -73,7 +73,13 @@
         </div>
         <div style="float:left;">
             <a href="{{ route('cashier.tax-invoice-get', ['ro_no' => $jobcard->Jobc_id]) }}">
-                <img src="{{ asset('images/header.png') }}" width="420px" height="100px"/>
+                @php $logoPath = public_path(config('company.logo_path')); @endphp
+                @if(file_exists($logoPath))
+                    <img src="{{ asset(config('company.logo_path')) }}" height="90px"
+                         onerror="this.style.display='none'"/>
+                @else
+                    <div style="font-size:12px; font-weight:bold; padding:10px;">{{ config('company.name') }}</div>
+                @endif
             </a>
         </div>
         <div style="float:right; height:90px;">

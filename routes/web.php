@@ -629,4 +629,5 @@ Route::middleware(['auth', 'role:SVManager,SVExec,IT Manager'])
         Route::get('/do-list',           [SalesVehicleController::class, 'doList'])->name('do-list');
         Route::post('/do-status',        [SalesVehicleController::class, 'doUpdateStatus'])->name('do-status');
         Route::get('/search-sold',       [SalesVehicleController::class, 'searchSold'])->name('search-sold');
+        Route::get('/print-do/{id}',     [SalesVehicleController::class, 'printDO'])->name('print-do');
     });

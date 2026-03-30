@@ -78,8 +78,8 @@
     </style>
 </head>
 <body onload="window.print()">
-    <div id="header" style="width:21cm; height:2cm;">
-        <img src="{{ asset('images/header1.png') }}" style="width:21cm; height:2cm;" />
+    <div id="header" style="width:21cm; padding-bottom:4px;">
+        @include('partials.company-header')
     </div>
 
     <h2 align="center" style="text-decoration:underline; margin:0;">Sales Tax Invoice</h2>

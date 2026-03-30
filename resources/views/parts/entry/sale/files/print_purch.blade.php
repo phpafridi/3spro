@@ -17,6 +17,7 @@
 </head>
 <body>
 <div class="header">
+    @include('partials.company-header')
     <h2>Purchase Invoice {{ $tax ? '(With Tax)' : '' }}</h2>
     <p>Invoice No: <strong>#{{ $invoice->Invoice_no }}</strong> | Bill No: {{ $invoice->Invoice_number }}</p>
 </div>

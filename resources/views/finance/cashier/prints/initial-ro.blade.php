@@ -109,12 +109,20 @@
     <div id="header">
         <div style="float:left; align:center; height:90px;">
             <br/>
-            <div id="heading-labels"> MG Khyber </div>
+            <div id="heading-labels"> {{ config('company.name') }} </div>
             <br/>
             <label id="heading-labels">RO# {{ $jobcard->Jobc_id }}</label>
         </div>
-        <div style="float:left;">
-            <img src="{{ asset('images/header.png') }}" width="405px" height="100px"/>
+        <div style="float:left; text-align:center; padding:6px 10px;">
+            @php $logoPath = public_path(config('company.logo_path')); @endphp
+            @if(file_exists($logoPath))
+                <img src="{{ asset(config('company.logo_path')) }}" height="80px"
+                     onerror="this.style.display='none'"/>
+            @else
+                <div style="font-size:11px; color:#555; margin-top:10px;">
+                    {{ config('company.location') }}<br>{{ config('company.phone') }}
+                </div>
+            @endif
         </div>
         <div style="float:right; height:90px;">
             <br/>

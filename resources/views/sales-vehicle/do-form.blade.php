@@ -26,6 +26,30 @@
         <form method="POST" action="{{ route('sv.store-do') }}">
             @csrf
 
+            {{-- NVD HEADER: PBO No / Type / Sale Price --}}
+            <div class="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+                    <i class="fas fa-file-contract mr-1"></i> NVD Header
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">PBO No.</label>
+                        <input type="text" name="pbo_no" value="{{ old('pbo_no') }}"
+                               placeholder="e.g. -001"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Customer Type</label>
+                        <select name="customer_type"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @foreach(['Individual','Investor','Corporate'] as $t)
+                                <option value="{{ $t }}" {{ old('customer_type','Individual') === $t ? 'selected' : '' }}>{{ $t }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             {{-- VEHICLE --}}
             <div class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <h3 class="text-xs font-bold text-blue-700 uppercase tracking-widest mb-3">
@@ -68,8 +92,9 @@
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">DO Date <span class="text-red-500">*</span></label>
-                        <input type="date" name="do_date" value="{{ old('do_date', date('Y-m-d')) }}" required
+                        <label class="block text-sm font-medium text-gray-700 mb-1">S/o &amp; W/o (Son of / Wife of)</label>
+                        <input type="text" name="customer_son_wife_of" value="{{ old('customer_son_wife_of') }}"
+                               placeholder="Father / Husband name"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="md:col-span-2">
@@ -169,8 +194,8 @@
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Date</label>
-                            <input type="date" name="delivery_date" value="{{ old('delivery_date') }}"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Date *</label>
+                            <input type="date" name="delivery_date" value="{{ old('delivery_date', date('Y-m-d')) }}" required
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
                         </div>
                     </div>
@@ -318,7 +343,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Date</label>
-                            <input type="date" name="direct_delivery_date" value="{{ old('direct_delivery_date') }}"
+                            <input type="date" name="direct_delivery_date" value="{{ old('delivery_date', date('Y-m-d')) }}" required
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
                         </div>
                     </div>
@@ -335,10 +360,155 @@
             </div>
 
             {{-- REMARKS --}}
-            <div class="mb-6">
+            <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
                 <textarea name="remarks" rows="2"
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('remarks') }}</textarea>
+            </div>
+
+            {{-- VEHICLE RECEIVER --}}
+            <div class="mb-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <h3 class="text-xs font-bold text-indigo-700 uppercase tracking-widest mb-3">
+                    <i class="fas fa-id-card mr-1"></i> Vehicle Receiver Information
+                    <span class="text-xs font-normal text-indigo-400 ml-2">(leave blank if same as customer)</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Receiver Name</label>
+                        <input type="text" name="receiver_name" value="{{ old('receiver_name') }}"
+                               placeholder="Defaults to customer name"
+                               style="text-transform:uppercase"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Father Name</label>
+                        <input type="text" name="receiver_father_name" value="{{ old('receiver_father_name') }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">NIC #</label>
+                        <input type="text" name="receiver_cnic" value="{{ old('receiver_cnic') }}"
+                               placeholder="XXXXX-XXXXXXX-X"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                        <input type="text" name="receiver_phone" value="{{ old('receiver_phone') }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <input type="text" name="receiver_address" value="{{ old('receiver_address') }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                </div>
+            </div>
+
+            {{-- ACCESSORIES + NVD CHECKLIST (two columns) --}}
+            <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                {{-- Accessories --}}
+                <div class="p-4 border border-gray-200 rounded-xl">
+                    <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 text-center bg-gray-800 text-white py-1 rounded">
+                        ACCESSORIES
+                    </h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="acc_remote_control" value="1" {{ old('acc_remote_control', '1') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Keys
+                            <input type="number" name="acc_keys_qty" value="{{ old('acc_keys_qty', 1) }}"
+                                   min="1" max="5"
+                                   class="w-12 border border-gray-300 rounded px-1 py-0.5 text-sm text-center">
+                            / Remote Control
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="acc_toolkit_jack" value="1" {{ old('acc_toolkit_jack', '1') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            ToolKit/Jack with Handle
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="acc_spare_wheel" value="1" {{ old('acc_spare_wheel') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Spare Wheel/Rear TrunkMat
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="acc_battery_warranty" value="1" {{ old('acc_battery_warranty') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Battery/Warranty Card/Cassette/Player
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="acc_service_warranty" value="1" {{ old('acc_service_warranty', '1') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Service Warranty/Floor Mat
+                        </label>
+                    </div>
+
+                    <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mt-4 mb-2 text-center bg-gray-800 text-white py-1 rounded">
+                        DOCUMENTS
+                    </h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="doc_sales_invoice" value="1" {{ old('doc_sales_invoice') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Sales Invoice
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="doc_sales_certificate" value="1" {{ old('doc_sales_certificate') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Sales Certificate
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="doc_sales_cert_verification" value="1" {{ old('doc_sales_cert_verification') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Sales Certificate Verification Copy
+                        </label>
+                    </div>
+                </div>
+
+                {{-- NVD Checklist --}}
+                <div class="p-4 border border-gray-200 rounded-xl">
+                    <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 text-center bg-gray-800 text-white py-1 rounded">
+                        NVD CHECKLIST SHEET
+                    </h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="nvd_warranty_terms" value="1" {{ old('nvd_warranty_terms') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Explained Warranty Terms &amp; Conditions
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="nvd_owners_manual" value="1" {{ old('nvd_owners_manual') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Explained Owner's Manual
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="nvd_ffs_pm_schedule" value="1" {{ old('nvd_ffs_pm_schedule') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Explained FFS &amp; PM Schedule
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="nvd_3s_visit" value="1" {{ old('nvd_3s_visit') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Conducted 3S Visit
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="nvd_ew_ppm" value="1" {{ old('nvd_ew_ppm') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Explained EW &amp; PPM
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="nvd_safety_features" value="1" {{ old('nvd_safety_features') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Explained Safety Features
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="nvd_demonstrated_ops" value="1" {{ old('nvd_demonstrated_ops') ? 'checked' : '' }}
+                                   class="w-4 h-4">
+                            Demonstrated Operations of Features
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <div class="flex gap-3">

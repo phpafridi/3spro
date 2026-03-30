@@ -35,7 +35,7 @@ table { border-collapse:collapse; }
 
 {{-- Header --}}
 <div class="header">
-    <img src="{{ asset('images/header1.png') }}" width="800" onerror="this.style.display='none'"><br>
+    @include('partials.company-header')
     <h2>Parts Sale Invoice
         <small style="font-size:13px;">({{ request()->has('inv_no') ? 'Copy' : 'Original' }})</small>
     </h2>

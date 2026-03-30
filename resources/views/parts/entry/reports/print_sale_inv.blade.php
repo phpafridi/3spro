@@ -18,6 +18,7 @@
 </head>
 <body onLoad="window.print();">
     <div align="center">
+        @include('partials.company-header')
         <h2>Parts Sale Invoice</h2>
     </div>
 

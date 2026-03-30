@@ -77,7 +77,7 @@
     </div>
 
     <div class="header">
-        <h1>{{ config('app.name') }}</h1>
+        @include('partials.company-header')
     </div>
 
     <h2 class="invoice-title">Invoice</h2>

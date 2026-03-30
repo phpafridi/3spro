@@ -2,6 +2,7 @@
 <style>body{font-family:Arial,sans-serif;font-size:13px;margin:20px}.box{border:1px solid #ccc;padding:20px;max-width:500px;margin:0 auto}.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}.bold{font-weight:bold}@media print{button{display:none}}</style>
 </head><body>
 <div class="box">
+@include('partials.company-header')
 <h2 style="text-align:center">Payment Receipt</h2>
 <p style="text-align:center">#{{ $payment->payment_id }}</p>
 <div class="row"><span>Jobber:</span><span class="bold">{{ $payment->jobber->jbr_name ?? $payment->jobber }}</span></div>
