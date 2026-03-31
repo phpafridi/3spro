@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Finance\Cashier;
 
 use App\Http\Controllers\Controller;
@@ -88,7 +89,7 @@ class ReportsController extends Controller
             $query->whereBetween(DB::raw('DATE(jc.Open_date_time)'), [$from, $to]);
         } else {
             $query->where('jc.serv_nature', 'PM')
-                  ->whereBetween(DB::raw('DATE(jc.Open_date_time)'), [$from, $to]);
+                ->whereBetween(DB::raw('DATE(jc.Open_date_time)'), [$from, $to]);
         }
 
         $results = $query->select(
@@ -109,28 +110,36 @@ class ReportsController extends Controller
             'c.mobile',
             DB::raw("IF(vc.Make IS NULL, 'Others', vc.Make) as make")
         )
-        ->groupBy('jc.Jobc_id')
-        ->orderBy('jc.Jobc_id', 'desc')
-        ->get();
+            ->groupBy('jc.Jobc_id')
+            ->orderBy('jc.Jobc_id', 'desc')
+            ->get();
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        $row = 1;
+        // Add headers
+        $headers = array_keys((array)$results->first());
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col++ . '1', $header);
+        }
+
+        // Add data
+        $row = 2;
         foreach ($results as $result) {
-            $col = 1;
+            $col = 'A';
             foreach ((array)$result as $value) {
-                $sheet->setCellValueByColumnAndRow($col++, $row, $value);
+                $sheet->setCellValue($col++ . $row, $value);
             }
             $row++;
         }
 
         $writer = new Xlsx($spreadsheet);
 
-        return Response::stream(function() use ($writer) {
+        return Response::stream(function () use ($writer) {
             $writer->save('php://output');
         }, 200, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="PM.xlsx"',
         ]);
     }
@@ -223,29 +232,37 @@ class ReportsController extends Controller
             )
             ->first();
 
+        if (!$jobcard) {
+            abort(404, 'Job card not found');
+        }
+
         $vehicleHistory = DB::table('jobcard')
             ->where('Vehicle_id', $jobcard->Vehicle_id)
             ->where('Jobc_id', '!=', $roNumber)
             ->orderBy('Open_date_time', 'desc')
             ->first();
 
+        // GET ALL LABOR ITEMS - BOTH Additional = 0 AND 1
         $laborItems = DB::table('jobc_labor')
             ->where('RO_no', $roNumber)
-            ->where('Additional', '0')
+            ->orderBy('Additional', 'asc')
             ->get();
 
+        // GET ALL SUBLET ITEMS
         $subletItems = DB::table('jobc_sublet')
             ->where('RO_no', $roNumber)
             ->get();
 
+        // GET ALL PARTS ITEMS - BOTH Additional = 0 AND 1
         $partsItems = DB::table('jobc_parts')
             ->where('RO_no', $roNumber)
-            ->where('Additional', '0')
+            ->orderBy('Additional', 'asc')
             ->get();
 
+        // GET ALL CONSUMABLE ITEMS - BOTH Additional = 0 AND 1
         $consumableItems = DB::table('jobc_consumble')
             ->where('RO_no', $roNumber)
-            ->where('Additional', '0')
+            ->orderBy('Additional', 'asc')
             ->get();
 
         $checklist = DB::table('jobc_checklist')
@@ -253,8 +270,13 @@ class ReportsController extends Controller
             ->first();
 
         return view('finance.cashier.prints.initial-ro', compact(
-            'jobcard', 'vehicleHistory', 'laborItems', 'subletItems',
-            'partsItems', 'consumableItems', 'checklist'
+            'jobcard',
+            'vehicleHistory',
+            'laborItems',
+            'subletItems',
+            'partsItems',
+            'consumableItems',
+            'checklist'
         ));
     }
 
@@ -265,15 +287,31 @@ class ReportsController extends Controller
     {
         $jobId = $request->job_id;
 
-        $jobcard = DB::table('jobcard')
-            ->where('Jobc_id', $jobId)
+        $jobcard = DB::table('jobcard as jc')
+            ->leftJoin('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+            ->leftJoin('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
+            ->where('jc.Jobc_id', $jobId)
+            ->select(
+                'jc.*',
+                'v.Registration',
+                'v.Frame_no',
+                'v.Engine_Code',
+                'v.Variant',
+                'v.Make',
+                'c.mobile',
+                'c.Address',
+                'c.email',
+                'c.CNIC'
+            )
             ->first();
 
+        // STANDARD labor (Additional = 0)
         $laborItems = DB::table('jobc_labor')
             ->where('RO_no', $jobId)
-            ->where('type', 'Workshop')
+            ->where('Additional', '0')
             ->get();
 
+        // ADDITIONAL labor (Additional = 1)
         $additionalLabor = DB::table('jobc_labor')
             ->where('RO_no', $jobId)
             ->where('Additional', '1')
@@ -281,19 +319,30 @@ class ReportsController extends Controller
 
         $subletItems = DB::table('jobc_sublet')
             ->where('RO_no', $jobId)
-            ->where('status', 'JobDone')
             ->get();
 
+        // STANDARD parts (Additional = 0)
+        $partsItems = DB::table('jobc_parts')
+            ->where('RO_no', $jobId)
+            ->where('Additional', '0')
+            ->get();
+
+        // ADDITIONAL parts (Additional = 1)
         $additionalParts = DB::table('jobc_parts')
             ->where('RO_no', $jobId)
             ->where('Additional', '1')
-            ->whereIn('status', ['1', '3'])
             ->get();
 
+        // STANDARD consumables (Additional = 0)
+        $consumableItems = DB::table('jobc_consumble')
+            ->where('RO_no', $jobId)
+            ->where('Additional', '0')
+            ->get();
+
+        // ADDITIONAL consumables (Additional = 1)
         $additionalConsumables = DB::table('jobc_consumble')
             ->where('RO_no', $jobId)
             ->where('Additional', '1')
-            ->whereIn('status', ['1', '3'])
             ->get();
 
         $invoice = DB::table('jobc_invoice')
@@ -301,8 +350,15 @@ class ReportsController extends Controller
             ->first();
 
         return view('finance.cashier.prints.close-ro', compact(
-            'jobcard', 'laborItems', 'additionalLabor', 'subletItems',
-            'additionalParts', 'additionalConsumables', 'invoice'
+            'jobcard',
+            'laborItems',
+            'additionalLabor',
+            'subletItems',
+            'partsItems',
+            'additionalParts',
+            'consumableItems',
+            'additionalConsumables',
+            'invoice'
         ));
     }
 
@@ -357,7 +413,11 @@ class ReportsController extends Controller
             ->get();
 
         return view('finance.cashier.prints.tax-invoice', compact(
-            'invoice', 'laborItems', 'partsItems', 'subletItems', 'consumableItems'
+            'invoice',
+            'laborItems',
+            'partsItems',
+            'subletItems',
+            'consumableItems'
         ));
     }
 

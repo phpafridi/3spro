@@ -157,8 +157,8 @@ class JobController extends Controller
         }
 
         // Get active teams and bays
-        $teams = DB::table('s_techteams')->where('status', 1)->where('category', 'M')->get();
-        $bays = DB::table('s_bays')->where('status', 1)->where('category', 'M')->get();
+        $teams = DB::table('s_techteams')->where('status', 1)->get();
+        $bays = DB::table('s_bays')->where('status', 1)->get();
 
         // Get active vendors
         $vendors = DB::table('s_vendor_list')

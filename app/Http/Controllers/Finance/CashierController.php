@@ -263,7 +263,10 @@ class CashierController extends Controller
             ->where('Jobc_id', $id)
             ->first();
 
+
+
         if (!$invoice) {
+
             // If no invoice, show print initial RO
             return redirect()->route('cashier.print-initial-ro', ['job_id' => $id]);
         }

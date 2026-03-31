@@ -20,8 +20,11 @@ use App\Models\JobcConsumble;
 use App\Models\JobcLabor;
 use App\Models\SEstimate;
 use App\Models\SEstPart;
-use Auth;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\DB;
 
 class PartsController extends Controller
@@ -109,7 +112,7 @@ class PartsController extends Controller
             ->get()
             ->groupBy('RO_no');
 
-        \Log::info('Workshop Requisitions', [
+        Log::info('Workshop Requisitions', [
             'parts_found'       => $workshopParts->count(),
             'consumables_found' => $workshopConsumbles->count(),
             'jobcards_status_1' => DB::table('jobcard')->where('status', 1)->count(),
@@ -349,6 +352,7 @@ class PartsController extends Controller
             'return_qty' => $request->required_qty,
             'return_by'  => $request->return_by,
             'reason'     => $request->reason,
+            'datetime'   => now(),
             'user'       => session('login_id'),
         ]);
 
@@ -457,7 +461,7 @@ class PartsController extends Controller
             'netamount'   => $netamount,
             'remain_qty'  => $qty,
             'SRJV_return' => 0,
-            
+
             'created_at'  => now(),
             'updated_at'  => now(),
         ]);
@@ -589,7 +593,7 @@ public function printAndClose(Request $request, $sale_inv)
 
     $invoice = PSaleInv::findOrFail($sale_inv);
     $parts = DB::table('p_sale_part')->where('sale_inv', $sale_inv)->get();
-    
+
     $grossSale = $parts->sum(fn($p) => $p->sale_price * $p->quantity);
     $totalDiscount = $parts->sum('discount');
     $totalTax = $parts->sum('tax');
@@ -616,7 +620,7 @@ public function printAndClose(Request $request, $sale_inv)
 
     $invoice = PSaleInv::findOrFail($sale_inv);
     $parts = DB::table('p_sale_part')->where('sale_inv', $sale_inv)->get();
-    
+
     // Make sure this path is correct
     return view('parts.entry.sale.files.print_sale_inv', compact('invoice', 'parts'));
 }
@@ -666,7 +670,7 @@ public function printAndClose(Request $request, $sale_inv)
             'return_qty' => $request->required_qty,
             'return_by'  => $request->return_by,
             'reason'     => $request->reason,
-            'user'       => Auth::user()->login_id ?? 'unkown',
+            'user'       => FacadesAuth::user()->login_id ?? 'unkown',
             'datetime'        => now(),
             'created_at'      => now(),
             'updated_at'      => now(),
@@ -987,7 +991,7 @@ public function reportDailySale(Request $request)
     // Workshop consumables - get description from jobc_consumble
     $workshopCons = DB::table('jobc_consumble_p as cp')
         ->leftJoin('jobc_consumble as jc', 'cp.parts_sale_id', '=', 'jc.cons_sale_id')
-        ->select('cp.part_no', 
+        ->select('cp.part_no',
             DB::raw('COALESCE(jc.cons_description, cp.part_no) as Description'),
             DB::raw('SUM(cp.issued_qty) as sale_qty'),
             DB::raw('SUM(cp.issued_qty * jc.unitprice) as total_amount'))
@@ -1267,22 +1271,22 @@ public function reportCounterReturn(Request $request)
 {
     $from = $request->from ?? today()->subMonth()->toDateString();
     $to   = $request->to   ?? today()->toDateString();
-    
+
     $rows = DB::table('p_sale_return as sr')
         ->join('p_sale_inv as si', 'sr.invoice_no', '=', 'si.sale_inv')
         ->select('sr.*', 'si.datetime')
         ->whereBetween(DB::raw("DATE_FORMAT(si.datetime,'%Y-%m-%d')"), [$from, $to])
         ->orderByDesc('si.datetime')
         ->get();
-    
+
     // Sum the total amount (qty * unit_price) instead of just unit_price
     $total = $rows->sum(function($row) {
         return $row->return_qty * $row->unit_price;
     });
-    
+
     // Alternative if you have a total_amount column in p_sale_return:
     // $total = $rows->sum('total_amount');
-    
+
     return view('parts.entry.reports.counter_return', compact('rows', 'total', 'from', 'to'));
 }
     public function reportPurchaseReturn(Request $request)
@@ -1301,12 +1305,12 @@ public function reportCounterReturn(Request $request)
         $from       = $request->from        ?? today()->subMonth()->toDateString();
         $to         = $request->to          ?? today()->toDateString();
         $reportType = $request->report_type ?? 'Credit';
-      
+
         $rows = DB::table('p_purch_inv')
             ->where('payment_method', $reportType)
             ->whereBetween(DB::raw("DATE_FORMAT(mdate,'%Y-%m-%d')"), [$from, $to])
             ->orderByDesc('mdate')->get();
-            
+
         $grandTotal  = $rows->sum('Total_amount');
         $returnTotal = 0; // populate from p_purch_return if needed
         return view('parts.entry.reports.purch_cre_cash', compact('rows', 'grandTotal', 'returnTotal', 'from', 'to', 'reportType'));
@@ -1319,19 +1323,19 @@ public function reportCounterReturn(Request $request)
     $to   = $request->to   ?? today()->toDateString();
     $rows = collect();
     $totalSale = $totalProfit = 0;
-    
+
     if ($grn) {
         // Query from p_purch_inv directly since it has all data
         $rows = DB::table('p_purch_inv')
             ->where('Invoice_no', $grn)
             ->orWhere('Invoice_number', $grn)
             ->get();
-        
+
         // Calculate profit - since you don't have cost/sale prices in this table,
         // you need to get them from wherever your product costs are stored
         // For now, showing the Total_amount as sale
         $totalSale = $rows->sum('Total_amount');
-        
+
         // If you have a products table with cost prices, you would join it here
         // Example:
         // $totalProfit = DB::table('p_purch_inv as pi')
@@ -1339,7 +1343,7 @@ public function reportCounterReturn(Request $request)
         //     ->where('pi.Invoice_no', $grn)
         //     ->sum(DB::raw('(p.selling_price - p.cost_price) * pi.quantity'));
     }
-    
+
     return view('parts.entry.reports.purch_prof', compact('rows', 'grn', 'totalSale', 'totalProfit', 'from', 'to'));
 }
 
@@ -1363,7 +1367,7 @@ public function reportCounterReturn(Request $request)
             ->select('ps.cate_type',
                 DB::raw('SUM(ps.Quantity * ps.Price) as total_value'),
                 DB::raw('COUNT(*) as total_parts'))
-            ->whereBetween(DB::raw("DATE_FORMAT(ps.purch_date,'%Y-%m-%d')"), [$from, $to])
+            ->whereBetween(DB::raw("DATE_FORMAT(ps.date,'%Y-%m-%d')"), [$from, $to])
             ->groupBy('ps.cate_type')
             ->orderByDesc('total_value')->get();
         return view('parts.entry.reports.stock_cate', compact('rows', 'from', 'to'));
@@ -1390,8 +1394,8 @@ public function reportCounterReturn(Request $request)
         $from = $request->from ?? today()->subMonth()->toDateString();
         $to   = $request->to   ?? today()->toDateString();
         $rows = DB::table('p_purch_stock')
-            ->whereBetween(DB::raw("DATE_FORMAT(purch_date,'%Y-%m-%d')"), [$from, $to])
-            ->orderByDesc('purch_date')->get();
+            ->whereBetween(DB::raw("DATE_FORMAT(date,'%Y-%m-%d')"), [$from, $to])
+            ->orderByDesc('date')->get();
         $totalValue = $rows->sum(fn($r) => $r->Quantity * $r->Price);
         return view('parts.entry.reports.stock_history', compact('rows', 'totalValue', 'from', 'to'));
     }
@@ -1690,13 +1694,13 @@ public function reportCounterReturn(Request $request)
     $stock = PPurchStock::where('Invoice_no', $invoice_no)
                         ->where('stock_id', $id)  // Using stock_id instead of id
                         ->firstOrFail();
-    
+
     $stock->delete();
-    
+
     // Update the invoice total after deletion
     $total = PPurchStock::where('Invoice_no', $invoice_no)->sum('Netamount');
     PPurchInv::where('Invoice_no', $invoice_no)->update(['Total_amount' => $total]);
-    
+
     return redirect()->back()->with('success', 'Item removed successfully');
 }
 public function reportRevenue(Request $request)
@@ -1775,7 +1779,7 @@ public function reportRevenue(Request $request)
 public function searchPart(Request $request)
 {
     $key = $request->key ?? $request->input('partn', '');
-    
+
     $parts = DB::table('p_parts')
         ->where('Part_no', 'LIKE', "%{$key}%")
         ->limit(15)
@@ -1785,7 +1789,7 @@ public function searchPart(Request $request)
             'catetype as category'   // Maps to p.category
         )
         ->get();
-    
+
     return response()->json($parts);
 }
 
@@ -2002,7 +2006,7 @@ public function searchPart(Request $request)
 
     public function printPurchaseReturn($invoice_no)
     {
-        $return = PPurchReturn::where('PRJV', $invoice_no)->with('stockItem')->get();
+        $return = PPurchReturn::where('PRJV', $invoice_no)->with('stock')->get();
         return view('parts.entry.sale.files.print_purch_return', compact('return', 'invoice_no'));
     }
 

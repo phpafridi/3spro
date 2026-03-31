@@ -103,6 +103,31 @@
         .mb-2 { margin-bottom: 10px; }
         .w-100 { width: 100%; }
         .w-50 { width: 50%; }
+
+        /* Additional items styling */
+        .additional-item {
+            background-color: #fff3cd !important;
+        }
+        .additional-badge {
+            background-color: #ff9800;
+            color: white;
+            font-size: 8px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .standard-badge {
+            background-color: #4caf50;
+            color: white;
+            font-size: 8px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+            font-weight: bold;
+            display: inline-block;
+        }
     </style>
 </head>
 <body style="width:780px;">
@@ -284,8 +309,15 @@
             @php $totalLabor = 0; @endphp
             @foreach($laborItems as $labor)
                 @php $totalLabor += $labor->cost; @endphp
-                <tr>
-                    <td id="anss">{{ $labor->Labor }}</td>
+                <tr @if($labor->Additional == 1) class="additional-item" @endif>
+                    <td id="anss">
+                        {{ $labor->Labor }}
+                        @if($labor->Additional == 1)
+                            <span class="additional-badge">ADDITIONAL</span>
+                        @else
+                            <span class="standard-badge">STANDARD</span>
+                        @endif
+                    </td>
                     <td id="ques">{{ number_format($labor->cost) }}</td>
                     <td id="ques">{{ $labor->type }}</td>
                 </tr>
@@ -302,11 +334,15 @@
                 </tr>
             @endforeach
 
-            @for($i = 0; $i < 19 - count($laborItems) - count($subletItems); $i++)
+            @php
+                $totalRows = count($laborItems) + count($subletItems);
+                $emptyRows = 19 - $totalRows;
+            @endphp
+            @for($i = 0; $i < $emptyRows; $i++)
                 <tr>
-                    <td id="anss"></td>
-                    <td id="ques"></td>
-                    <td id="ques"></td>
+                    <td id="anss">&nbsp;</td>
+                    <td id="ques">&nbsp;</td>
+                    <td id="ques">&nbsp;</td>
                 </tr>
             @endfor
 
@@ -324,10 +360,10 @@
     <div style="width:387px; float:right;">
         <table border="1" style="width:387px;">
             <colgroup>
-                <col style="width:235px" />
-                <col style="width:25px" />
+                <col style="width:200px" />
                 <col style="width:35px" />
-                <col style="width:40px" />
+                <col style="width:50px" />
+                <col style="width:50px" />
             </colgroup>
             <tr>
                 <th colspan="4">Parts & Lubricants Required</th>
@@ -342,8 +378,15 @@
             @php $totalParts = 0; @endphp
             @foreach($partsItems as $part)
                 @php $totalParts += $part->total; @endphp
-                <tr>
-                    <td id="anss">{{ $part->part_description }}</td>
+                <tr @if($part->Additional == 1) class="additional-item" @endif>
+                    <td id="anss">
+                        {{ $part->part_description }}
+                        @if($part->Additional == 1)
+                            <span class="additional-badge">ADDITIONAL</span>
+                        @else
+                            <span class="standard-badge">STANDARD</span>
+                        @endif
+                    </td>
                     <td id="ques">{{ $part->qty }}</td>
                     <td id="ques">{{ number_format($part->unitprice) }}</td>
                     <td id="ques">{{ number_format($part->total) }}</td>
@@ -354,20 +397,31 @@
 
             @foreach($consumableItems as $cons)
                 @php $totalParts += $cons->total; @endphp
-                <tr>
-                    <td id="anss">{{ $cons->cons_description }}</td>
+                <tr @if($cons->Additional == 1) class="additional-item" @endif>
+                    <td id="anss">
+                        {{ $cons->cons_description }}
+                        @if($cons->Additional == 1)
+                            <span class="additional-badge">ADDITIONAL</span>
+                        @else
+                            <span class="standard-badge">STANDARD</span>
+                        @endif
+                    </td>
                     <td id="ques">{{ $cons->qty }}</td>
                     <td id="ques">{{ number_format($cons->unitprice) }}</td>
                     <td id="ques">{{ number_format($cons->total) }}</td>
                 </tr>
             @endforeach
 
-            @for($i = 0; $i < 20 - count($partsItems) - count($consumableItems); $i++)
+            @php
+                $totalItems = count($partsItems) + count($consumableItems);
+                $emptyRows = 20 - $totalItems;
+            @endphp
+            @for($i = 0; $i < $emptyRows; $i++)
                 <tr>
-                    <td id="anss"></td>
-                    <td id="ques"></td>
-                    <td id="ques"></td>
-                    <td id="ques"></td>
+                    <td id="anss">&nbsp;</td>
+                    <td id="ques">&nbsp;</td>
+                    <td id="ques">&nbsp;</td>
+                    <td id="ques">&nbsp;</td>
                 </tr>
             @endfor
 
