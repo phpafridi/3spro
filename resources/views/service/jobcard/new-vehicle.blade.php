@@ -51,37 +51,53 @@
                 </div>
             @endif
 
-            {{-- Model code — autocomplete via countryname_1 (auto.js) --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Variant <span class="text-red-500">*</span></label>
-                <input type="text" name="varaint" id="country_no_1" required minlength="2"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {{-- VARIANT SEARCH: type variant name, AJAX auto-fills Model Code / Make / Engine --}}
+            <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Variant <span class="text-red-500">*</span>
+                    <span class="ml-1 text-xs font-normal text-blue-500">type to search &amp; select</span>
+                </label>
+                <input type="text" id="variant_search" autocomplete="off"
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                        placeholder="e.g. Corolla XLI 1.3">
+                <input type="hidden" name="varaint" id="variant_hidden" required>
+                <div id="variant_dropdown"
+                     class="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-2xl mt-0.5 max-h-60 overflow-y-auto hidden"></div>
+                <p class="text-xs text-gray-400 mt-0.5">Select from list — Model Code, Make &amp; Engine fill automatically.</p>
             </div>
+
+            {{-- Model Code — auto-filled after variant selection --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Model Code <span class="text-red-500">*</span></label>
-                <input type="text" name="model" id="countryname_1" required minlength="2"
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Model Code <span class="text-red-500">*</span>
+                    <span id="model_badge" class="hidden ml-1 text-xs text-green-600 font-normal">auto-filled</span>
+                </label>
+                <input type="text" name="model" id="model_code_field" required minlength="2"
                        style="text-transform:uppercase"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       placeholder="e.g. AXV50">
+                       class="w-full border border-gray-300 bg-gray-50 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                       placeholder="Auto-filled — or type manually e.g. AXV50">
             </div>
 
-            {{-- Variant — auto-filled by auto.js via country_no_1 --}}
-
-            {{-- Make — auto-filled by auto.js via phone_code_1 --}}
+            {{-- Make — auto-filled --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Make <span class="text-red-500">*</span></label>
-                <input type="text" name="make" id="phone_code_1" required minlength="2"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       placeholder="e.g. Toyota">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Make <span class="text-red-500">*</span>
+                    <span id="make_badge" class="hidden ml-1 text-xs text-green-600 font-normal">auto-filled</span>
+                </label>
+                <input type="text" name="make" id="make_field" required minlength="2"
+                       class="w-full border border-gray-300 bg-gray-50 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                       placeholder="Auto-filled — or type manually e.g. Toyota">
             </div>
 
-            {{-- Engine Code — auto-filled by auto.js via country_code_1 --}}
+            {{-- Engine Code — auto-filled --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Engine Code <span class="text-red-500">*</span></label>
-                <input type="text" name="engine" id="country_code_1" required minlength="2"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       placeholder="e.g. 2NZ">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Engine Code <span class="text-red-500">*</span>
+                    <span id="engine_badge" class="hidden ml-1 text-xs text-green-600 font-normal">auto-filled</span>
+                </label>
+                <input type="text" name="engine" id="engine_field" required minlength="2"
+                       class="w-full border border-gray-300 bg-gray-50 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                       placeholder="Auto-filled — or type manually e.g. 2NZ">
             </div>
 
             {{-- Model Year — dropdown exactly as original --}}
@@ -161,98 +177,72 @@
 
 @push('scripts')
 <script>
-// Autocomplete using axios (npm install axios)
-// Response: ["2002|HS|toyota|1.4|1"]  →  Model|Variant|Make|Engine|row_num
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput  = document.getElementById('variant_search');
+    const hiddenInput  = document.getElementById('variant_hidden');
+    const dropdown     = document.getElementById('variant_dropdown');
+    const modelField   = document.getElementById('model_code_field');
+    const makeField    = document.getElementById('make_field');
+    const engineField  = document.getElementById('engine_field');
+    let timer;
 
-function fillFields(model, variant, make, engine) {
-    document.getElementById('countryname_1').value  = model;
-    document.getElementById('country_no_1').value   = variant;
-    document.getElementById('phone_code_1').value   = make;
-    document.getElementById('country_code_1').value = engine;
-}
-
-function showDropdown(inputEl, items) {
-    removeDropdown();
-    if (!items.length) return;
-
-    var wrapper = document.createElement('div');
-    wrapper.className = 'ac-dropdown';
-    wrapper.id = 'ac-dropdown';
-    // position under input
-    inputEl.parentNode.style.position = 'relative';
-    inputEl.parentNode.appendChild(wrapper);
-
-    items.forEach(function(item) {
-        var parts = item.split('|');
-        var model   = parts[0];
-        var variant = parts[1];
-        var make    = parts[2];
-        var engine  = parts[3];
-
-        var row = document.createElement('div');
-        // Show "Variant — ModelCode" e.g. "Corolla XLI 1.3 — AXV50"
-        var label = document.createElement('span');
-        label.textContent = variant;
-        label.style.fontWeight = '600';
-        var sep = document.createTextNode('  —  ');
-        var code = document.createElement('span');
-        code.textContent = model;
-        code.style.fontSize = '11px';
-        code.style.color = '#6b7280';
-        code.style.fontFamily = 'monospace';
-        row.appendChild(label);
-        row.appendChild(sep);
-        row.appendChild(code);
-        row.addEventListener('mousedown', function(e) {
-            e.preventDefault();   // stop blur firing before click
-            fillFields(model, variant, make, engine);
-            removeDropdown();
+    function fillFields(model, variant, make, engine) {
+        hiddenInput.value  = variant;
+        searchInput.value  = variant;
+        modelField.value   = model.toUpperCase();
+        makeField.value    = make;
+        engineField.value  = engine;
+        ['model_badge','make_badge','engine_badge'].forEach(function(id){
+            document.getElementById(id).classList.remove('hidden');
         });
-        wrapper.appendChild(row);
-    });
-}
+        dropdown.classList.add('hidden');
+    }
 
-function removeDropdown() {
-    var el = document.getElementById('ac-dropdown');
-    if (el) el.remove();
-}
+    function renderDropdown(items) {
+        dropdown.innerHTML = '';
+        if (!items.length) { dropdown.classList.add('hidden'); return; }
+        items.forEach(function(item) {
+            var parts   = item.split('|');
+            var model   = parts[0] || '';
+            var variant = parts[1] || '';
+            var make    = parts[2] || '';
+            var engine  = parts[3] || '';
+            var div = document.createElement('div');
+            div.className = 'px-3 py-2 cursor-pointer hover:bg-blue-50 border-b border-gray-50 last:border-0 flex items-center justify-between gap-2';
+            div.innerHTML = '<span class="font-semibold text-gray-800 text-sm">' + variant + '</span>'
+                          + '<span class="text-xs text-gray-400 font-mono">' + model + ' &middot; ' + make + '</span>';
+            div.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                fillFields(model, variant, make, engine);
+            });
+            dropdown.appendChild(div);
+        });
+        dropdown.classList.remove('hidden');
+    }
 
-function setupAutocomplete(inputId, searchField) {
-    var input = document.getElementById(inputId);
-    var timer;
-
-    input.addEventListener('input', function() {
+    searchInput.addEventListener('input', function() {
         clearTimeout(timer);
-        var val = this.value;
-        if (val.length < 2) { removeDropdown(); return; }
-
+        var val = this.value.trim();
+        hiddenInput.value = '';  // clear hidden until a selection is made
+        if (val.length < 2) { dropdown.classList.add('hidden'); return; }
         timer = setTimeout(function() {
             axios.post('{{ route("jobcard.ajax.variant") }}', {
-                type:            'country_table',
+                type: 'country_table',
                 name_startsWith: val,
-                search_field:    searchField
-            })
-            .then(function(response) {
-                showDropdown(input, response.data);
-            })
-            .catch(function(err) {
-                console.error('Autocomplete error:', err);
-            });
-        }, 300);
+                search_field: 'Variant'
+            }).then(function(res) { renderDropdown(res.data); })
+              .catch(function() { dropdown.classList.add('hidden'); });
+        }, 280);
     });
 
-    input.addEventListener('blur', function() {
-        // small delay so mousedown on dropdown fires first
-        setTimeout(removeDropdown, 150);
+    searchInput.addEventListener('blur', function() {
+        setTimeout(function() { dropdown.classList.add('hidden'); }, 160);
     });
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Model field — original auto.js behaviour
-    setupAutocomplete('countryname_1', 'Model');
-
-    // Variant field — type variant, fills Model/Make/Engine
-    setupAutocomplete('country_no_1', 'Variant');
+    searchInput.addEventListener('focus', function() {
+        var val = this.value.trim();
+        if (val.length >= 2) searchInput.dispatchEvent(new Event('input'));
+    });
 });
 
 // Intosell checkbox

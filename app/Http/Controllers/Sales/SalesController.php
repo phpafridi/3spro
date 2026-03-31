@@ -9,45 +9,10 @@ use Illuminate\Support\Facades\Auth;
 
 class SalesController extends Controller
 {
-    // ─── DASHBOARD ───────────────────────────────────────────────
+    // ─── DASHBOARD — redirects to CRM Reminder (main operational page) ──────
     public function index()
     {
-        // Today's labor/parts revenue by RO type
-        $todayRevenue = DB::table('jobc_invoice')
-            ->join('jobcard', 'jobc_invoice.Jobc_id', '=', 'jobcard.Jobc_id')
-            ->whereDate('jobc_invoice.datetime', today())
-            ->selectRaw('jobcard.RO_type, SUM(jobc_invoice.Lnet) AS Labor, SUM(jobc_invoice.Pnet+jobc_invoice.Cnet) AS Parts')
-            ->groupBy('jobcard.RO_type')
-            ->get();
-
-        // Last 20 days chart data
-        $chartData = DB::table('jobc_invoice')
-            ->where('datetime', '>=', now()->subDays(20))
-            ->selectRaw("DATE(datetime) AS day_date, DATE_FORMAT(MIN(datetime),'%d %b') AS day, SUM(Lnet+Snet) AS labor, SUM(Pnet+Cnet) AS parts, COUNT(*) AS ros")
-            ->groupByRaw('DATE(datetime)')
-            ->orderByRaw('DATE(datetime)')
-            ->get();
-
-        // Customer ratings avg
-        $ratings = DB::table('customer_ratings')
-            ->selectRaw('AVG(Management) AS management, AVG(Services) AS services, AVG(prices) AS prices, AVG(cleanance) AS cleanance')
-            ->first();
-
-        // Unclosed jobcards count
-        $unclosedCount = DB::table('jobcard')->where('status', '<', 3)->count();
-
-        // Pending problems
-        $pendingProblems = DB::table('cr_problem_tray')
-            ->where('ActionTaken', 'Forward to Service Dept')
-            ->where('Completed', '')->count();
-
-        // VIN check pending
-        $pendingVin = DB::table('s_vin_check')->where('ActionTaken', 0)->count();
-
-        return view('sales.index', compact(
-            'todayRevenue', 'chartData', 'ratings',
-            'unclosedCount', 'pendingProblems', 'pendingVin'
-        ));
+        return redirect()->route('sales.crm-reminder');
     }
 
     // ─── SEARCH ──────────────────────────────────────────────────
@@ -380,28 +345,26 @@ class SalesController extends Controller
         return view('sales.status-consumable', compact('jobcards', 'consData'));
     }
 
-    // ─── CRM: FOLLOW-UP REMINDER ─────────────────────────────────────────────────
-    // Shows recently closed jobcards (status >= 3) where consumables were used —
-    // so SA knows to call the customer for a post-service checkup.
-    public function followUpReminder()
+    // ─── CRM: FOLLOW-UP REMINDER ────────────────────────────────────────────────
+    // Main CRM operational page (also serves as index redirect target).
+    // Supports date-range filter (default last 60 days).
+    public function followUpReminder(Request $request)
     {
-        // Recently completed jobcards — last 60 days, closed status (>= 3)
+        // Date range — default last 60 days
+        $dateFrom = $request->input('date_from', now()->subDays(60)->toDateString());
+        $dateTo   = $request->input('date_to',   now()->toDateString());
+
+        // Recently completed jobcards in date range (status >= 3)
         $recentJobs = DB::table('jobcard as jc')
             ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
             ->join('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
             ->where('jc.status', '>=', 3)
-            ->where('jc.Open_date_time', '>=', now()->subDays(60))
+            ->whereDate('jc.Open_date_time', '>=', $dateFrom)
+            ->whereDate('jc.Open_date_time', '<=', $dateTo)
             ->select(
-                'jc.Jobc_id',
-                'jc.Open_date_time',
-                'jc.SA',
-                'jc.RO_type',
-                'v.Registration',
-                'v.Variant',
-                'v.Make',
-                'c.Customer_name',
-                'c.mobile',
-                'c.Customer_id'
+                'jc.Jobc_id', 'jc.Open_date_time', 'jc.SA', 'jc.RO_type',
+                'v.Registration', 'v.Variant', 'v.Make',
+                'c.Customer_name', 'c.mobile', 'c.Customer_id'
             )
             ->orderByDesc('jc.Jobc_id')
             ->get();
@@ -416,46 +379,79 @@ class SalesController extends Controller
             ->get()
             ->keyBy('RO_no');
 
-        // Mark jobs that had consumables
-        $jobs = $recentJobs->map(function ($job) use ($consumableCounts) {
+        // Parts counts per jobcard (for overview tooltip)
+        $partsCounts = DB::table('jobc_parts')
+            ->whereIn('RO_no', $jobIds)
+            ->selectRaw('RO_no, COUNT(*) as cnt, SUM(total) as total_amount')
+            ->groupBy('RO_no')
+            ->get()
+            ->keyBy('RO_no');
+
+        // Annotate each job
+        $jobs = $recentJobs->map(function ($job) use ($consumableCounts, $partsCounts) {
             $job->had_consumable   = isset($consumableCounts[$job->Jobc_id]);
             $job->consumable_count = $consumableCounts[$job->Jobc_id]->cnt ?? 0;
             $job->consumable_total = $consumableCounts[$job->Jobc_id]->total_amount ?? 0;
+            $job->parts_count      = $partsCounts[$job->Jobc_id]->cnt ?? 0;
+            $job->parts_total      = $partsCounts[$job->Jobc_id]->total_amount ?? 0;
             return $job;
         });
 
         $allJobs        = $jobs;
-        $consumableJobs = $jobs->filter(fn($j) => $j->had_consumable);
+        $consumableJobs = $jobs->filter(fn($j) => $j->had_consumable)->values();
 
-        // Call logs grouped by jobc_id (latest first per job)
+        // Call logs grouped by jobc_id
         $callLogsRaw = DB::table('crm_call_logs')
             ->whereIn('jobc_id', $jobIds)
             ->orderByDesc('called_at')
             ->get();
 
-        $callLogs = $callLogsRaw->groupBy('jobc_id');
-
-        // All logs for JS (history modal)
+        $callLogs    = $callLogsRaw->groupBy('jobc_id');
         $callLogsAll = $callLogsRaw->values();
 
-        // Due today / overdue — latest log per job where next_followup_date <= today
+        // Due today / overdue
         $dueToday = DB::table('crm_call_logs')
             ->whereNotNull('next_followup_date')
             ->where('next_followup_date', '<=', now()->toDateString())
             ->orderBy('next_followup_date')
             ->get()
-            // Keep only the most recent log per jobc_id
             ->unique('jobc_id')
             ->values();
 
-        // Recent call history (all logs, last 200)
+        // Recent call history
         $recentLogs = DB::table('crm_call_logs')
             ->orderByDesc('called_at')
             ->limit(200)
             ->get();
 
+        // ── New Cars Delivered tab (sv_delivery_orders status=Delivered) ─────
+        $deliveredOrders = DB::table('sv_delivery_orders as do')
+            ->join('sv_vehicles as v', 'do.vehicle_id', '=', 'v.id')
+            ->whereDate('do.delivery_date', '>=', $dateFrom)
+            ->whereDate('do.delivery_date', '<=', $dateTo)
+            ->select(
+                'do.id', 'do.do_no', 'do.customer_name', 'do.customer_phone',
+                'do.delivery_date', 'do.payment_type', 'do.customer_paid_amount',
+                'do.status', 'do.pbo_no',
+                'v.model', 'v.variant', 'v.color', 'v.vin', 'v.model_year'
+            )
+            ->orderByDesc('do.delivery_date')
+            ->get();
+
+        // CRM call logs for delivery orders (keyed by do_no used as reference)
+        $doIds       = $deliveredOrders->pluck('id')->toArray();
+        $doCallLogs  = DB::table('crm_call_logs')
+            ->whereIn('jobc_id', $doIds)
+            ->where('call_type', 'NVD')    // NVD = New Vehicle Delivery follow-up type
+            ->orderByDesc('called_at')
+            ->get()
+            ->groupBy('jobc_id');
+
         return view('sales.crm-reminder', compact(
-            'allJobs', 'consumableJobs', 'callLogs', 'callLogsAll', 'dueToday', 'recentLogs'
+            'allJobs', 'consumableJobs', 'callLogs', 'callLogsAll',
+            'dueToday', 'recentLogs',
+            'deliveredOrders', 'doCallLogs',
+            'dateFrom', 'dateTo'
         ));
     }
 
@@ -466,7 +462,7 @@ class SalesController extends Controller
     {
         $request->validate([
             'jobc_id'    => 'required|integer',
-            'call_type'  => 'required|in:FFS,PSFU,ASFU,CSF,CFU',
+            'call_type'  => 'required|in:FFS,PSFU,ASFU,CSF,CFU,NVD',
             'call_status'=> 'required|in:Contacted,Not Reachable,Callback Requested,Voicemail,Wrong Number',
             'called_at'  => 'required|date',
         ]);
