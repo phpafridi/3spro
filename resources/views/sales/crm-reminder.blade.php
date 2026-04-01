@@ -102,6 +102,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse($allJobs as $job)
+
                     @php
                         $daysAgo      = (int) \Carbon\Carbon::parse($job->Open_date_time)->diffInDays(now());
                         $lastCall     = $callLogs->get($job->Jobc_id)?->first();

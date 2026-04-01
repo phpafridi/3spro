@@ -21,9 +21,9 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Labor <span class="text-red-500">*</span></label>
-                <select name="jobrequest" id="labourList" required onchange="getprice()"
+                <select name="jobrequest" id="labourList" required
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">-- Select Labor --</option>
+                    <option value="">-- Search or Select Labor --</option>
                     @foreach($laborList as $l)
                     <option value="{{ $l->Labor }}">{{ $l->Labor }}</option>
                     @endforeach
@@ -93,11 +93,29 @@
     </div>
 </div>
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
+<style>
+.ts-wrapper.single .ts-control { padding:6px 10px;font-size:0.875rem;border-color:#d1d5db;border-radius:6px; }
+.ts-wrapper.single.input-active .ts-control { border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,0.25); }
+.ts-dropdown { font-size:0.875rem; z-index:9999 !important; position:absolute !important; }
+.ts-wrapper { position:relative; z-index:100; }
+</style>
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
+var tsLabour = new TomSelect('#labourList', {
+    placeholder: 'Search or select labor...',
+    maxOptions: 200,
+    dropdownParent: 'body',
+    onChange: function(value) { getprice(value); }
+});
+
 // Auto-fill labor price — matches original files/Labor_cost.php
-function getprice() {
-    var partn   = document.getElementById('labourList').value;
+function getprice(partn) {
+    partn = partn || document.getElementById('labourList').value;
     var variant = '{{ $estimate->variant ?? "" }}';
     if (!partn) return;
     $.ajax({

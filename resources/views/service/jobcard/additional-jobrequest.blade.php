@@ -18,25 +18,53 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Add Labor — RO# {{ $jobId }}</h2>
             <div class="flex items-center gap-2">
-
-                <a href="{{ route('jobcard.additional-list') }}" class="text-sm text-gray-500 hover:text-gray-700"><i class="fa fa-arrow-left mr-1"></i>Back</a>
+                <a href="{{ route('jobcard.additional-list') }}" class="text-sm text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-arrow-left mr-1"></i>Back
+                </a>
             </div>
         </div>
-        <form method="POST" action="{{ $storeRoute }}" class="space-y-3">
+
+        <form method="POST" action="{{ $storeRoute }}" class="space-y-3" id="labor-form">
             @csrf
             <input type="hidden" name="job_id" value="{{ $jobId }}">
+
+            {{-- Custom Searchable Dropdown --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Labor / Job <span class="text-red-500">*</span></label>
-                <select name="jobrequest" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">-- Select Labor --</option>
-                    @foreach($laborList as $labor)
-                    <option value="{{ $labor->Labor }}">{{ $labor->Labor }}</option>
-                    @endforeach
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Labor / Job <span class="text-red-500">*</span>
+                </label>
+                <input type="hidden" name="jobrequest" id="jobrequest_value">
+                <div class="relative" id="labor-dropdown-wrapper">
+                    <input
+                        type="text"
+                        id="jobrequest_search"
+                        placeholder="Search or select labor..."
+                        autocomplete="off"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                    <div
+                        id="jobrequest_dropdown"
+                        class="hidden absolute left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg overflow-y-auto"
+                        style="top: 100%; margin-top: 2px; max-height: 200px; z-index: 9999;"
+                    >
+                        @foreach($laborList as $labor)
+                        <div
+                            class="labor-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-700"
+                            data-value="{{ $labor->Labor }}"
+                        >
+                            {{ $labor->Labor }}
+                        </div>
+                        @endforeach
+                        <div id="no-results" class="hidden px-3 py-2 text-sm text-gray-400 italic">No results found.</div>
+                    </div>
+                </div>
+                <p id="labor-error" class="hidden text-xs text-red-500 mt-1">Please select a labor.</p>
             </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
-                <select name="type" id="labor_type" required onchange="togglePrice(this)" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="type" id="labor_type" required onchange="togglePrice(this)"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="Workshop">Workshop</option>
                     <option value="Sublet">Sublet</option>
                     <option value="Warranty">Warranty</option>
@@ -44,24 +72,35 @@
                     <option value="Campaign">Campaign</option>
                 </select>
             </div>
+
             <div id="price_row">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                <input type="number" name="price" id="price_input" step="0.01" min="0" value="0" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="number" name="price" id="price_input" step="0.01" min="0" value="0"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-                <input type="text" name="reason" placeholder="(for warranty/goodwill)" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" name="reason" placeholder="(for warranty/goodwill)"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">
+
+            <button type="submit"
+                class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">
                 <i class="fa fa-plus mr-2"></i> Add Labor
             </button>
         </form>
+
         <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
-            <a href="{{ route('jobcard.additional.part', $jobId) }}" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded">Spare Parts</a>
-            <a href="{{ route('jobcard.additional.sublet', $jobId) }}" class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded">Sublet</a>
-            <a href="{{ route('jobcard.additional.consumable', $jobId) }}" class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded">Consumble</a>
+            <a href="{{ route('jobcard.additional.part', $jobId) }}"
+                class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded">Spare Parts</a>
+            <a href="{{ route('jobcard.additional.sublet', $jobId) }}"
+                class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded">Sublet</a>
+            <a href="{{ route('jobcard.additional.consumable', $jobId) }}"
+                class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded">Consumble</a>
         </div>
     </div>
+
     <div class="md:col-span-3 bg-white rounded shadow-sm p-6">
         <h3 class="font-semibold text-gray-700 mb-3">Current Labor
             <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-sm rounded-full">{{ $labors->count() }}</span>
@@ -103,13 +142,14 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="px-4 py-4 text-center text-gray-400 text-sm italic">No labor added yet.</td></tr>
+                <tr>
+                    <td colspan="5" class="px-4 py-4 text-center text-gray-400 text-sm italic">No labor added yet.</td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </div>
-
 
 @push('scripts')
 <script>
@@ -117,27 +157,106 @@ function togglePrice(sel) {
     document.getElementById('price_row').style.display = sel.value === 'Workshop' ? '' : 'none';
     if (sel.value !== 'Workshop') document.getElementById('price_input').value = 0;
 }
+
 document.addEventListener('DOMContentLoaded', function () {
+
     togglePrice(document.getElementById('labor_type'));
 
-    document.querySelector('select[name="jobrequest"]').addEventListener('change', function () {
-        var partn   = this.value;
-        var variant = '{{ $jobcard->Variant ?? "" }}';
-        var type    = document.getElementById('labor_type').value;
-        if (!partn || !variant) return;
-        $.ajax({
-            type: 'POST', url: '{{ route("jobcard.ajax.labor-cost") }}',
-            data: { _token: '{{ csrf_token() }}', partn: partn, variant: variant, type: type },
-            success: function (price) {
-                if (parseFloat(price) > 0) document.getElementById('price_input').value = price;
-            }
-        });
+    var searchInput  = document.getElementById('jobrequest_search');
+    var hiddenInput  = document.getElementById('jobrequest_value');
+    var dropdown     = document.getElementById('jobrequest_dropdown');
+    var noResults    = document.getElementById('no-results');
+    var options      = dropdown.querySelectorAll('.labor-option');
+    var laborError   = document.getElementById('labor-error');
+
+    // Open dropdown on focus
+    searchInput.addEventListener('focus', function () {
+        filterOptions(this.value);
+        dropdown.classList.remove('hidden');
     });
 
+    // Filter as user types
+    searchInput.addEventListener('input', function () {
+        hiddenInput.value = ''; // clear confirmed selection
+        filterOptions(this.value);
+        dropdown.classList.remove('hidden');
+    });
+
+    // Select an option
+    dropdown.addEventListener('mousedown', function (e) {
+        var opt = e.target.closest('.labor-option');
+        if (!opt) return;
+        e.preventDefault(); // prevent blur before click registers
+        var val = opt.dataset.value;
+        searchInput.value = val;
+        hiddenInput.value = val;
+        laborError.classList.add('hidden');
+        dropdown.classList.add('hidden');
+        fetchLaborPrice(val);
+    });
+
+    // Close on blur
+    searchInput.addEventListener('blur', function () {
+        setTimeout(function () {
+            dropdown.classList.add('hidden');
+            // If user typed but didn't select, clear
+            if (!hiddenInput.value) {
+                searchInput.value = '';
+            }
+        }, 150);
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    function filterOptions(query) {
+        var q = query.trim().toLowerCase();
+        var anyVisible = false;
+        options.forEach(function (opt) {
+            var match = opt.dataset.value.toLowerCase().includes(q);
+            opt.style.display = match ? '' : 'none';
+            if (match) anyVisible = true;
+        });
+        noResults.classList.toggle('hidden', anyVisible);
+    }
+
+    function fetchLaborPrice(val) {
+        var variant = '{{ $jobcard->Variant ?? "" }}';
+        var type    = document.getElementById('labor_type').value;
+        if (!val || !variant) return;
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("jobcard.ajax.labor-cost") }}',
+            data: { _token: '{{ csrf_token() }}', partn: val, variant: variant, type: type },
+            success: function (price) {
+                if (parseFloat(price) > 0) {
+                    document.getElementById('price_input').value = price;
+                }
+            }
+        });
+    }
+
+    // Validate hidden input before submit
+    document.getElementById('labor-form').addEventListener('submit', function (e) {
+        if (!hiddenInput.value) {
+            e.preventDefault();
+            laborError.classList.remove('hidden');
+            searchInput.focus();
+        }
+    });
+
+    // Delete buttons
     document.querySelectorAll('.delete-item-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             if (!confirm('Delete this item?')) return;
-            var postData = { _token: document.querySelector('meta[name=csrf-token]').content, id: this.dataset.id };
+            var postData = {
+                _token: document.querySelector('meta[name=csrf-token]').content,
+                id: this.dataset.id
+            };
             fetch('{{ route("jobcard.delete-item") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -145,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }).then(function () { location.reload(); });
         });
     });
+
 });
 </script>
 @endpush

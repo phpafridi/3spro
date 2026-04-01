@@ -42,25 +42,13 @@
             <input type="hidden" name="Frame_no"  value="{{ $vehicle->Frame_no }}">
             <input type="hidden" name="cust_type" value="{{ $customer->cust_type }}">
 
-            {{-- Customer Source --}}
+            {{-- Hidden Recent Campaign --}}
+            <input type="hidden" name="compaign" value="None">
+
+            {{-- Customer Source & Other Fields --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-
-                </div>
-
-                {{-- Recent Campaign --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Recent Campaign <span class="text-red-500">*</span>
-                    </label>
-                    <select name="compaign" required
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="None">None</option>
-                        @foreach($campaigns as $campaign)
-                        <option value="{{ $campaign }}" {{ old('compaign') === $campaign ? 'selected' : '' }}>{{ $campaign }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- Empty div for spacing --}}
+                <div></div>
 
                 {{-- RO Type --}}
                 <div>
@@ -176,10 +164,10 @@
             </div>
 
             <div class="pt-2 text-center">
-                <button type="submit"
-                        class="px-8 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">
-                    <i class="fa fa-check mr-2"></i> Open Jobcard
-                </button>
+               <button type="submit"
+        class="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-gray-100 text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+    <i class="fa fa-check-circle mr-2"></i> Open Jobcard
+</button>
             </div>
         </form>
     </div>
@@ -194,25 +182,25 @@ var mileageInput = document.getElementById('NIC');
 
 
 if (mileageInput) {
-    
-    
+
+
     mileageInput.addEventListener('change', function () {
-    
-        
+
+
         var nic    = this.value;
         var vehId  = '{{ $vehicleId }}';
         var status = document.getElementById('mileage_status');
-        
-    
-        
+
+
+
         if (!nic || nic === '') {
             console.log('Mileage is empty, skipping');
             status.innerHTML = '';
             return;
         }
-        
+
         status.innerHTML = '<i class="fa fa-spinner fa-spin text-gray-400"></i> Checking...';
-        
+
         // Use Fetch API instead of jQuery
         fetch('{{ route("jobcard.check-mileage") }}', {
             method: 'POST',
@@ -228,11 +216,11 @@ if (mileageInput) {
             })
         })
         .then(response => {
-    
+
             return response.text();
         })
         .then(data => {
-    
+
             var msg = data.trim();
             if (msg === 'OK') {
                 status.innerHTML = '<i class="fa fa-check text-green-500"></i> OK';
@@ -241,7 +229,7 @@ if (mileageInput) {
             }
         })
         .catch(error => {
-    
+
             status.innerHTML = '<span class="text-red-500 text-xs font-semibold">⚠ Error checking mileage</span>';
         });
     });
@@ -252,17 +240,17 @@ if (mileageInput) {
 // ── MSI Category → auto-fill RO Type + Service Nature
 var msiSelect = document.getElementById('msi_category');
 if (msiSelect) {
-    
-    
+
+
     msiSelect.addEventListener('change', function () {
         var msiId = this.value;
-        
-        
+
+
         // Skip if NILL is selected
         if (msiId === 'NILL' || !msiId) {
             return;
         }
-        
+
         fetch('{{ route("jobcard.ajax.msi-details") }}', {
             method: 'POST',
             headers: {
@@ -276,22 +264,22 @@ if (msiSelect) {
             })
         })
         .then(response => {
-        
+
             return response.json();
         })
         .then(response => {
-        
+
             if (response && response.length > 0) {
                 var roType = document.getElementById('ro_type');
                 var servNature = document.getElementById('serv_nature');
-                
+
                 if (response[0].ro_type && roType) {
                     roType.value = response[0].ro_type;
-        
+
                 }
                 if (response[0].service_nature && servNature) {
                     servNature.value = response[0].service_nature;
-        
+
                 }
             }
         })

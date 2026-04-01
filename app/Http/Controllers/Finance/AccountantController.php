@@ -28,9 +28,11 @@ class AccountantController extends Controller
             ->whereIn('jc.status', [2, 3])
             ->select('jc.Jobc_id','jc.Customer_name','jc.SA','jc.MSI_cat','jc.status',
                      'jc.closing_time','v.Variant','v.Registration','c.mobile',
-                     'inv.Invoice_id','inv.Total','inv.Rec_status')
+                     'inv.Invoice_id','inv.Total','inv.type')
             ->orderBy('jc.Jobc_id', 'desc')
             ->get();
+
+
 
         return view('finance.accountant.jobcard_status', compact('jobs'));
     }
