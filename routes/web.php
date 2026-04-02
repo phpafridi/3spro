@@ -561,6 +561,7 @@ Route::middleware(['auth', 'role:RecoveryExec,FManager,IT Manager'])
         Route::get('/dm-bills', [RecoveryController::class, 'dmBills'])->name('dm-bills');
         Route::get('/add-account', [RecoveryController::class, 'addAccount'])->name('add-account');
         Route::post('/add-account', [RecoveryController::class, 'addAccountStore'])->name('add-account.store');
+        Route::get('/account-lookup', [RecoveryController::class, 'accountLookup'])->name('account-lookup');
         Route::get('/check-invoice', [RecoveryController::class, 'checkInvoice'])->name('check-invoice');
         Route::get('/email-status', [RecoveryController::class, 'emailStatus'])->name('email-status');
     });

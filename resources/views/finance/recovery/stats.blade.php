@@ -32,6 +32,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
+
                 @forelse($stats as $s)
                 @php $bal = (float)$s->balance; @endphp
                 <tr class="hover:bg-gray-50 {{ $bal <= 0 ? 'bg-green-50' : '' }}">
@@ -53,18 +54,11 @@
                     </td>
                     <td class="px-3 py-3">
                         <div class="flex gap-2 text-xs">
-                            <a href="{{ route('recovery.customer-ledger', ['id' => $s->cust_name]) }}"
+                            <a href="{{ route('recovery.customer-ledger', ['id' => $s->Customer_id]) }}"
                                class="text-red-600 hover:text-indigo-900" title="Ledger">
                                 <i class="fas fa-book"></i>
                             </a>
-                            <a href="{{ route('recovery.followup', ['id' => $s->cust_name]) }}"
-                               class="text-green-600 hover:text-green-900" title="Followup">
-                                <i class="fas fa-phone"></i>
-                            </a>
-                            <a href="{{ route('recovery.clearance', ['id' => $s->cust_name]) }}"
-                               class="text-orange-600 hover:text-orange-900" title="Clearance">
-                                <i class="fas fa-check-circle"></i>
-                            </a>
+
                         </div>
                     </td>
                 </tr>

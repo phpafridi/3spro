@@ -1,14 +1,12 @@
 @section('sidebar-menu')
     @foreach([
-        ['recovery.index',       'fas fa-home',        'Dashboard'],
-        ['recovery.add-debt',    'fas fa-minus-circle','Add Debit'],
-        ['recovery.add-credit',    'fas fa-plus-circle', 'Add Credit'],
-        ['recovery.search',      'fas fa-search',      'Search'],
-        ['recovery.dm-bills',    'fas fa-file-invoice','DM Bills'],
-        ['recovery.recovered',   'fas fa-check-circle','Recovered'],
-        ['recovery.not-contacted','fas fa-bell-slash', 'Non-Active'],
-        ['recovery.stats',       'fas fa-chart-bar',   'Statistics'],
-        ['recovery.add-account', 'fas fa-university',  'Add Account'],
+        ['recovery.index',        'fas fa-home',        'Dashboard'],
+        ['recovery.search',       'fas fa-search',      'Search'],
+        ['recovery.dm-bills',     'fas fa-file-invoice','DM Bills'],
+        ['recovery.recovered',    'fas fa-check-circle','Recovered'],
+        ['recovery.not-contacted','fas fa-bell-slash',  'Non-Active'],
+        ['recovery.stats',        'fas fa-chart-bar',   'Statistics'],
+        ['recovery.add-account',  'fas fa-university',  'Add Account'],
     ] as [$route, $icon, $label])
     <a href="{{ route($route) }}"
        class="flex items-center px-4 py-3 text-sm rounded transition-all duration-200

@@ -95,7 +95,7 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-red-600">
                 <tr>
-                    @foreach(['Invoice','JC #','Customer','Reg','Type','Care Of','Total','Date','Action'] as $h)
+                    @foreach(['Invoice','JC #','Customer','Reg','Type','Care Of','Total','Date'] as $h)
                     <th class="px-3 py-2 text-left text-xs font-medium text-white uppercase">{{ $h }}</th>
                     @endforeach
                 </tr>
@@ -116,12 +116,6 @@
                     <td class="px-3 py-2 text-xs text-gray-600">{{ $b->careof }}</td>
                     <td class="px-3 py-2 font-bold text-red-600">Rs {{ number_format($b->Total) }}</td>
                     <td class="px-3 py-2 text-xs text-gray-500">{{ $b->bookingtime }}</td>
-                    <td class="px-3 py-2">
-                        <button onclick="openCreditForm('{{ $b->Invoice_id }}','{{ addslashes($b->Customer_name) }}','{{ $b->Total }}')"
-                            class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition whitespace-nowrap">
-                            <i class="fas fa-hand-holding-usd mr-1"></i>Add Credit
-                        </button>
-                    </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -129,88 +123,5 @@
     </div>
 </div>
 @endif
-
-{{-- ── Credit Entry Slide-in Panel ──────────────────────────────── --}}
-{{-- DM bills already have a debit entry auto-created on close.      --}}
-{{-- This panel only records the incoming payment (credit).          --}}
-<div id="credit_backdrop" onclick="closeCreditForm()"
-    style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.4);"></div>
-
-<div id="credit_panel"
-    style="display:none;position:fixed;top:0;right:0;height:100%;width:100%;max-width:480px;z-index:9001;
-           background:#fff;box-shadow:-4px 0 30px rgba(0,0,0,0.2);overflow-y:auto;">
-
-    <div style="background:#16a34a;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
-        <div>
-            <div style="color:#fff;font-weight:700;font-size:15px;"><i class="fas fa-hand-holding-usd mr-2"></i>Record Payment Received</div>
-            <div id="credit_panel_sub" style="color:#bbf7d0;font-size:12px;margin-top:3px;"></div>
-        </div>
-        <button onclick="closeCreditForm()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;">&times;</button>
-    </div>
-
-    <div style="padding:24px;">
-        <form method="POST" action="{{ route('recovery.add-credit.store') }}" class="space-y-4">
-            @csrf
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">DM Invoice No</label>
-                <input type="number" name="required_dm" id="cp_invoice" required readonly
-                    class="w-full border border-gray-200 rounded px-3 py-2 text-sm bg-gray-50 font-mono font-bold text-gray-700">
-                <p class="text-xs text-gray-400 mt-1">Auto-filled from selected DM bill</p>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Payment Method</label>
-                <select name="required_payment_method" required
-                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500">
-                    <option value="">— Select —</option>
-                    @foreach(['Cash','Cheque','Online Transfer','IBFT','Bank Draft'] as $m)
-                    <option value="{{ $m }}">{{ $m }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">RT / Reference No</label>
-                <input type="text" name="required_rt" placeholder="Cheque no., transaction ID…"
-                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Amount Received (Rs)</label>
-                    <input type="number" name="required_amount" id="cp_amount" required min="1"
-                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-bold text-green-700 focus:ring-2 focus:ring-green-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Payment Date</label>
-                    <input type="date" name="required_date" required value="{{ date('Y-m-d') }}"
-                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500">
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Remarks</label>
-                <textarea name="remarks" rows="2" placeholder="Optional notes…"
-                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 resize-none"></textarea>
-            </div>
-            <button type="submit"
-                class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm transition mt-2">
-                <i class="fas fa-save mr-2"></i>Save Credit Entry
-            </button>
-        </form>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-function openCreditForm(invoiceId, customer, amount) {
-    document.getElementById('cp_invoice').value = invoiceId;
-    document.getElementById('cp_amount').value  = amount;
-    document.getElementById('credit_panel_sub').textContent = 'Invoice: ' + invoiceId + '  ·  ' + customer;
-    document.getElementById('credit_backdrop').style.display = 'block';
-    document.getElementById('credit_panel').style.display    = 'block';
-}
-function closeCreditForm() {
-    document.getElementById('credit_backdrop').style.display = 'none';
-    document.getElementById('credit_panel').style.display    = 'none';
-}
-</script>
-@endpush
 
 @endsection

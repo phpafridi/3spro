@@ -170,13 +170,22 @@ class RecoveryController extends Controller
     // ─── Add Credit ───────────────────────────────────────────────────────────
     public function addCredit(Request $request)
     {
-        $prefill    = null;
+        $prefill  = null;
+        $balance  = null;  // remaining balance the customer still owes
+        $custName = null;
 
         if ($request->filled('cred_id')) {
             $prefill = DB::table('recov_cred')->where('cred_id', $request->cred_id)->first();
+            if ($prefill) {
+                $custId      = $prefill->Customer_id;
+                $totalDebt   = DB::table('recov_debt')->where('Customer_id', $custId)->sum('Debt_amount');
+                $totalCredit = DB::table('recov_cred')->where('Customer_id', $custId)->sum('cr_amount');
+                $balance     = max(0, $totalDebt - $totalCredit);
+                $custName    = $prefill->cust_name;
+            }
 
         } elseif ($request->filled('inv')) {
-            // Coming from DM Bills — look up invoice to pre-fill
+            // Coming from DM Bills
             $invoiceRef = DB::table('jobc_invoice as inv')
                 ->join('jobcard as jc',      'inv.Jobc_id',    '=', 'jc.Jobc_id')
                 ->join('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
@@ -185,6 +194,11 @@ class RecoveryController extends Controller
                 ->first();
 
             if ($invoiceRef) {
+                $custId      = $invoiceRef->Customer_id;
+                $totalDebt   = DB::table('recov_debt')->where('Customer_id', $custId)->sum('Debt_amount');
+                $totalCredit = DB::table('recov_cred')->where('Customer_id', $custId)->sum('cr_amount');
+                $balance     = max(0, $totalDebt - $totalCredit);
+                $custName    = $invoiceRef->Customer_name;
                 $prefill = (object)[
                     'dm_invoice'  => $invoiceRef->Invoice_id,
                     'cr_amount'   => $invoiceRef->Total,
@@ -192,9 +206,27 @@ class RecoveryController extends Controller
                     'Customer_id' => $invoiceRef->Customer_id,
                 ];
             }
+
+        } elseif ($request->filled('cust_id')) {
+            // Coming from Add Account search
+            $custId      = (int) $request->cust_id;
+            $totalDebt   = DB::table('recov_debt')->where('Customer_id', $custId)->sum('Debt_amount');
+            $totalCredit = DB::table('recov_cred')->where('Customer_id', $custId)->sum('cr_amount');
+            $balance     = max(0, $totalDebt - $totalCredit);
+            $custName    = DB::table('recov_debt')->where('Customer_id', $custId)->value('cust_name');
+            // Pre-fill with the most recent unpaid invoice
+            $lastDebt = DB::table('recov_debt')->where('Customer_id', $custId)->orderBy('Db_date','desc')->first();
+            if ($lastDebt) {
+                $prefill = (object)[
+                    'dm_invoice'  => $lastDebt->Invoice_no,
+                    'cr_amount'   => $balance,
+                    'cust_name'   => $custName,
+                    'Customer_id' => $custId,
+                ];
+            }
         }
 
-        return view('finance.recovery.add_cred', compact('prefill'));
+        return view('finance.recovery.add_cred', compact('prefill', 'balance', 'custName'));
     }
 
     public function addCreditStore(Request $request)
@@ -216,6 +248,16 @@ class RecoveryController extends Controller
         if (!$debt) {
             return back()->withInput()
                 ->with('error', 'Invoice #' . $request->required_dm . ' not found in debit records. Ensure the debit entry exists first.');
+        }
+
+        // Enforce: credit amount cannot exceed the remaining balance for this customer
+        $totalDebt   = DB::table('recov_debt')->where('Customer_id', $debt->Customer_id)->sum('Debt_amount');
+        $totalCredit = DB::table('recov_cred')->where('Customer_id', $debt->Customer_id)->sum('cr_amount');
+        $remaining   = $totalDebt - $totalCredit;
+
+        if ((float) $request->required_amount > $remaining) {
+            return back()->withInput()
+                ->with('error', 'Amount Rs ' . number_format($request->required_amount) . ' exceeds the outstanding balance of Rs ' . number_format($remaining) . '. Please enter a valid amount.');
         }
 
         DB::table('recov_cred')->insert([
@@ -475,6 +517,33 @@ class RecoveryController extends Controller
     {
         $accounts = DB::table('recov_accounts')->orderBy('account_id', 'desc')->get();
         return view('finance.recovery.add_account', compact('accounts'));
+    }
+
+    // AJAX — search account by name, return name + contact + Customer_id if has debit
+    public function accountLookup(Request $request)
+    {
+        $key = trim($request->key ?? '');
+        if (!$key) return response()->json([]);
+
+        $accounts = DB::table('recov_accounts')
+            ->where('Name', 'like', "%$key%")
+            ->select('account_id', 'Name', 'Primary_contact')
+            ->orderBy('Name')
+            ->limit(10)
+            ->get();
+
+        // Enrich each with Customer_id from recov_debt (if they have a debit entry)
+        foreach ($accounts as $a) {
+            $debt = DB::table('recov_debt')
+                ->where('cust_name', $a->Name)
+                ->select('Customer_id')
+                ->orderBy('Db_date', 'desc')
+                ->first();
+            $a->Customer_id  = $debt->Customer_id ?? null;
+            $a->has_debit    = !is_null($debt);
+        }
+
+        return response()->json($accounts);
     }
 
     public function addAccountStore(Request $request)

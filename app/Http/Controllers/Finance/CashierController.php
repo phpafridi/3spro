@@ -286,7 +286,7 @@ class CashierController extends Controller
                     DB::table('recov_accounts')->insert([
                         'Name'            => $custName,
                         'Occopation'      => '',
-                        'Primary_contact' => (int) preg_replace('/\D/', '', $contact) ?: 0,
+                        'Primary_contact' => substr(preg_replace('/\D/', '', $contact), 0, 20) ?: '0',
                         'Sec_contact'     => 0,
                         'email'           => '',
                         'amount_limit'    => $debtAmount,
@@ -300,6 +300,7 @@ class CashierController extends Controller
 
                 // 2. Insert debit entry in recov_debt
                 DB::table('recov_debt')->insert([
+                    'Customer_id'  => $jobDetails->Customer_id,
                     'cust_name'    => $custName,
                     'contact'      => $contact,
                     'Vehicle_name' => $vehicleName,
