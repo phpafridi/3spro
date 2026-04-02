@@ -4,7 +4,7 @@
 @section('content')
 <div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-4">
-        <i class="fas fa-check-double text-red-500 mr-2"></i> Clearance: {{ $id }}
+        <i class="fas fa-check-double text-red-500 mr-2"></i> Clearance: {{ $custName }}
     </h2>
     <div class="grid grid-cols-3 gap-4 mb-6">
         <div class="bg-red-50 rounded p-4 text-center">

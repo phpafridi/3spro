@@ -4,7 +4,7 @@
 @section('content')
 <div class="bg-white rounded shadow-sm p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">
-        <i class="fas fa-history text-red-500 mr-2"></i> Followup History: {{ $id }}
+        <i class="fas fa-history text-red-500 mr-2"></i> Followup History: {{ $custName }}
     </h2>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">

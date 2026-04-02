@@ -240,16 +240,84 @@ class CashierController extends Controller
             'cashier' => Auth::user()->login_id,
             'created_at' => now(),
             'updated_at' => now(),
-            'Rec_status' => 'null',
+            'Rec_status' => '',
             'datetime' => $dateTime
         ];
 
         DB::table('jobc_invoice')->insert($invoiceData);
 
-        // Update jobcard status
+        // Update jobcard status to closed (3)
         DB::table('jobcard')
             ->where('Jobc_id', $data['ro_no'])
             ->update(['status' => '3']);
+
+        // ─── AUTO-OPEN RECOVERY ACCOUNT WHEN INVOICE TYPE IS DM (Debit Memo) ────
+        // DM = Debit Memo means the amount is NOT paid by the customer at the counter.
+        // The cashier is essentially deferring payment, so we must automatically
+        // register this in the Recovery module so it can be tracked and collected.
+        if (isset($data['radiob']) && $data['radiob'] === 'DM') {
+
+            // Fetch job, vehicle, and customer details for the recovery record
+            $jobDetails = DB::table('jobcard as jc')
+                ->join('customer_data as c', 'jc.Customer_id', '=', 'c.Customer_id')
+                ->join('vehicles_data as v', 'jc.Vehicle_id', '=', 'v.Vehicle_id')
+                ->where('jc.Jobc_id', $data['ro_no'])
+                ->select(
+                    'c.Customer_name', 'c.mobile', 'c.Customer_id',
+                    'v.Registration', 'v.Variant', 'v.Make',
+                    'jc.closing_time'
+                )
+                ->first();
+
+            if ($jobDetails) {
+                $custName    = $jobDetails->Customer_name;
+                $contact     = $jobDetails->mobile ?? '';
+                $vehicleName = trim($jobDetails->Make . ' ' . $jobDetails->Variant);
+                $registration = $jobDetails->Registration ?? '';
+                $careOf      = $data['careoff'] ?? $custName;
+                $debtAmount  = (int) $data['grandtotal'];
+
+                // 1. Auto-create recov_accounts entry if not already present
+                $accountExists = DB::table('recov_accounts')
+                    ->where('Name', $custName)
+                    ->exists();
+
+                if (!$accountExists) {
+                    DB::table('recov_accounts')->insert([
+                        'Name'            => $custName,
+                        'Occopation'      => '',
+                        'Primary_contact' => (int) preg_replace('/\D/', '', $contact) ?: 0,
+                        'Sec_contact'     => 0,
+                        'email'           => '',
+                        'amount_limit'    => $debtAmount,
+                        'r_officer'       => Auth::user()->login_id ?? '',
+                        'datetime'        => now(),
+                        'status'          => 'Active',
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]);
+                }
+
+                // 2. Insert debit entry in recov_debt
+                DB::table('recov_debt')->insert([
+                    'cust_name'    => $custName,
+                    'contact'      => $contact,
+                    'Vehicle_name' => $vehicleName,
+                    'Registration' => $registration,
+                    'Invoice_no'   => (int) $data['ro_no'],
+                    'Db_date'      => now()->toDateString(),
+                    'Debt_amount'  => $debtAmount,
+                    'Remarks'      => 'Auto-created from DM invoice #' . $data['ro_no'] . ($careOf !== $custName ? ' — Care of: ' . $careOf : ''),
+                    'user'         => Auth::user()->login_id ?? 'cashier',
+                    'entytime'     => now(),
+                ]);
+
+                // 3. Mark invoice Rec_status as pending recovery (empty string = pending)
+                DB::table('jobc_invoice')
+                    ->where('Jobc_id', $data['ro_no'])
+                    ->update(['Rec_status' => '']);
+            }
+        }
 
         return redirect()->route('cashier.print-invoice', ['id' => $data['ro_no']]);
     }

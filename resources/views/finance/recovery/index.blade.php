@@ -46,26 +46,28 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
+                @php $rowNum = 0; @endphp
                 @forelse($debtors as $d)
                 @if(($d->remain_amount ?? 0) > 0)
+                @php $rowNum++; @endphp
                 <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-gray-400">{{ $loop->iteration }}</td>
+                    <td class="px-4 py-3 text-gray-400">{{ $rowNum }}</td>
                     <td class="px-4 py-3 font-medium">
-                        <a href="{{ route('recovery.customer-ledger', ['id'=>$d->cust_name]) }}" class="text-red-600 hover:underline">
+                        <a href="{{ route('recovery.customer-ledger', ['id'=>$d->Customer_id]) }}" class="text-red-600 hover:underline">
                             {{ $d->cust_name }}
                         </a>
                     </td>
                     <td class="px-4 py-3">{{ $d->contact }}</td>
                     <td class="px-4 py-3 text-xs text-gray-500">{{ $d->age ?? '' }}</td>
                     <td class="px-4 py-3 font-medium text-red-600">
-                        <a href="{{ route('recovery.clearance', ['id'=>$d->cust_name]) }}" class="hover:underline">
+                        <a href="{{ route('recovery.clearance', ['id'=>$d->Customer_id]) }}" class="hover:underline">
                             Rs {{ number_format($d->remain_amount) }}
                         </a>
                     </td>
                     <td class="px-4 py-3 flex gap-2">
-                        <a href="{{ route('recovery.history', ['id'=>$d->cust_name]) }}"
+                        <a href="{{ route('recovery.history', ['id'=>$d->Customer_id]) }}"
                            class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs hover:bg-yellow-200">History</a>
-                        <a href="{{ route('recovery.followup', ['id'=>$d->cust_name]) }}"
+                        <a href="{{ route('recovery.followup', ['id'=>$d->Customer_id]) }}"
                            class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200">Followup</a>
                     </td>
                 </tr>
@@ -115,9 +117,9 @@
                     <td class="px-3 py-2 font-bold text-red-600">Rs {{ number_format($b->Total) }}</td>
                     <td class="px-3 py-2 text-xs text-gray-500">{{ $b->bookingtime }}</td>
                     <td class="px-3 py-2">
-                        <button onclick="openDebitForm('{{ $b->Invoice_id }}','{{ addslashes($b->Customer_name) }}','{{ $b->Veh_reg_no }}','{{ $b->Total }}','{{ $b->bookingtime }}')"
-                            class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition whitespace-nowrap">
-                            <i class="fas fa-plus mr-1"></i>Add Debit
+                        <button onclick="openCreditForm('{{ $b->Invoice_id }}','{{ addslashes($b->Customer_name) }}','{{ $b->Total }}')"
+                            class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition whitespace-nowrap">
+                            <i class="fas fa-hand-holding-usd mr-1"></i>Add Credit
                         </button>
                     </td>
                 </tr>
@@ -128,62 +130,68 @@
 </div>
 @endif
 
-{{-- ── Debit Entry Slide-in Panel ───────────────────────────────── --}}
-<div id="debit_backdrop" onclick="closeDebitForm()"
+{{-- ── Credit Entry Slide-in Panel ──────────────────────────────── --}}
+{{-- DM bills already have a debit entry auto-created on close.      --}}
+{{-- This panel only records the incoming payment (credit).          --}}
+<div id="credit_backdrop" onclick="closeCreditForm()"
     style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.4);"></div>
 
-<div id="debit_panel"
+<div id="credit_panel"
     style="display:none;position:fixed;top:0;right:0;height:100%;width:100%;max-width:480px;z-index:9001;
-           background:#fff;box-shadow:-4px 0 30px rgba(0,0,0,0.2);overflow-y:auto;transition:transform .25s ease;">
+           background:#fff;box-shadow:-4px 0 30px rgba(0,0,0,0.2);overflow-y:auto;">
 
-    <div style="background:#dc2626;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:#16a34a;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div style="color:#fff;font-weight:700;font-size:15px;"><i class="fas fa-minus-circle mr-2"></i>Add Debit Entry</div>
-            <div id="debit_panel_sub" style="color:#fca5a5;font-size:12px;margin-top:3px;"></div>
+            <div style="color:#fff;font-weight:700;font-size:15px;"><i class="fas fa-hand-holding-usd mr-2"></i>Record Payment Received</div>
+            <div id="credit_panel_sub" style="color:#bbf7d0;font-size:12px;margin-top:3px;"></div>
         </div>
-        <button onclick="closeDebitForm()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;">&times;</button>
+        <button onclick="closeCreditForm()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;">&times;</button>
     </div>
 
     <div style="padding:24px;">
-        <form method="POST" action="{{ route('recovery.add-debt.store') }}" class="space-y-4">
+        <form method="POST" action="{{ route('recovery.add-credit.store') }}" class="space-y-4">
             @csrf
             <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Customer Name</label>
-                <input type="text" name="typeahead" id="dp_customer" required
-                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">DM Invoice No</label>
+                <input type="number" name="required_dm" id="cp_invoice" required readonly
+                    class="w-full border border-gray-200 rounded px-3 py-2 text-sm bg-gray-50 font-mono font-bold text-gray-700">
+                <p class="text-xs text-gray-400 mt-1">Auto-filled from selected DM bill</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Payment Method</label>
+                <select name="required_payment_method" required
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500">
+                    <option value="">— Select —</option>
+                    @foreach(['Cash','Cheque','Online Transfer','IBFT','Bank Draft'] as $m)
+                    <option value="{{ $m }}">{{ $m }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">RT / Reference No</label>
+                <input type="text" name="required_rt" placeholder="Cheque no., transaction ID…"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500">
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Registration</label>
-                    <input type="text" name="required_registration" id="dp_reg"
-                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-red-500">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Amount Received (Rs)</label>
+                    <input type="number" name="required_amount" id="cp_amount" required min="1"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-bold text-green-700 focus:ring-2 focus:ring-green-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Invoice No</label>
-                    <input type="text" name="required_invoice" id="dp_invoice" required
-                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-red-50 font-mono font-bold focus:ring-2 focus:ring-red-500">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Debt Amount (Rs)</label>
-                    <input type="number" name="required_amount" id="dp_amount" required
-                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-bold text-red-700 focus:ring-2 focus:ring-red-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Date</label>
-                    <input type="date" name="required_date" id="dp_date" required
-                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-red-500">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Payment Date</label>
+                    <input type="date" name="required_date" required value="{{ date('Y-m-d') }}"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500">
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Followup Date <span class="text-gray-400 normal-case font-normal">(optional)</span></label>
-                <input type="date" name="fallowup"
-                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-red-500">
+                <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Remarks</label>
+                <textarea name="remarks" rows="2" placeholder="Optional notes…"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 resize-none"></textarea>
             </div>
             <button type="submit"
-                class="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded font-semibold text-sm transition mt-2">
-                <i class="fas fa-save mr-2"></i>Save Debit Entry
+                class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm transition mt-2">
+                <i class="fas fa-save mr-2"></i>Save Credit Entry
             </button>
         </form>
     </div>
@@ -191,23 +199,16 @@
 
 @push('scripts')
 <script>
-function openDebitForm(invoiceId, customer, reg, amount, date) {
-    document.getElementById('dp_customer').value = customer;
-    document.getElementById('dp_reg').value      = reg;
-    document.getElementById('dp_invoice').value  = invoiceId;
-    document.getElementById('dp_amount').value   = amount;
-    // Parse date to YYYY-MM-DD
-    var d = date ? new Date(date) : new Date();
-    var ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    document.getElementById('dp_date').value = ds;
-    document.getElementById('debit_panel_sub').textContent = 'Invoice: ' + invoiceId + '  ·  ' + customer;
-
-    document.getElementById('debit_backdrop').style.display = 'block';
-    document.getElementById('debit_panel').style.display    = 'block';
+function openCreditForm(invoiceId, customer, amount) {
+    document.getElementById('cp_invoice').value = invoiceId;
+    document.getElementById('cp_amount').value  = amount;
+    document.getElementById('credit_panel_sub').textContent = 'Invoice: ' + invoiceId + '  ·  ' + customer;
+    document.getElementById('credit_backdrop').style.display = 'block';
+    document.getElementById('credit_panel').style.display    = 'block';
 }
-function closeDebitForm() {
-    document.getElementById('debit_backdrop').style.display = 'none';
-    document.getElementById('debit_panel').style.display    = 'none';
+function closeCreditForm() {
+    document.getElementById('credit_backdrop').style.display = 'none';
+    document.getElementById('credit_panel').style.display    = 'none';
 }
 </script>
 @endpush

@@ -56,6 +56,11 @@
             class="tab-btn px-3 py-2 text-sm font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-700 hover:text-white transition-colors">
         <i class="fas fa-history mr-1"></i>Call History
     </button>
+    <button onclick="showTab('notcalled')" id="tab-notcalled"
+            class="tab-btn px-3 py-2 text-sm font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-rose-700 hover:text-white transition-colors">
+        <i class="fas fa-phone-slash mr-1"></i>Not Called
+        <span class="ml-1 px-1.5 py-0.5 bg-rose-100 text-rose-700 text-xs rounded-full font-bold">{{ $notCalledCount }}</span>
+    </button>
 </div>
 
 {{-- CALL TYPE LEGEND --}}
@@ -94,6 +99,7 @@
                         <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Customer</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Mobile</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">SA</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Work Done on Car</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Closed</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Last Call</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Next F/U</th>
@@ -134,6 +140,36 @@
                             @endif
                         </td>
                         <td class="px-3 py-3 text-gray-500 text-xs">{{ $job->SA }}</td>
+                        <td class="px-3 py-3">
+                            @php
+                                $laborItems = $job->labor_list ? explode('|', $job->labor_list) : [];
+                            @endphp
+                            @if($job->labor_count > 0)
+                                <div class="space-y-0.5">
+                                    @foreach(array_slice($laborItems, 0, 3) as $litem)
+                                        <span class="block text-xs text-indigo-700 font-medium truncate max-w-[160px]" title="{{ $litem }}">
+                                            <i class="fas fa-wrench text-indigo-400 mr-1"></i>{{ Str::limit($litem, 22) }}
+                                        </span>
+                                    @endforeach
+                                    @if(count($laborItems) > 3)
+                                        <span class="text-xs text-gray-400">+{{ count($laborItems) - 3 }} more</span>
+                                    @endif
+                                </div>
+                            @endif
+                            @if($job->parts_count > 0)
+                                <span class="inline-block mt-0.5 px-1.5 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full">
+                                    <i class="fas fa-cog mr-0.5"></i>{{ $job->parts_count }} part(s)
+                                </span>
+                            @endif
+                            @if($job->sublet_count > 0)
+                                <span class="inline-block mt-0.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                                    <i class="fas fa-tools mr-0.5"></i>{{ $job->sublet_count }} sublet
+                                </span>
+                            @endif
+                            @if($job->labor_count == 0 && $job->parts_count == 0 && $job->sublet_count == 0)
+                                <span class="text-gray-300 text-xs">&mdash;</span>
+                            @endif
+                        </td>
                         <td class="px-3 py-3 text-gray-500">
                             {{ \Carbon\Carbon::parse($job->Open_date_time)->format('d M Y') }}
                             <span class="block text-xs text-gray-400">{{ $daysAgo }}d ago</span>
@@ -182,7 +218,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="9" class="px-6 py-10 text-center text-gray-400">No completed jobs in selected date range.</td></tr>
+                    <tr><td colspan="10" class="px-6 py-10 text-center text-gray-400">No completed jobs in selected date range.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -552,6 +588,125 @@
 </div>{{-- /space-y-4 --}}
 
 {{-- ============================================================
+     NOT CALLED — Jobs where no follow-up call has ever been logged
+============================================================ --}}
+<div id="pane-notcalled" class="hidden mt-4">
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-rose-100 bg-rose-50 flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h3 class="font-semibold text-rose-800"><i class="fas fa-phone-slash mr-2"></i>Not Called &mdash; No Follow-Up Logged Yet</h3>
+                <p class="text-xs text-rose-500 mt-0.5">These customers have been serviced but have never received a follow-up call. Prioritize immediately.</p>
+            </div>
+            <span class="text-xs text-rose-600 font-bold">{{ $notCalledCount }} records</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                <thead class="bg-rose-50">
+                    <tr>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">RO#</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">Reg / Vehicle</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">Customer</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">Mobile</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">SA</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">Work Done on Car</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">Service Date</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-rose-700 uppercase">Days Elapsed</th>
+                        <th class="px-3 py-3 text-center text-xs font-semibold text-rose-700 uppercase no-print">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    @forelse($notCalledJobs as $job)
+                    @php
+                        $daysAgo    = (int) \Carbon\Carbon::parse($job->Open_date_time)->diffInDays(now());
+                        $laborItems = $job->labor_list ? explode('|', $job->labor_list) : [];
+                        $urgency    = $daysAgo <= 3 ? 'critical' : ($daysAgo <= 7 ? 'high' : ($daysAgo <= 14 ? 'medium' : 'low'));
+                        $urgencyClr = ['critical'=>'bg-red-600','high'=>'bg-orange-500','medium'=>'bg-yellow-500','low'=>'bg-gray-400'];
+                    @endphp
+                    <tr class="hover:bg-rose-50 border-l-4 border-rose-500 transition">
+                        <td class="px-3 py-3 font-bold text-gray-900">#{{ $job->Jobc_id }}</td>
+                        <td class="px-3 py-3">
+                            <span class="font-semibold text-blue-700">{{ $job->Registration ?: '&mdash;' }}</span>
+                            <span class="block text-xs text-gray-500">{{ $job->Make }} {{ $job->Variant }}</span>
+                        </td>
+                        <td class="px-3 py-3 font-medium text-gray-800">{{ $job->Customer_name }}</td>
+                        <td class="px-3 py-3">
+                            @if($job->mobile)
+                                <a href="tel:{{ $job->mobile }}" class="text-green-600 hover:text-green-800 font-medium flex items-center gap-1">
+                                    <i class="fas fa-phone text-xs"></i> {{ $job->mobile }}
+                                </a>
+                                <span class="inline-block mt-0.5 px-1.5 py-0.5 bg-rose-100 text-rose-700 text-xs rounded-full font-bold">
+                                    <i class="fas fa-phone-slash text-xs mr-0.5"></i>Never Called
+                                </span>
+                            @else
+                                <span class="text-gray-400">&mdash;</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-3 text-gray-500 text-xs">{{ $job->SA }}</td>
+                        <td class="px-3 py-3">
+                            @if($job->labor_count > 0)
+                                <div class="space-y-0.5">
+                                    @foreach(array_slice($laborItems, 0, 3) as $litem)
+                                        <span class="block text-xs text-indigo-700 font-medium truncate max-w-[160px]" title="{{ $litem }}">
+                                            <i class="fas fa-wrench text-indigo-400 mr-1"></i>{{ Str::limit($litem, 22) }}
+                                        </span>
+                                    @endforeach
+                                    @if(count($laborItems) > 3)
+                                        <span class="text-xs text-gray-400">+{{ count($laborItems)-3 }} more</span>
+                                    @endif
+                                </div>
+                            @endif
+                            @if($job->parts_count > 0)
+                                <span class="inline-block mt-0.5 px-1.5 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full">
+                                    <i class="fas fa-cog mr-0.5"></i>{{ $job->parts_count }} part(s)
+                                </span>
+                            @endif
+                            @if($job->sublet_count > 0)
+                                <span class="inline-block mt-0.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                                    <i class="fas fa-tools mr-0.5"></i>{{ $job->sublet_count }} sublet
+                                </span>
+                            @endif
+                            @if($job->labor_count == 0 && $job->parts_count == 0 && $job->sublet_count == 0)
+                                <span class="text-gray-300 text-xs">&mdash;</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-3 text-gray-500 text-xs">
+                            {{ \Carbon\Carbon::parse($job->Open_date_time)->format('d M Y') }}
+                        </td>
+                        <td class="px-3 py-3">
+                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-white rounded-full {{ $urgencyClr[$urgency] }}">
+                                <i class="fas fa-clock"></i> {{ $daysAgo }}d
+                            </span>
+                            @if($urgency === 'critical')
+                                <span class="block text-xs text-red-600 font-semibold mt-0.5">&#9889; Call Immediately</span>
+                            @elseif($urgency === 'high')
+                                <span class="block text-xs text-orange-600 font-semibold mt-0.5">&#128308; High Priority</span>
+                            @elseif($urgency === 'medium')
+                                <span class="block text-xs text-yellow-600 mt-0.5">&#9888; Call Today</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-3 text-center no-print">
+                            <button onclick="openCallModal({{ $job->Jobc_id }},'{{ addslashes($job->Customer_name) }}','{{ $job->mobile }}','{{ $job->Registration }}')"
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition">
+                                <i class="fas fa-phone-alt"></i> Call Now
+                            </button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="9" class="px-6 py-12 text-center">
+                            <i class="fas fa-check-circle text-green-400 text-3xl mb-3 block"></i>
+                            <p class="text-green-700 font-semibold">All customers have been called!</p>
+                            <p class="text-gray-400 text-sm mt-1">No outstanding follow-up calls in this date range.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{-- ============================================================
      LOG CALL MODAL
 ============================================================ --}}
 <div id="callModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden no-print">
@@ -697,7 +852,7 @@
 const allCallLogs = @json($callLogsAll);
 
 function showTab(tab) {
-    ['all','consumable','due','delivered','history'].forEach(function(t) {
+    ['all','consumable','due','delivered','history','notcalled'].forEach(function(t) {
         document.getElementById('pane-'+t)?.classList.add('hidden');
         var btn = document.getElementById('tab-'+t);
         if(btn) btn.className = 'tab-btn px-3 py-2 text-sm font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-600 hover:text-white transition-colors';
@@ -705,7 +860,7 @@ function showTab(tab) {
     document.getElementById('pane-'+tab)?.classList.remove('hidden');
     var aBtn = document.getElementById('tab-'+tab);
     if(aBtn) {
-        var cl = {all:'bg-blue-600',consumable:'bg-orange-500',due:'bg-red-600',delivered:'bg-emerald-600',history:'bg-gray-700'};
+        var cl = {all:'bg-blue-600',consumable:'bg-orange-500',due:'bg-red-600',delivered:'bg-emerald-600',history:'bg-gray-700',notcalled:'bg-rose-700'};
         aBtn.className = 'tab-btn px-3 py-2 text-sm font-medium rounded-lg '+cl[tab]+' text-white transition-colors';
     }
 }

@@ -7,7 +7,7 @@
         <i class="fas fa-phone text-green-500 mr-2"></i>Add Followup
     </h2>
     <p class="text-sm text-gray-400 mb-6">
-        Customer: <strong class="text-gray-700">{{ $id }}</strong>
+        Customer: <strong class="text-gray-700">{{ $custName }}</strong>
         @if($contact)
         &nbsp;| Contact: <strong class="text-gray-700">{{ $contact }}</strong>
         @endif

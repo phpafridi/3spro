@@ -347,12 +347,13 @@ class SalesController extends Controller
 
     // ─── CRM: FOLLOW-UP REMINDER ────────────────────────────────────────────────
     // Main CRM operational page (also serves as index redirect target).
-    // Supports date-range filter (default last 60 days).
+    // Supports date-range filter (default last 60 days) and "not called" filter.
     public function followUpReminder(Request $request)
     {
         // Date range — default last 60 days
-        $dateFrom = $request->input('date_from', now()->subDays(60)->toDateString());
-        $dateTo   = $request->input('date_to',   now()->toDateString());
+        $dateFrom    = $request->input('date_from', now()->subDays(60)->toDateString());
+        $dateTo      = $request->input('date_to',   now()->toDateString());
+        $filterNotCalled = $request->boolean('not_called', false);   // ← NEW filter
 
         // Recently completed jobcards in date range (status >= 3)
         $recentJobs = DB::table('jobcard as jc')
@@ -379,7 +380,7 @@ class SalesController extends Controller
             ->get()
             ->keyBy('RO_no');
 
-        // Parts counts per jobcard (for overview tooltip)
+        // Parts counts per jobcard
         $partsCounts = DB::table('jobc_parts')
             ->whereIn('RO_no', $jobIds)
             ->selectRaw('RO_no, COUNT(*) as cnt, SUM(total) as total_amount')
@@ -387,13 +388,37 @@ class SalesController extends Controller
             ->get()
             ->keyBy('RO_no');
 
+        // Labor counts per jobcard — what work was actually done on the vehicle
+        $laborCounts = DB::table('jobc_labor')
+            ->whereIn('RO_no', $jobIds)
+            ->where('status', 'Jobclose')
+            ->selectRaw('RO_no, COUNT(*) as cnt, GROUP_CONCAT(Labor ORDER BY Labor_id SEPARATOR "|") as labor_list, SUM(cost) as total_amount')
+            ->groupBy('RO_no')
+            ->get()
+            ->keyBy('RO_no');
+
+        // Sublet counts per jobcard
+        $subletCounts = DB::table('jobc_sublet')
+            ->whereIn('RO_no', $jobIds)
+            ->where('status', 'JobDone')
+            ->selectRaw('RO_no, COUNT(*) as cnt, SUM(total) as total_amount')
+            ->groupBy('RO_no')
+            ->get()
+            ->keyBy('RO_no');
+
         // Annotate each job
-        $jobs = $recentJobs->map(function ($job) use ($consumableCounts, $partsCounts) {
+        $jobs = $recentJobs->map(function ($job) use ($consumableCounts, $partsCounts, $laborCounts, $subletCounts) {
             $job->had_consumable   = isset($consumableCounts[$job->Jobc_id]);
             $job->consumable_count = $consumableCounts[$job->Jobc_id]->cnt ?? 0;
             $job->consumable_total = $consumableCounts[$job->Jobc_id]->total_amount ?? 0;
             $job->parts_count      = $partsCounts[$job->Jobc_id]->cnt ?? 0;
             $job->parts_total      = $partsCounts[$job->Jobc_id]->total_amount ?? 0;
+            // Work done on the car
+            $job->labor_count      = $laborCounts[$job->Jobc_id]->cnt ?? 0;
+            $job->labor_list       = $laborCounts[$job->Jobc_id]->labor_list ?? '';
+            $job->labor_total      = $laborCounts[$job->Jobc_id]->total_amount ?? 0;
+            $job->sublet_count     = $subletCounts[$job->Jobc_id]->cnt ?? 0;
+            $job->sublet_total     = $subletCounts[$job->Jobc_id]->total_amount ?? 0;
             return $job;
         });
 
@@ -408,6 +433,11 @@ class SalesController extends Controller
 
         $callLogs    = $callLogsRaw->groupBy('jobc_id');
         $callLogsAll = $callLogsRaw->values();
+
+        // ── "Not Called" filter — jobs where no call has ever been logged ───────
+        $calledJobIds   = $callLogsRaw->pluck('jobc_id')->unique()->toArray();
+        $notCalledJobs  = $jobs->filter(fn($j) => !in_array($j->Jobc_id, $calledJobIds))->values();
+        $notCalledCount = $notCalledJobs->count();
 
         // Due today / overdue
         $dueToday = DB::table('crm_call_logs')
@@ -451,7 +481,8 @@ class SalesController extends Controller
             'allJobs', 'consumableJobs', 'callLogs', 'callLogsAll',
             'dueToday', 'recentLogs',
             'deliveredOrders', 'doCallLogs',
-            'dateFrom', 'dateTo'
+            'dateFrom', 'dateTo',
+            'notCalledJobs', 'notCalledCount', 'filterNotCalled'
         ));
     }
 

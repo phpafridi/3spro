@@ -38,9 +38,9 @@
                     <td class="px-3 py-3 text-right font-bold text-red-600">Rs {{ number_format($b->Total) }}</td>
                     <td class="px-3 py-3 text-xs text-gray-500">{{ $b->bookingtime }}</td>
                     <td class="px-3 py-3">
-                        <a href="{{ route('recovery.add-debt', ['id' => $b->Invoice_id]) }}"
-                           class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 whitespace-nowrap">
-                            <i class="fas fa-plus mr-1"></i>Add Debit
+                        <a href="{{ route('recovery.add-credit', ['inv' => $b->Invoice_id]) }}"
+                           class="px-3 py-1 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200 whitespace-nowrap font-medium">
+                            <i class="fas fa-hand-holding-usd mr-1"></i>Add Credit
                         </a>
                     </td>
                 </tr>
