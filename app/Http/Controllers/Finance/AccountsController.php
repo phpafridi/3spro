@@ -67,7 +67,7 @@ class AccountsController extends Controller
             LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
             LEFT JOIN fin_vch_mas  mas ON ch.mas_vch_id = mas.mas_vch_id
             WHERE mas.VoucherDate <= ? AND mas.A_T = 'Yes'
-            GROUP BY gl.GL_id ORDER BY gl.GL_id
+            GROUP BY gl.GL_id, gl.rang_start, gl.rang_end, gl.GL_name ORDER BY gl.GL_id
         ", [$from]);
         return view('finance.accounts.reports.trial_balances', compact('rows') + ['asOn' => $from]);
     }
@@ -98,7 +98,7 @@ class AccountsController extends Controller
             LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
             LEFT JOIN fin_vch_mas  mas ON ch.mas_vch_id = mas.mas_vch_id
             WHERE mas.VoucherDate <= ? AND gl.GL_id = ? AND mas.A_T = 'Yes'
-            GROUP BY gl.GL_id
+            GROUP BY gl.GL_id, gl.rang_start, gl.rang_end, gl.GL_name
         ", [$from, $glId]);
         $reservation = $request->reservation;
         return view('finance.accounts.reports.trial_bal_gl',
@@ -146,7 +146,7 @@ class AccountsController extends Controller
             LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
             LEFT JOIN fin_vch_mas  mas ON ch.mas_vch_id = mas.mas_vch_id
             WHERE mas.VoucherDate BETWEEN ? AND ? AND mas.vchr_type = ?
-            GROUP BY gl.GL_id ORDER BY gl.GL_id
+            GROUP BY gl.GL_id, gl.rang_start, gl.rang_end, gl.GL_name ORDER BY gl.GL_id
         ", [$from, $to, $vchType]);
         return view('finance.accounts.reports.voucher_type', compact('rows','vchType')
             + ['from' => $ff, 'to' => $tt]);
@@ -192,51 +192,29 @@ class AccountsController extends Controller
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
         $dept     = $request->dept;
         $deptName = $request->dept_name;
-
-        // GL-level breakdown for this department
-        $glRows = DB::select("
-            SELECT gl.GL_name, ma.main_account,
-                   COALESCE(SUM(ch.Debit),0)   AS TotalDebit,
-                   COALESCE(SUM(ch.Credit),0)  AS TotalCredit,
-                   COALESCE(SUM(CASE WHEN ma.main_account='Revenues' THEN ch.Credit - ch.Debit ELSE 0 END),0) AS NetIncome,
-                   COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS NetExpense
+        $incomeRow = DB::selectOne("
+            SELECT COALESCE(SUM(CASE WHEN ma.main_account='Revenues' THEN ch.Credit - ch.Debit ELSE 0 END),0) AS TotalIncome
             FROM fin_gsl gsl
-            LEFT JOIN fin_gl gl        ON gsl.GL_id = gl.GL_id
             LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
+            LEFT JOIN fin_gl gl        ON gsl.GL_id = gl.GL_id
             LEFT JOIN fin_vch_mas mas  ON ch.mas_vch_id = mas.mas_vch_id
             LEFT JOIN fin_mainaccounts ma ON gl.ma_id = ma.ma_id
             WHERE mas.VoucherDate BETWEEN ? AND ? AND ch.Department = ? AND mas.A_T = 'Yes'
-              AND ma.main_account IN ('Revenues','Expenses')
-            GROUP BY gl.GL_id, gl.GL_name, ma.main_account
-            HAVING (NetIncome <> 0 OR NetExpense <> 0)
-            ORDER BY ma.main_account DESC, gl.GL_name
         ", [$from, $to, $dept]);
-
-        // GSL-level breakdown
-        $gslRows = DB::select("
-            SELECT gl.GL_name, ma.main_account, gsl.GSL_code, gsl.GSL_name,
-                   COALESCE(SUM(ch.Debit),0)  AS TotalDebit,
-                   COALESCE(SUM(ch.Credit),0) AS TotalCredit,
-                   COALESCE(SUM(CASE WHEN ma.main_account='Revenues' THEN ch.Credit - ch.Debit ELSE 0 END),0) AS NetIncome,
-                   COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS NetExpense
+        $expRow = DB::selectOne("
+            SELECT COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS TotalExpense
             FROM fin_gsl gsl
-            LEFT JOIN fin_gl gl        ON gsl.GL_id = gl.GL_id
             LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
+            LEFT JOIN fin_gl gl        ON gsl.GL_id = gl.GL_id
             LEFT JOIN fin_vch_mas mas  ON ch.mas_vch_id = mas.mas_vch_id
             LEFT JOIN fin_mainaccounts ma ON gl.ma_id = ma.ma_id
             WHERE mas.VoucherDate BETWEEN ? AND ? AND ch.Department = ? AND mas.A_T = 'Yes'
-              AND ma.main_account IN ('Revenues','Expenses')
-            GROUP BY gsl.GSL_code, gsl.GSL_name, gl.GL_name, ma.main_account
-            HAVING (NetIncome <> 0 OR NetExpense <> 0)
-            ORDER BY ma.main_account DESC, gl.GL_name, gsl.GSL_code
         ", [$from, $to, $dept]);
-
-        $totalIncome  = collect($glRows)->where('main_account','Revenues')->sum('NetIncome');
-        $totalExpense = collect($glRows)->where('main_account','Expenses')->sum('NetExpense');
+        $totalIncome  = $incomeRow->TotalIncome  ?? 0;
+        $totalExpense = $expRow->TotalExpense     ?? 0;
         $net          = $totalIncome - $totalExpense;
-
         return view('finance.accounts.reports.profit_loss_dept', compact(
-            'totalIncome','totalExpense','net','deptName','glRows','gslRows'
+            'totalIncome','totalExpense','net','deptName'
         ) + ['from' => $ff, 'to' => $tt]);
     }
 
@@ -278,7 +256,7 @@ class AccountsController extends Controller
             JOIN fin_gl gl        ON gsl.GL_id = gl.GL_id
             WHERE vm.vchr_type IN ('BRV','CRV')
               AND DATE_FORMAT(vm.VoucherDate,'%Y-%m-%d') BETWEEN ? AND ?
-            GROUP BY gl.GL_id
+            GROUP BY gl.GL_id, gl.GL_name
         ", [$from, $to]);
         $rows = collect($rows)->map(function ($row) use ($from) {
             $ob = DB::selectOne("
