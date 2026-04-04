@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title','Moving Stock — MAD')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Monthly Average Demand ({{ $months }} months)</h2>
 @include('parts.entry.reports._filter',['showDates'=>false])
 <form method="GET" class="flex gap-2 mb-4">

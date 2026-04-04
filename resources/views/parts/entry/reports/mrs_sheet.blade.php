@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title','Appointment Sheet')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">MRS Appointment Sheet</h2>
 <form method="GET" class="flex gap-2 mb-4">
     <input type="date" name="date" value="{{ $date }}"

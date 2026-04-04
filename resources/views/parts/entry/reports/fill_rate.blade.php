@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title', 'Fill Rate Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Fill Rate Report — {{ $from }} to {{ $to }}</h2>
 @include('parts.entry.reports._filter', ['showDates'=>true])
 <div class="grid grid-cols-3 gap-4 mb-5">

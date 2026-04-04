@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title', 'Reorder Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Reorder Report — Parts Below Reorder Level</h2>
 <div class="mb-4 flex gap-3">
     <a href="{{ route('parts.reports') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm">← Reports</a>

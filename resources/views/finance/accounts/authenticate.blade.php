@@ -12,11 +12,15 @@
         </span>
     </div>
 
+    @if(session('success'))
+    <div class="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm">{{ session('success') }}</div>
+    @endif
+
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gradient-to-r from-green-600 to-emerald-500">
                 <tr>
-                    @foreach(['#','Type','Ref No','Date','Book','Created By','Submitted','Action'] as $h)
+                    @foreach(['#','Type','Ref No','Date','Book','Created By','Submitted','Actions'] as $h)
                     <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase">{{ $h }}</th>
                     @endforeach
                 </tr>
@@ -35,24 +39,31 @@
                     <td class="px-4 py-3">{{ $v->BookNo }}</td>
                     <td class="px-4 py-3">{{ $v->UserName }}</td>
                     <td class="px-4 py-3 text-xs text-gray-500">{{ $v->complete_submition }}</td>
-                    <td class="px-4 py-3 flex gap-2">
-                        {{-- Authenticate --}}
-                        <form method="POST" action="{{ route('accounts.authenticate') }}">
-                            @csrf
-                            <input type="hidden" name="vch_status_change" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
-                                <i class="fas fa-check mr-1"></i>Approve
-                            </button>
-                        </form>
-                        {{-- Cancel --}}
-                        <form method="POST" action="{{ route('accounts.authenticate') }}"
-                              onsubmit="return confirm('Cancel this voucher?')">
-                            @csrf
-                            <input type="hidden" name="vch_status_cancel" value="{{ $v->mas_vch_id }}">
-                            <button class="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">
-                                <i class="fas fa-times mr-1"></i>Cancel
-                            </button>
-                        </form>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap gap-2">
+                            {{-- View/Edit line items before approving --}}
+                            <a href="{{ route('accounts.voucher.edit', $v->mas_vch_id) }}"
+                               class="px-3 py-1 bg-blue-400 hover:bg-blue-500 text-white rounded text-xs font-medium">
+                                <i class="fas fa-eye mr-1"></i>View/Edit
+                            </a>
+                            {{-- Approve --}}
+                            <form method="POST" action="{{ route('accounts.authenticate') }}">
+                                @csrf
+                                <input type="hidden" name="vch_status_change" value="{{ $v->mas_vch_id }}">
+                                <button class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs">
+                                    <i class="fas fa-check mr-1"></i>Approve
+                                </button>
+                            </form>
+                            {{-- Cancel --}}
+                            <form method="POST" action="{{ route('accounts.authenticate') }}"
+                                  onsubmit="return confirm('Cancel this voucher?')">
+                                @csrf
+                                <input type="hidden" name="vch_status_cancel" value="{{ $v->mas_vch_id }}">
+                                <button class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs">
+                                    <i class="fas fa-times mr-1"></i>Cancel
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 @empty

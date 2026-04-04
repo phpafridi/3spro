@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title', 'Dead Stock Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Dead Stock — Not sold in {{ $months }} month(s)</h2>
 @include('parts.entry.reports._filter', ['showMonths'=>true, 'showType'=>true, 'showDates'=>false])
 <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">

@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title','Purchase Profit Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Purchase Profit Report — GRN# {{ $grn }}</h2>
 <form method="GET" class="flex gap-2 mb-4">
     <input name="grn" value="{{ $grn }}" placeholder="Enter GRN / Invoice #"

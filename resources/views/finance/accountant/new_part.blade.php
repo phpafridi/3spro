@@ -29,7 +29,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Part Type</label>
                 <select name="parttype" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                    <option value="Genuine">Genuine</option>
+                    <option value="OEM">OEM</option>
                     <option value="Consumable">Consumable</option>
                     <option value="Local">Local</option>
                 </select>

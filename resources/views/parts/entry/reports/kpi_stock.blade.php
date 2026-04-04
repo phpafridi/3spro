@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title','KPI Stock Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">KPI Stock Report</h2>
 <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
     <div class="bg-purple-600 p-3 flex justify-between items-center">

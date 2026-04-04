@@ -598,6 +598,9 @@ Route::middleware(['auth', 'role:FManager,Accountant,IT Manager'])
         Route::match(['get', 'post'], '/authenticate', [AccountsController::class, 'authenticate'])->name('authenticate');
         Route::match(['get', 'post'], '/reopened-vouchers', [AccountsController::class, 'reopenedVouchers'])->name('reopened-vouchers');
         Route::match(['get', 'post'], '/search', [AccountsController::class, 'search'])->name('search');
+        Route::get('/voucher/{id}/edit', [AccountsController::class, 'editVoucher'])->name('voucher.edit');
+        Route::post('/voucher/{id}/edit', [AccountsController::class, 'editVoucher'])->name('voucher.edit.post');
+        Route::get('/gsl-search', [AccountsController::class, 'gslSearch'])->name('gsl-search');
         Route::match(['get', 'post'], '/coa', [AccountsController::class, 'coa'])->name('coa');
         Route::match(['get', 'post'], '/add-gl', [AccountsController::class, 'addGL'])->name('add-gl');
         Route::match(['get', 'post'], '/add-gsl', [AccountsController::class, 'addGSL'])->name('add-gsl');

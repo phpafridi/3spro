@@ -19,6 +19,11 @@ class AccountsController extends Controller
     //               Variant, ModeOfPayment, Activity, mType, Unit, Region, vchr_type, user, submittime, payee
     // fin_dept: Code, Department, dep_auto
 
+    // Cash-in-Hand GSL code (auto-credit for CPV, auto-debit for CRV)
+    const CASH_GSL = 2001000;
+    // Bank GSL code (auto-credit for BPV, auto-debit for BRV) — adjust if needed
+    const BANK_GSL = 2002000;
+
     private function voucherCounts(): array
     {
         $row = DB::table('fin_vch_mas')->selectRaw("
@@ -39,10 +44,6 @@ class AccountsController extends Controller
         return view('finance.accounts.index', compact('counts','gslList','glList','depts'));
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // FINANCIAL REPORTS  (all open in a new tab via POST forms)
-    // ────────────────────────────────────────────────────────────────────────
-
     private function parseDateRange(?string $reservation): array
     {
         $parts = explode(' - ', trim($reservation ?? ''));
@@ -53,11 +54,9 @@ class AccountsController extends Controller
                 date('d-M-y', strtotime($to))];
     }
 
-    // 1. GL Trial Balances  (all GLs, as-on FROM date)
     public function reportTrialBalances(Request $request)
     {
         [$from] = $this->parseDateRange($request->reservation);
-
         $rows = DB::select("
             SELECT gl.GL_id, gl.rang_start, gl.rang_end, gl.GL_name,
                    COALESCE(SUM(ch.Debit),0)  AS Debit,
@@ -70,17 +69,13 @@ class AccountsController extends Controller
             WHERE mas.VoucherDate <= ? AND mas.A_T = 'Yes'
             GROUP BY gl.GL_id ORDER BY gl.GL_id
         ", [$from]);
-
-        return view('finance.accounts.reports.trial_balances',
-            compact('rows') + ['asOn' => $from]);
+        return view('finance.accounts.reports.trial_balances', compact('rows') + ['asOn' => $from]);
     }
 
-    // 2. GSL Trial Balance for a specific GL
     public function reportTrialBalGL(Request $request)
     {
         [$from, , $ff] = $this->parseDateRange($request->reservation);
-        $glId   = $request->GL_name;          // GL_id sent from index form
-
+        $glId = $request->GL_name;
         $rows = DB::select("
             SELECT gsl.GSL_ID, gsl.GSL_code, gsl.GSL_name,
                    COALESCE(SUM(ch.Debit),0)  AS Debit,
@@ -93,7 +88,6 @@ class AccountsController extends Controller
             WHERE DATE(mas.VoucherDate) <= ? AND gl.GL_id = ? AND mas.A_T = 'Yes'
             GROUP BY gsl.GSL_code
         ", [$from, $glId]);
-
         $total = DB::selectOne("
             SELECT gl.rang_start, gl.rang_end, gl.GL_name,
                    COALESCE(SUM(ch.Debit),0)  AS Debit,
@@ -106,20 +100,16 @@ class AccountsController extends Controller
             WHERE mas.VoucherDate <= ? AND gl.GL_id = ? AND mas.A_T = 'Yes'
             GROUP BY gl.GL_id
         ", [$from, $glId]);
-
         $reservation = $request->reservation;
         return view('finance.accounts.reports.trial_bal_gl',
             compact('rows','total','reservation') + ['asOn' => $ff]);
     }
 
-    // 3. GSL Analytical Report (ledger for a single GSL code)
     public function reportGslReport(Request $request)
     {
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
         $gslCode = $request->GSL_code;
         $gslName = $request->GLS_name;
-
-        // Opening balance (before $from)
         $openingRow = DB::selectOne("
             SELECT SUM(ch.Debit - ch.Credit) AS OpeningBalance
             FROM fin_vch_chld ch
@@ -128,31 +118,25 @@ class AccountsController extends Controller
               AND ch.GSL_code = ? AND mas.A_T = 'Yes'
         ", [$from, $gslCode]);
         $opening = $openingRow->OpeningBalance ?? 0;
-
         $rows = DB::select("
-            SELECT ch.Debit, ch.Credit, ch.Description, ch.RefNo, ch.vchr_type,
-                   mas.VoucherDate
+            SELECT ch.Debit, ch.Credit, ch.Description, ch.RefNo, ch.vchr_type, mas.VoucherDate
             FROM fin_vch_chld ch
             JOIN fin_vch_mas mas ON ch.mas_vch_id = mas.mas_vch_id
             WHERE DATE_FORMAT(mas.VoucherDate,'%Y-%m-%d') BETWEEN ? AND ?
               AND ch.GSL_code = ? AND mas.A_T = 'Yes'
             ORDER BY DATE(mas.VoucherDate) ASC
         ", [$from, $to, $gslCode]);
-
         $totalDr = collect($rows)->sum('Debit');
         $totalCr = collect($rows)->sum('Credit');
-
         return view('finance.accounts.reports.gsl_report', compact(
             'rows','opening','totalDr','totalCr','gslCode','gslName'
         ) + ['from' => $ff, 'to' => $tt]);
     }
 
-    // 4. Voucher Type Report
     public function reportVoucherType(Request $request)
     {
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
         $vchType = $request->vch_type;
-
         $rows = DB::select("
             SELECT gl.GL_id, gl.rang_start, gl.rang_end, gl.GL_name,
                    COALESCE(SUM(ch.Debit),0)  AS TotalDebit,
@@ -164,16 +148,13 @@ class AccountsController extends Controller
             WHERE mas.VoucherDate BETWEEN ? AND ? AND mas.vchr_type = ?
             GROUP BY gl.GL_id ORDER BY gl.GL_id
         ", [$from, $to, $vchType]);
-
         return view('finance.accounts.reports.voucher_type', compact('rows','vchType')
             + ['from' => $ff, 'to' => $tt]);
     }
 
-    // 5. Profit & Loss
     public function reportProfitLoss(Request $request)
     {
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
-
         $income = DB::select("
             SELECT gsl.GSL_code, gsl.GSL_name,
                    COALESCE(SUM(CASE WHEN ma.main_account='Revenues' THEN ch.Credit - ch.Debit ELSE 0 END),0) AS TotalIncome
@@ -186,7 +167,6 @@ class AccountsController extends Controller
             GROUP BY gsl.GSL_code, gsl.GSL_name
             HAVING TotalIncome <> 0 ORDER BY gsl.GSL_code
         ", [$from, $to]);
-
         $expenses = DB::select("
             SELECT gsl.GSL_code, gsl.GSL_name,
                    COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS TotalExpense
@@ -199,57 +179,70 @@ class AccountsController extends Controller
             GROUP BY gsl.GSL_code, gsl.GSL_name
             HAVING TotalExpense <> 0 ORDER BY gsl.GSL_code
         ", [$from, $to]);
-
         $totalIncome  = collect($income)->sum('TotalIncome');
         $totalExpense = collect($expenses)->sum('TotalExpense');
         $net          = $totalIncome - $totalExpense;
-
         return view('finance.accounts.reports.profit_loss', compact(
             'income','expenses','totalIncome','totalExpense','net'
         ) + ['from' => $ff, 'to' => $tt]);
     }
 
-    // 6. P&L by Department
     public function reportProfitLossDept(Request $request)
     {
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
         $dept     = $request->dept;
         $deptName = $request->dept_name;
 
-        $incomeRow = DB::selectOne("
-            SELECT COALESCE(SUM(CASE WHEN ma.main_account='Revenues' THEN ch.Credit - ch.Debit ELSE 0 END),0) AS TotalIncome
+        // GL-level breakdown for this department
+        $glRows = DB::select("
+            SELECT gl.GL_name, ma.main_account,
+                   COALESCE(SUM(ch.Debit),0)   AS TotalDebit,
+                   COALESCE(SUM(ch.Credit),0)  AS TotalCredit,
+                   COALESCE(SUM(CASE WHEN ma.main_account='Revenues' THEN ch.Credit - ch.Debit ELSE 0 END),0) AS NetIncome,
+                   COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS NetExpense
             FROM fin_gsl gsl
-            LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
             LEFT JOIN fin_gl gl        ON gsl.GL_id = gl.GL_id
+            LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
             LEFT JOIN fin_vch_mas mas  ON ch.mas_vch_id = mas.mas_vch_id
             LEFT JOIN fin_mainaccounts ma ON gl.ma_id = ma.ma_id
             WHERE mas.VoucherDate BETWEEN ? AND ? AND ch.Department = ? AND mas.A_T = 'Yes'
+              AND ma.main_account IN ('Revenues','Expenses')
+            GROUP BY gl.GL_id, gl.GL_name, ma.main_account
+            HAVING (NetIncome <> 0 OR NetExpense <> 0)
+            ORDER BY ma.main_account DESC, gl.GL_name
         ", [$from, $to, $dept]);
 
-        $expRow = DB::selectOne("
-            SELECT COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS TotalExpense
+        // GSL-level breakdown
+        $gslRows = DB::select("
+            SELECT gl.GL_name, ma.main_account, gsl.GSL_code, gsl.GSL_name,
+                   COALESCE(SUM(ch.Debit),0)  AS TotalDebit,
+                   COALESCE(SUM(ch.Credit),0) AS TotalCredit,
+                   COALESCE(SUM(CASE WHEN ma.main_account='Revenues' THEN ch.Credit - ch.Debit ELSE 0 END),0) AS NetIncome,
+                   COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS NetExpense
             FROM fin_gsl gsl
-            LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
             LEFT JOIN fin_gl gl        ON gsl.GL_id = gl.GL_id
+            LEFT JOIN fin_vch_chld ch  ON gsl.GSL_code = ch.GSL_code
             LEFT JOIN fin_vch_mas mas  ON ch.mas_vch_id = mas.mas_vch_id
             LEFT JOIN fin_mainaccounts ma ON gl.ma_id = ma.ma_id
             WHERE mas.VoucherDate BETWEEN ? AND ? AND ch.Department = ? AND mas.A_T = 'Yes'
+              AND ma.main_account IN ('Revenues','Expenses')
+            GROUP BY gsl.GSL_code, gsl.GSL_name, gl.GL_name, ma.main_account
+            HAVING (NetIncome <> 0 OR NetExpense <> 0)
+            ORDER BY ma.main_account DESC, gl.GL_name, gsl.GSL_code
         ", [$from, $to, $dept]);
 
-        $totalIncome  = $incomeRow->TotalIncome  ?? 0;
-        $totalExpense = $expRow->TotalExpense     ?? 0;
+        $totalIncome  = collect($glRows)->where('main_account','Revenues')->sum('NetIncome');
+        $totalExpense = collect($glRows)->where('main_account','Expenses')->sum('NetExpense');
         $net          = $totalIncome - $totalExpense;
 
         return view('finance.accounts.reports.profit_loss_dept', compact(
-            'totalIncome','totalExpense','net','deptName'
+            'totalIncome','totalExpense','net','deptName','glRows','gslRows'
         ) + ['from' => $ff, 'to' => $tt]);
     }
 
-    // 7. P&L Overall (all departments)
     public function reportProfitLossOverall(Request $request)
     {
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
-
         $rows = DB::select("
             SELECT (SELECT fd.Department FROM fin_dept fd WHERE fd.Code = ch.Department) AS Department,
                    COALESCE(SUM(CASE WHEN ma.main_account='Expenses' THEN ch.Debit - ch.Credit ELSE 0 END),0) AS TotalExpense,
@@ -266,19 +259,15 @@ class AccountsController extends Controller
             HAVING TotalExpense <> 0 OR TotalRevenue <> 0
             ORDER BY ch.Department
         ", [$from, $to]);
-
         $totalRev = collect($rows)->sum('TotalRevenue');
         $totalExp = collect($rows)->sum('TotalExpense');
-
         return view('finance.accounts.reports.profit_loss_overall', compact('rows','totalRev','totalExp')
             + ['from' => $ff, 'to' => $tt]);
     }
 
-    // 8. Cash Flow Report (BRV/CRV receipts & payments by GL)
     public function reportCashFlow(Request $request)
     {
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
-
         $rows = DB::select("
             SELECT gl.GL_id, gl.GL_name,
                    COALESCE(SUM(ch.Debit),0)  AS totalDebit,
@@ -291,8 +280,6 @@ class AccountsController extends Controller
               AND DATE_FORMAT(vm.VoucherDate,'%Y-%m-%d') BETWEEN ? AND ?
             GROUP BY gl.GL_id
         ", [$from, $to]);
-
-        // Opening balance (before period) for each GL
         $rows = collect($rows)->map(function ($row) use ($from) {
             $ob = DB::selectOne("
                 SELECT COALESCE(SUM(ch.Debit - ch.Credit),0) AS opening
@@ -305,18 +292,15 @@ class AccountsController extends Controller
             $row->opening = $ob->opening ?? 0;
             return $row;
         })->all();
-
         return view('finance.accounts.reports.cash_flow', compact('rows')
             + ['from' => $ff, 'to' => $tt]);
     }
 
-    // 9. Cash Flow by GL (receipts/payments at GSL level for one GL)
     public function reportCashFlowGsl(Request $request)
     {
         [$from, $to, $ff, $tt] = $this->parseDateRange($request->reservation);
         $glId   = $request->GL_id;
         $glName = $request->GL_name;
-
         $rows = DB::select("
             SELECT ch.GSL_code, gsl.GSL_name,
                    COALESCE(SUM(ch.Debit),0)  AS totalDebit,
@@ -329,9 +313,7 @@ class AccountsController extends Controller
               AND DATE_FORMAT(vm.VoucherDate,'%Y-%m-%d') BETWEEN ? AND ?
             GROUP BY gsl.GSL_code
         ", [$glId, $from, $to]);
-
         $netClosing = collect($rows)->sum(fn($r) => $r->totalCredit - $r->totalDebit);
-
         return view('finance.accounts.reports.cash_flow_gsl', compact('rows','glName','netClosing')
             + ['from' => $ff, 'to' => $tt]);
     }
@@ -342,15 +324,13 @@ class AccountsController extends Controller
         $counts = $this->voucherCounts();
 
         if ($request->filled('voucher_date')) {
-            // Get next VoucherNo for this type
-            $lastNo = DB::table('fin_vch_mas')
-                ->where('vchr_type', $request->vouchertype)
-                ->max('VoucherNo') ?? 0;
-
+            $lastNo    = DB::table('fin_vch_mas')->where('vchr_type', $request->vouchertype)->max('VoucherNo') ?? 0;
+            $nextNo    = $lastNo + 1;
+            $autoRefNo = $nextNo . $request->vouchertype;
             $id = DB::table('fin_vch_mas')->insertGetId([
-                'VoucherNo'          => $lastNo + 1,
+                'VoucherNo'          => $nextNo,
                 'vchr_type'          => $request->vouchertype,
-                'RefNo'              => $request->voucherno,
+                'RefNo'              => $autoRefNo,
                 'VoucherDate'        => $request->voucher_date,
                 'BookNo'             => $request->cash_book_no ?? '',
                 'UserName'           => Auth::user()->login_id,
@@ -358,23 +338,45 @@ class AccountsController extends Controller
                 'complete_submition' => now(),
                 'VType'              => '',
             ]);
-
             return redirect()->route($itemsRoute, ['serial_number' => $id]);
         }
 
-        return view("finance.accounts.$view", compact('counts'));
+        $voucherTypeMap = ['v_cp'=>'CPV','v_cr'=>'CRV','v_bp'=>'BPV','v_br'=>'BRV','v_jv'=>'JV'];
+        $vType        = $voucherTypeMap[$view] ?? strtoupper($view);
+        $lastNoP      = DB::table('fin_vch_mas')->where('vchr_type', $vType)->max('VoucherNo') ?? 0;
+        $previewRefNo = ($lastNoP + 1) . $vType;
+
+        return view("finance.accounts.$view", compact('counts', 'previewRefNo'));
     }
 
     // ─── Voucher Items (shared logic) ─────────────────────────────────────────
-    private function voucherItems(Request $request, string $view, string $submitRoute)
+    private function voucherItems(Request $request, string $view, string $submitRoute, string $voucherType)
     {
         $serialNo = $request->serial_number;
         $user     = Auth::user()->login_id;
         $counts   = $this->voucherCounts();
 
-        // Add a line item
+        // ── Delete a child line ──────────────────────────────────────────────
+        if ($request->filled('delete_line')) {
+            DB::table('fin_vch_chld')->where('chld_vch_id', $request->delete_line)->delete();
+            return back()->with('success', 'Line deleted.');
+        }
+
+        // ── Update a child line ──────────────────────────────────────────────
+        if ($request->filled('update_line')) {
+            DB::table('fin_vch_chld')->where('chld_vch_id', $request->update_line)->update([
+                'GSL_code'    => $request->edit_GSL_code,
+                'Description' => $request->edit_Description ?? '',
+                'Debit'       => $request->edit_Debit  ?? 0,
+                'Credit'      => $request->edit_Credit ?? 0,
+                'Department'  => $request->edit_Department ?? 0,
+            ]);
+            return back()->with('success', 'Line updated.');
+        }
+
+        // ── Add a line item ──────────────────────────────────────────────────
         if ($request->filled('GSL_code')) {
-            $gsl = DB::table('fin_gsl')->where('GSL_code', $request->GSL_code)->first();
+            $gsl    = DB::table('fin_gsl')->where('GSL_code', $request->GSL_code)->first();
             $master = DB::table('fin_vch_mas')->where('mas_vch_id', $serialNo)->first();
 
             DB::table('fin_vch_chld')->insert([
@@ -392,14 +394,55 @@ class AccountsController extends Controller
                 'Department'   => $request->Department ?? 0,
                 'mType'        => 1,
             ]);
+
+            // ── Auto-insert the counter-entry ────────────────────────────────
+            // CPV: user enters Debit → auto add Credit on Cash-in-Hand (2001000)
+            // CRV: user enters Credit → auto add Debit on Cash-in-Hand (2001000)
+            // BPV: user enters Debit → auto add Credit on Bank (2002000)
+            // BRV: user enters Credit → auto add Debit on Bank (2002000)
+            $autoGslCode = null;
+            $autoDebit   = 0;
+            $autoCredit  = 0;
+
+            if ($voucherType === 'CPV' && ($request->Debit ?? 0) > 0) {
+                $autoGslCode = self::CASH_GSL;
+                $autoCredit  = $request->Debit;
+            } elseif ($voucherType === 'CRV' && ($request->Credit ?? 0) > 0) {
+                $autoGslCode = self::CASH_GSL;
+                $autoDebit   = $request->Credit;
+            } elseif ($voucherType === 'BPV' && ($request->Debit ?? 0) > 0) {
+                $autoGslCode = self::BANK_GSL;
+                $autoCredit  = $request->Debit;
+            } elseif ($voucherType === 'BRV' && ($request->Credit ?? 0) > 0) {
+                $autoGslCode = self::BANK_GSL;
+                $autoDebit   = $request->Credit;
+            }
+
+            if ($autoGslCode) {
+                $autoGsl = DB::table('fin_gsl')->where('GSL_code', $autoGslCode)->first();
+                DB::table('fin_vch_chld')->insert([
+                    'mas_vch_id'   => $serialNo,
+                    'GSL_code'     => $autoGslCode,
+                    'GSL'          => $autoGsl ? $autoGsl->GSL_ID : 0,
+                    'Description'  => ($request->Description ?? '') . ' [Auto]',
+                    'Debit'        => $autoDebit,
+                    'Credit'       => $autoCredit,
+                    'vchr_type'    => $master ? $master->vchr_type : '',
+                    'user'         => $user,
+                    'submittime'   => now(),
+                    'payee'        => $request->payee ?? '',
+                    'RefNo'        => $master ? $master->RefNo : '',
+                    'Department'   => $request->Department ?? 0,
+                    'mType'        => 2,  // mType=2 marks auto-entry
+                ]);
+            }
         }
 
-        // Submit / forward voucher for authentication
+        // ── Submit / forward voucher ─────────────────────────────────────────
         if ($request->filled('Submitit')) {
             DB::table('fin_vch_mas')
                 ->where('mas_vch_id', $serialNo)
                 ->update(['A_T' => 'Forward', 'complete_submition' => now()]);
-
             return redirect()->route($submitRoute)->with('success', 'Voucher submitted for authentication.');
         }
 
@@ -414,23 +457,58 @@ class AccountsController extends Controller
 
     // ─── CPV ─────────────────────────────────────────────────────────────────
     public function cpv(Request $request)      { return $this->createVoucher($request, 'v_cp', 'accounts.cpv.items'); }
-    public function cpvItems(Request $request) { return $this->voucherItems($request, 'v_cp_items', 'accounts.cpv'); }
+    public function cpvItems(Request $request) { return $this->voucherItems($request, 'v_cp_items', 'accounts.cpv', 'CPV'); }
 
     // ─── CRV ─────────────────────────────────────────────────────────────────
     public function crv(Request $request)      { return $this->createVoucher($request, 'v_cr', 'accounts.crv.items'); }
-    public function crvItems(Request $request) { return $this->voucherItems($request, 'v_cr_items', 'accounts.crv'); }
+    public function crvItems(Request $request) { return $this->voucherItems($request, 'v_cr_items', 'accounts.crv', 'CRV'); }
 
     // ─── BPV ─────────────────────────────────────────────────────────────────
     public function bpv(Request $request)      { return $this->createVoucher($request, 'v_bp', 'accounts.bpv.items'); }
-    public function bpvItems(Request $request) { return $this->voucherItems($request, 'v_bp_items', 'accounts.bpv'); }
+    public function bpvItems(Request $request) { return $this->voucherItems($request, 'v_bp_items', 'accounts.bpv', 'BPV'); }
 
     // ─── BRV ─────────────────────────────────────────────────────────────────
     public function brv(Request $request)      { return $this->createVoucher($request, 'v_br', 'accounts.brv.items'); }
-    public function brvItems(Request $request) { return $this->voucherItems($request, 'v_br_items', 'accounts.brv'); }
+    public function brvItems(Request $request) { return $this->voucherItems($request, 'v_br_items', 'accounts.brv', 'BRV'); }
 
     // ─── JV ──────────────────────────────────────────────────────────────────
     public function jv(Request $request)       { return $this->createVoucher($request, 'v_jv', 'accounts.jv.items'); }
-    public function jvItems(Request $request)  { return $this->voucherItems($request, 'v_jv_items', 'accounts.jv'); }
+    public function jvItems(Request $request)  { return $this->voucherItems($request, 'v_jv_items', 'accounts.jv', 'JV'); }
+
+    // ─── Edit Voucher (open items page for any voucher in draft/pending/reopened) ──
+    public function editVoucher(Request $request, $id)
+    {
+        $counts  = $this->voucherCounts();
+        $master  = DB::table('fin_vch_mas')->where('mas_vch_id', $id)->firstOrFail();
+
+        // Map vchr_type → items view name
+        $viewMap = ['CPV'=>'v_cp_items','CRV'=>'v_cr_items','BPV'=>'v_bp_items','BRV'=>'v_br_items','JV'=>'v_jv_items'];
+        $view    = $viewMap[$master->vchr_type] ?? 'v_cp_items';
+
+        // Handle inline updates on this page
+        if ($request->filled('delete_line')) {
+            DB::table('fin_vch_chld')->where('chld_vch_id', $request->delete_line)->delete();
+            return back()->with('success', 'Line deleted.');
+        }
+        if ($request->filled('update_line')) {
+            DB::table('fin_vch_chld')->where('chld_vch_id', $request->update_line)->update([
+                'GSL_code'    => $request->edit_GSL_code,
+                'Description' => $request->edit_Description ?? '',
+                'Debit'       => $request->edit_Debit  ?? 0,
+                'Credit'      => $request->edit_Credit ?? 0,
+                'Department'  => $request->edit_Department ?? 0,
+            ]);
+            return back()->with('success', 'Line updated.');
+        }
+
+        $items   = DB::table('fin_vch_chld')->where('mas_vch_id', $id)->get();
+        $gslList = DB::table('fin_gsl')->orderBy('GSL_code')->get();
+        $depts   = DB::table('fin_dept')->orderBy('dep_auto')->get();
+        $serialNo = $id;
+
+        return view("finance.accounts.$view",
+            compact('master','items','gslList','depts','counts','serialNo') + ['editMode' => true]);
+    }
 
     // ─── Pending Vouchers ─────────────────────────────────────────────────────
     public function pendingVouchers(Request $request)
@@ -443,7 +521,6 @@ class AccountsController extends Controller
             DB::table('fin_vch_mas')->where('mas_vch_id', $request->vch_status_cancel)
                 ->update(['A_T' => 'Trashed', 'Authenticate' => $user, 'complete_submition' => now()]);
         }
-
         if ($request->filled('Submitit')) {
             DB::table('fin_vch_mas')->where('mas_vch_id', $request->Submitit)
                 ->update(['A_T' => 'Forward', 'complete_submition' => now()]);
@@ -468,7 +545,6 @@ class AccountsController extends Controller
             DB::table('fin_vch_mas')->where('mas_vch_id', $request->vch_status_change)
                 ->update(['A_T' => 'Yes', 'Authenticate' => $user]);
         }
-
         if ($request->filled('vch_status_cancel')) {
             DB::table('fin_vch_mas')->where('mas_vch_id', $request->vch_status_cancel)
                 ->update(['A_T' => 'Cancel', 'Authenticate' => $user]);
@@ -492,7 +568,6 @@ class AccountsController extends Controller
             DB::table('fin_vch_mas')->where('mas_vch_id', $request->vch_status_cancel)
                 ->update(['A_T' => 'Trashed', 'Authenticate' => $user, 'complete_submition' => now()]);
         }
-
         if ($request->filled('Submitit')) {
             DB::table('fin_vch_mas')->where('mas_vch_id', $request->Submitit)
                 ->update(['A_T' => 'Forward', 'complete_submition' => now()]);
@@ -506,11 +581,7 @@ class AccountsController extends Controller
         return view('finance.accounts.reopened_vouchers', compact('vouchers', 'counts'));
     }
 
-    // ─── Search / Reopen Voucher ──────────────────────────────────────────────
-    // fin_vch_mas_edit: request_id, request_reason, who_requested, request_DD, mas_vch_id,
-    //                   VoucherNo, vchr_type, RefNo, VoucherDate, Payee, BookNo, UserName,
-    //                   A_T, Authenticate, Cancel, submiton, complete_submition
-    // fin_vch_chld_edit: id, request_id, chld_vch_id, mas_vch_id, ... (same as chld)
+    // ─── Search / Reopen ──────────────────────────────────────────────────────
     public function search(Request $request)
     {
         $user    = Auth::user()->login_id;
@@ -521,7 +592,6 @@ class AccountsController extends Controller
         if ($request->filled('reopen_voucher')) {
             $masterId = $request->reopen_voucher;
             $master   = DB::table('fin_vch_mas')->where('mas_vch_id', $masterId)->first();
-
             if ($master) {
                 $newReqId = DB::table('fin_vch_mas_edit')->insertGetId([
                     'request_reason'     => $request->reason,
@@ -540,8 +610,6 @@ class AccountsController extends Controller
                     'submiton'           => $master->submiton,
                     'complete_submition' => $master->complete_submition,
                 ]);
-
-                // Copy child lines
                 $children = DB::table('fin_vch_chld')->where('mas_vch_id', $masterId)->get();
                 foreach ($children as $child) {
                     DB::table('fin_vch_chld_edit')->insert([
@@ -573,7 +641,6 @@ class AccountsController extends Controller
                         'submittime'   => now(),
                     ]);
                 }
-
                 return back()->with('success', 'Reopen request submitted successfully.');
             }
         }
@@ -588,11 +655,25 @@ class AccountsController extends Controller
         return view('finance.accounts.search', compact('voucher', 'items', 'counts'));
     }
 
+    // ─── AJAX: GSL search (for keyboard-navigable dropdown in all voucher item forms) ──
+    public function gslSearch(Request $request)
+    {
+        $q    = $request->q ?? '';
+        $rows = DB::table('fin_gsl')
+            ->where(function($query) use ($q) {
+                $query->where('GSL_code', 'like', "%$q%")
+                      ->orWhere('GSL_name', 'like', "%$q%");
+            })
+            ->orderBy('GSL_code')
+            ->limit(30)
+            ->get(['GSL_code','GSL_name']);
+        return response()->json($rows);
+    }
+
     // ─── Charts of Accounts (COA) ─────────────────────────────────────────────
     public function coa(Request $request)
     {
         $counts = $this->voucherCounts();
-
         if ($request->filled('main_acount')) {
             DB::table('fin_mainaccounts')->insert([
                 'main_account' => $request->main_acount,
@@ -604,9 +685,11 @@ class AccountsController extends Controller
             ]);
             return back()->with('success', 'Main account added.');
         }
-
-        $mainAccounts = DB::table('fin_mainaccounts')->orderBy('rang_start')->get();
-        return view('finance.accounts.coa', compact('mainAccounts', 'counts'));
+        $mainAccounts  = DB::table('fin_mainaccounts')->orderBy('rang_start')->get();
+        $lastMa        = $mainAccounts->last();
+        $nextRangStart = $lastMa ? ($lastMa->rang_end + 1) : 1;
+        $nextRangEnd   = $nextRangStart + 999999;
+        return view('finance.accounts.coa', compact('mainAccounts','counts','nextRangStart','nextRangEnd'));
     }
 
     // ─── Add GL ───────────────────────────────────────────────────────────────
@@ -615,31 +698,23 @@ class AccountsController extends Controller
         $counts       = $this->voucherCounts();
         $mainAccounts = DB::table('fin_mainaccounts')->orderBy('rang_start')->get();
 
-        // AJAX: return next available GL range for a chosen main account
         if ($request->filled('get_next_range')) {
             $ma = DB::table('fin_mainaccounts')->where('ma_id', $request->get_next_range)->first();
             if (!$ma) return response()->json(['error' => 'Not found'], 404);
-
-            // Find last GL inside this main account's range
-            $lastGL = DB::table('fin_gl')
+            $lastGL    = DB::table('fin_gl')
                 ->where('rang_start', '>=', $ma->rang_start)
                 ->where('rang_end',   '<=', $ma->rang_end)
-                ->orderBy('rang_end', 'desc')
-                ->first();
-
-            // GL ranges are 1000-wide
+                ->orderBy('rang_end', 'desc')->first();
             $nextStart = $lastGL ? ($lastGL->rang_end + 1) : $ma->rang_start;
             $nextEnd   = $nextStart + 999;
-
             return response()->json(['rang_start' => $nextStart, 'rang_end' => $nextEnd]);
         }
 
-        // Save new GL
         if ($request->filled('GL_name')) {
             DB::table('fin_gl')->insert([
                 'ma_id'      => $request->ma_id,
                 'GL_name'    => $request->GL_name,
-                'GlCode'     => $request->GlCode,
+                'GlCode'     => $request->rang_start,
                 'rang_start' => $request->rang_start,
                 'rang_end'   => $request->rang_end,
                 'user'       => Auth::user()->login_id,
@@ -650,18 +725,26 @@ class AccountsController extends Controller
         }
 
         $filterMaId = $request->ma_id ?? null;
-        $glQuery    = DB::table('fin_gl')->orderBy('rang_start');
+        $selectedMa = null;
+        $glList     = collect();
+        $nextStart  = null;
+        $nextEnd    = null;
 
         if ($filterMaId) {
-            $ma = DB::table('fin_mainaccounts')->where('ma_id', $filterMaId)->first();
-            if ($ma) {
-                $glQuery->where('rang_start', '>=', $ma->rang_start)
-                        ->where('rang_end',   '<=', $ma->rang_end);
+            $selectedMa = $mainAccounts->firstWhere('ma_id', $filterMaId);
+            if ($selectedMa) {
+                $glList = DB::table('fin_gl')
+                    ->where('rang_start', '>=', $selectedMa->rang_start)
+                    ->where('rang_end',   '<=', $selectedMa->rang_end)
+                    ->orderBy('rang_start')->get();
+                $lastGL    = $glList->last();
+                $nextStart = $lastGL ? ($lastGL->rang_end + 1) : $selectedMa->rang_start;
+                $nextEnd   = $nextStart + 999;
             }
         }
 
-        $glList = $glQuery->get();
-        return view('finance.accounts.add_gl', compact('glList', 'mainAccounts', 'counts', 'filterMaId'));
+        return view('finance.accounts.add_gl',
+            compact('glList','mainAccounts','counts','filterMaId','selectedMa','nextStart','nextEnd'));
     }
 
     // ─── Add GSL ──────────────────────────────────────────────────────────────
@@ -670,25 +753,19 @@ class AccountsController extends Controller
         $counts = $this->voucherCounts();
         $glList = DB::table('fin_gl')->orderBy('rang_start')->get();
 
-        // AJAX: return next available GSL code for a chosen GL
         if ($request->filled('get_next_gsl')) {
             $gl = DB::table('fin_gl')->where('GL_id', $request->get_next_gsl)->first();
             if (!$gl) return response()->json(['error' => 'Not found'], 404);
-
-            $lastGSL = DB::table('fin_gsl')
+            $lastGSL  = DB::table('fin_gsl')
                 ->where('GSL_code', '>=', $gl->rang_start)
                 ->where('GSL_code', '<=', $gl->rang_end)
-                ->orderBy('GSL_code', 'desc')
-                ->first();
-
-            $nextCode = $lastGSL ? ($lastGSL->GSL_code + 1) : $gl->rang_start;
+                ->orderBy('GSL_code', 'desc')->first();
+            $nextCode = $lastGSL ? ($lastGSL->GSL_code + 1) : ($gl->rang_start + 1);
             return response()->json(['GSL_code' => $nextCode]);
         }
 
-        // Save new GSL
         if ($request->filled('GSL_name')) {
             $gl = DB::table('fin_gl')->where('GL_id', $request->GL_id)->first();
-
             DB::table('fin_gsl')->insert([
                 'GL_id'        => $request->GL_id,
                 'GSL_code'     => $request->GSL_code,
@@ -704,11 +781,23 @@ class AccountsController extends Controller
         }
 
         $filterGlId = $request->GL_id ?? null;
-        $gslQuery   = DB::table('fin_gsl')->orderBy('GSL_code');
-        if ($filterGlId) $gslQuery->where('GL_id', $filterGlId);
-        $gslList = $gslQuery->get();
+        $selectedGl = null;
+        $selectedMa = null;
+        $gslList    = collect();
+        $nextCode   = null;
 
-        return view('finance.accounts.add_gsl', compact('gslList', 'glList', 'counts', 'filterGlId'));
+        if ($filterGlId) {
+            $selectedGl = $glList->firstWhere('GL_id', $filterGlId);
+            if ($selectedGl) {
+                $selectedMa = DB::table('fin_mainaccounts')->where('ma_id', $selectedGl->ma_id)->first();
+                $gslList    = DB::table('fin_gsl')->where('GL_id', $filterGlId)->orderBy('GSL_code')->get();
+                $lastGSL    = $gslList->last();
+                $nextCode   = $lastGSL ? ($lastGSL->GSL_code + 1) : ($selectedGl->rang_start + 1);
+            }
+        }
+
+        return view('finance.accounts.add_gsl',
+            compact('gslList','glList','counts','filterGlId','selectedGl','selectedMa','nextCode'));
     }
 
     // ─── Add Sub Head ─────────────────────────────────────────────────────────
@@ -716,7 +805,6 @@ class AccountsController extends Controller
     {
         $counts  = $this->voucherCounts();
         $gslList = DB::table('fin_gsl')->orderBy('GSL_code')->get();
-
         if ($request->filled('SH_title')) {
             DB::table('fin_gsl')->insert([
                 'SH_title' => $request->SH_title,
@@ -724,8 +812,7 @@ class AccountsController extends Controller
             ]);
             return back()->with('success', 'Sub-head added.');
         }
-
         $shList = DB::table('fin_gsl')->orderBy('GSL_code')->get();
-        return view('finance.accounts.add_sh', compact('shList', 'gslList', 'counts'));
+        return view('finance.accounts.add_sh', compact('shList','gslList','counts'));
     }
 }

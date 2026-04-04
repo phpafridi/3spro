@@ -213,7 +213,7 @@
                     <i class="fa fa-user-plus nav-icon"></i> Jobber
                 </a>
                 {{-- <a href="{{ route('parts.new-cate-part') }}" class="{{ request()->routeIs('parts.new-cate-part') ? 'active' : '' }}">
-                    <i class="fa fa-tag nav-icon"></i> IMC Category Part
+                    <i class="fa fa-tag nav-icon"></i> OEM Category Part
                 </a> --}}
                 <a href="{{ route('parts.location-change') }}" class="{{ request()->routeIs('parts.location-change') ? 'active' : '' }}">
                     <i class="fa fa-map-marker nav-icon"></i> Edit Location

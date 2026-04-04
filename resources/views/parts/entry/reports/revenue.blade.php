@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title', 'Revenue Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Revenue Report — {{ $from }} to {{ $to }}</h2>
 @include('parts.entry.reports._filter', ['showDates'=>true])
 @php

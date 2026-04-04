@@ -1,6 +1,7 @@
 @extends("parts.layout")
 @section("title","Counter Return Report")
 @section("content")
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Counter Return Report</h2>
 @include("parts.entry.reports._filter",["showDates"=>true])
 <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">

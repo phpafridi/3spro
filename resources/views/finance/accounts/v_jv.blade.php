@@ -16,9 +16,11 @@
                     class="w-full border border-gray-200 bg-gray-50 rounded px-4 py-2 text-sm font-mono font-bold">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Ref No <span class="text-red-500">*</span></label>
-                <input type="text" name="voucherno" required placeholder="e.g. 5JV"
-                    class="w-full border border-gray-300 rounded px-4 py-2 text-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ref No <span class="text-xs text-green-600 font-normal">(auto-generated)</span></label>
+                <input type="text" readonly value="{{ $previewRefNo ?? '' }}"
+                    class="w-full border border-gray-200 bg-gray-100 rounded px-4 py-2 text-sm font-mono font-bold text-green-700">
+                <p class="text-xs text-gray-400 mt-0.5">Assigned automatically on save</p>
+                <input type="hidden" name="voucherno" value="">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Voucher Date <span class="text-red-500">*</span></label>

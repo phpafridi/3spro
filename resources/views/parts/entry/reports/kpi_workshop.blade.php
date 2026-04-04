@@ -1,7 +1,8 @@
 @extends('parts.layout')
 @section('title','KPI Workshop')
 @section('content')
-<h2 class="text-xl font-bold text-gray-800 mb-4">Workshop IMC Business KPI</h2>
+@include('partials.company-header')
+<h2 class="text-xl font-bold text-gray-800 mb-4">Workshop OEM Business KPI</h2>
 @include('parts.entry.reports._filter',['showDates'=>true])
 <div class="grid grid-cols-2 gap-3 mb-4">
     <div class="bg-white border border-gray-200 rounded p-3 text-center">
@@ -14,7 +15,7 @@
     </div>
 </div>
 <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
-    <div class="bg-purple-600 p-3"><h3 class="font-semibold text-white">Monthly IMC Workshop</h3></div>
+    <div class="bg-purple-600 p-3"><h3 class="font-semibold text-white">Monthly OEM Workshop</h3></div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50"><tr>

@@ -59,7 +59,7 @@
                 <select name="parttype"
                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                     <option value="">-- Select --</option>
-                    <option value="Genuine"  {{ old('parttype')=='Genuine'  ? 'selected':'' }}>Genuine</option>
+                    <option value="OEM">OEM</option>
                     <option value="Local"    {{ old('parttype')=='Local'    ? 'selected':'' }}>Local</option>
                     <option value="Imported" {{ old('parttype')=='Imported' ? 'selected':'' }}>Imported</option>
                 </select>

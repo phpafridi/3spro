@@ -204,6 +204,7 @@
 @endpush
 
 @section('content')
+@include('partials.company-header')
 <div class="reports-page bg-white rounded shadow-sm p-6">
 
     {{-- Page header --}}

@@ -169,6 +169,7 @@
 @endpush
 
 @section('content')
+@include('partials.company-header')
 <div class="reports-page bg-white rounded shadow-sm p-6">
 
     {{-- Page header --}}
@@ -230,7 +231,7 @@
                 <input type="hidden" name="daterange" class="dr-val">
                 <button type="submit" class="report-btn w-full">
                     <span class="icon blue"><i class="fas fa-exchange-alt"></i></span>
-                    IMC vs Local
+                    OEM vs Local
                 </button>
             </form>
 
@@ -351,13 +352,13 @@
                 <form method="GET" action="{{ route('parts.reports.purchase') }}" target="_blank">
                     <input type="hidden" name="daterange" class="dr-val">
                     <input type="hidden" name="source" value="imc">
-                    <button type="submit" class="variant-btn amber">IMC Purchases</button>
+                    <button type="submit" class="variant-btn amber">OEM Purchases</button>
                 </form>
 
                 <form method="GET" action="{{ route('parts.reports.purchase') }}" target="_blank">
                     <input type="hidden" name="daterange" class="dr-val">
                     <input type="hidden" name="source" value="imc_fin">
-                    <button type="submit" class="variant-btn purple">IMC (Fin)</button>
+                    <button type="submit" class="variant-btn purple">OEM (Fin)</button>
                 </form>
             </div>
         </div>
@@ -545,7 +546,7 @@
                 <input type="hidden" name="daterange" class="dr-val">
                 <button type="submit" class="report-btn w-full">
                     <span class="icon blue"><i class="fas fa-industry"></i></span>
-                    IMC Workshop Business
+                    OEM Workshop Business
                 </button>
             </form>
 
@@ -580,7 +581,7 @@
                 <input type="hidden" name="source" value="imc">
                 <button type="submit" class="report-btn w-full">
                     <span class="icon blue"><i class="fas fa-box"></i></span>
-                    IMC Inventory
+                    OEM Inventory
                 </button>
             </form>
 

@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title','Part Wise Stock')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Part Wise Stock Details</h2>
 <form method="GET" class="flex gap-2 mb-4">
     <input name="part_no" value="{{ $partNo }}" placeholder="Enter Part Number"

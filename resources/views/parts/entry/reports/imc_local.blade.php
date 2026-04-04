@@ -1,7 +1,8 @@
 @extends('parts.layout')
-@section('title','MG vs Local Report')
+@section('title','OEM vs Local Report')
 @section('content')
-<h2 class="text-xl font-bold text-gray-800 mb-4">MG vs Local Parts Report</h2>
+@include('partials.company-header')
+<h2 class="text-xl font-bold text-gray-800 mb-4">OEM vs Local Parts Report</h2>
 @include('parts.entry.reports._filter',['showDates'=>true])
 <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
     <div class="bg-purple-600 p-3 flex justify-between items-center">

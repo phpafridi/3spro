@@ -134,13 +134,13 @@ $sections = [
 
     ['label'=>'KPI Reports', 'icon'=>'fa-tachometer', 'color'=>'bg-purple-600', 'reports'=>[
         ['title'=>'KPI Overview',  'icon'=>'fa-tachometer',     'route'=>'parts.kpi-report',           'desc'=>'Key performance indicators overview'],
-        ['title'=>'KPI Sale',      'icon'=>'fa-line-chart',     'route'=>'parts.reports.kpi-sale',     'desc'=>'IMC KPI sales report'],
-        ['title'=>'KPI Purchase',  'icon'=>'fa-cart-arrow-down','route'=>'parts.reports.kpi-purch',    'desc'=>'IMC KPI purchase report'],
-        ['title'=>'KPI Profit',    'icon'=>'fa-money',          'route'=>'parts.reports.kpi-profit',   'desc'=>'IMC KPI profit report'],
+        ['title'=>'KPI Sale',      'icon'=>'fa-line-chart',     'route'=>'parts.reports.kpi-sale',     'desc'=>'OEM KPI sales report'],
+        ['title'=>'KPI Purchase',  'icon'=>'fa-cart-arrow-down','route'=>'parts.reports.kpi-purch',    'desc'=>'OEM KPI purchase report'],
+        ['title'=>'KPI Profit',    'icon'=>'fa-money',          'route'=>'parts.reports.kpi-profit',   'desc'=>'OEM KPI profit report'],
         ['title'=>'KPI Stock',     'icon'=>'fa-cubes',          'route'=>'parts.reports.kpi-stock',    'desc'=>'KPI stock status report'],
-        ['title'=>'KPI Workshop',  'icon'=>'fa-wrench',         'route'=>'parts.reports.kpi-workshop', 'desc'=>'Workshop IMC business KPI'],
+        ['title'=>'KPI Workshop',  'icon'=>'fa-wrench',         'route'=>'parts.reports.kpi-workshop', 'desc'=>'Workshop OEM business KPI'],
         ['title'=>'MAD Report',    'icon'=>'fa-area-chart',     'route'=>'parts.reports.mad',          'desc'=>'Monthly average demand (KPI)'],
-        ['title'=>'MG vs Local',   'icon'=>'fa-exchange',       'route'=>'parts.reports.imc-local',    'desc'=>'MG genuine vs local parts summary'],
+        ['title'=>'OEM vs Local',   'icon'=>'fa-exchange',       'route'=>'parts.reports.imc-local',    'desc'=>'OEM genuine vs local parts summary'],
         ['title'=>'DPOK Report',   'icon'=>'fa-pie-chart',      'route'=>'parts.dpok-report',          'desc'=>'DPOK performance report'],
     ]],
 

@@ -60,6 +60,15 @@
     </style>
 </head>
 <body onload="window.print()">
+<div id="company-header" style="text-align:center;margin-bottom:12px;font-family:Arial,sans-serif;border-bottom:2px solid #555;padding-bottom:8px;">
+    @php $logoPath = public_path(config('company.logo_path')); @endphp
+    @if(file_exists($logoPath))
+        <img src="{{ asset(config('company.logo_path')) }}" alt="{{ config('company.name') }}" style="height:52px;display:block;margin:0 auto 4px;" onerror="this.style.display='none'">
+    @endif
+    <div style="font-size:18px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">{{ config('company.name') }}</div>
+    <div style="font-size:10px;color:#444;margin-top:2px;">{{ config('company.location') }} &nbsp;|&nbsp; {{ config('company.phone') }}</div>
+</div>
+
     <div class="header">
         <img src="{{ asset('images/header1.png') }}" alt="Header">
     </div>

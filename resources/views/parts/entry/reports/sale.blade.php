@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title', 'Sale Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Sale Report — {{ $from }} to {{ $to }}</h2>
 @include('parts.entry.reports._filter', ['showDates'=>true, 'showVendor'=>true])
 <div class="space-y-4">

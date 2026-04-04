@@ -1,7 +1,8 @@
 @extends('parts.layout')
 @section('title','KPI Report')
 @section('content')
-<h2 class="text-xl font-bold text-gray-800 mb-4">KPI IMC {{ ucfirst(str_replace('kpi_','',"kpi_sale")) }} Report</h2>
+@include('partials.company-header')
+<h2 class="text-xl font-bold text-gray-800 mb-4">KPI OEM {{ ucfirst(str_replace('kpi_','',"kpi_sale")) }} Report</h2>
 @include('parts.entry.reports._filter',['showDates'=>true])
 <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
     <div class="bg-purple-600 p-3"><h3 class="font-semibold text-white">{{ $reportType }} Summary</h3></div>

@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title','MAD Report')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Monthly Average Demand — KPI ({{ $months }} months)</h2>
 <form method="GET" class="flex gap-2 mb-4">
     <label class="text-sm text-gray-600 self-center">Months:</label>
@@ -9,7 +10,7 @@
     <button class="bg-red-600 text-white px-4 py-1.5 rounded text-sm hover:bg-red-700">Apply</button>
 </form>
 <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
-    <div class="bg-purple-600 p-3"><h3 class="font-semibold text-white">KPI MAD (IMC Parts)</h3></div>
+    <div class="bg-purple-600 p-3"><h3 class="font-semibold text-white">KPI MAD (OEM Parts)</h3></div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50"><tr>

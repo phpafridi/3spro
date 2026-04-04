@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title','Appointment PMGR')
 @section('content')
+@include('partials.company-header')
 <h2 class="text-xl font-bold text-gray-800 mb-4">Appointment Parts & Consumables</h2>
 @include('parts.entry.reports._filter',['showDates'=>true])
 <div class="grid grid-cols-2 gap-3 mb-4">

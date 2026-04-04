@@ -1,6 +1,7 @@
 @extends('parts.layout')
 @section('title', 'Daily Sale Report')
 @section('content')
+@include('partials.company-header')
 
 <h2 class="text-xl font-bold text-gray-800 mb-4">Daily Sale Report — {{ $from }} to {{ $to }}</h2>
 

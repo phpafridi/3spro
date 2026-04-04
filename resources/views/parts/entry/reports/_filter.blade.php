@@ -38,7 +38,7 @@
             <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
             <select name="type" class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                 <option value="all"   {{ ($type??'all')==='all'   ? 'selected':'' }}>All</option>
-                <option value="imc"   {{ ($type??'')==='imc'      ? 'selected':'' }}>IMC</option>
+                <option value="imc"   {{ ($type??'')==='imc'      ? 'selected':'' }}>OEM</option>
                 <option value="local" {{ ($type??'')==='local'     ? 'selected':'' }}>Local</option>
             </select>
         </div>

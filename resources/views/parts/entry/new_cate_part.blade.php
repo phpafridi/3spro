@@ -1,8 +1,8 @@
 @extends('parts.layout')
-@section('title', 'IMC Category Parts - Parts')
+@section('title', 'OEM Category Parts - Parts')
 @section('content')
 <div class="mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">IMC Category Part</h2>
+    <h2 class="text-2xl font-bold text-gray-800">OEM Category Part</h2>
 </div>
 @if(session('success'))<div class="mb-4 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-r-xl">{{ session('success') }}</div>@endif
 @if(session('error'))<div class="mb-4 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 rounded-r-xl">{{ session('error') }}</div>@endif
