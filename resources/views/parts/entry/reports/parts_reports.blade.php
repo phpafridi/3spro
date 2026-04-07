@@ -499,7 +499,7 @@
                 </button>
             </form>
 
-            <a href="{{ route('accountant.vendor-ledger') }}" target="_blank" class="report-btn">
+            <a href="{{ route('parts.reports.vendor-ledger') }}" target="_blank" class="report-btn">
                 <span class="icon blue"><i class="fas fa-book"></i></span>
                 Vendor Ledger
             </a>

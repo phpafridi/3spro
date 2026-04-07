@@ -132,6 +132,7 @@
                         @case('cr')        <i class="fas fa-handshake"></i> @break
                         @case('recovery')  <i class="fas fa-hand-holding-usd"></i> @break
                         @case('cashier')   <i class="fas fa-cash-register"></i> @break
+                        @case('car')   <i class="fas fa-car"></i> @break
                         @default           <i class="fas fa-folder"></i>
                     @endswitch
                 </div>

@@ -1,5 +1,5 @@
 @extends('layouts.master')
-@section('title', 'Parts Filter — Cars by Recent Parts')
+@section('title', 'Parts Filter — Cars by Recent Parts / Consumables')
 @section('sidebar-menu') @include('sales.partials.sidebar') @endsection
 
 @section('content')
@@ -8,9 +8,9 @@
     {{-- Header --}}
     <div>
         <h2 class="text-xl font-bold text-gray-800">
-            <i class="fas fa-filter text-blue-600 mr-2"></i>Filter Cars by Parts Used
+            <i class="fas fa-filter text-blue-600 mr-2"></i>Filter Cars by Parts / Consumables Used
         </h2>
-        <p class="text-sm text-gray-500 mt-1">Find vehicles based on specific parts used within a date range.</p>
+        <p class="text-sm text-gray-500 mt-1">Find vehicles based on specific parts or consumables used within a date range.</p>
     </div>
 
     {{-- Filter Form --}}
@@ -18,12 +18,16 @@
         <form method="GET" action="{{ route('sales.parts-filter') }}" id="filterForm">
             <div class="flex flex-wrap gap-4 items-end">
 
-                {{-- Part Description search --}}
-                <div class="flex-1 min-w-48">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Part Description</label>
-                    <input type="text" name="part" value="{{ $part ?? '' }}"
-                           placeholder="e.g. Oil Filter, Brake Pad..."
+                {{-- Part/Consumable search with autocomplete --}}
+                <div class="flex-1 min-w-48 relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Part / Consumable Description</label>
+                    <input type="text" name="part" id="partSearch" value="{{ $part ?? '' }}"
+                           placeholder="e.g. Oil Filter, Brake Pad, Grease..."
+                           autocomplete="off"
                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <ul id="autocompleteList"
+                        class="absolute z-50 bg-white border border-gray-200 rounded-md shadow-lg w-full mt-1 hidden max-h-56 overflow-y-auto text-sm">
+                    </ul>
                 </div>
 
                 {{-- Date From --}}
@@ -109,7 +113,8 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Vehicle</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Customer</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Mobile</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Part Used</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Qty</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Amount</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
@@ -133,6 +138,17 @@
                             @endif
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-700 font-medium">{{ $row->part_description }}</td>
+                        <td class="px-4 py-3 text-sm">
+                            @if(($row->item_type ?? 'Part') === 'Consumable')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">
+                                    Consumable
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                    Part
+                                </span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-sm text-gray-500">{{ $row->qty }}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">{{ number_format($row->total, 2) }}</td>
                         <td class="px-4 py-3 text-sm text-gray-500">
@@ -144,7 +160,7 @@
                 </tbody>
                 <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                     <tr>
-                        <td colspan="7" class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">Total Amount:</td>
+                        <td colspan="8" class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">Total Amount:</td>
                         <td class="px-4 py-2 text-sm font-bold text-green-700">{{ number_format($results->sum('total'), 2) }}</td>
                         <td></td>
                     </tr>
@@ -181,5 +197,47 @@ function setCurrentMonth() {
     document.getElementById('date_to').value   = today.toISOString().split('T')[0];
     document.getElementById('filterForm').submit();
 }
+
+// ── Autocomplete (searches both Parts and Consumables) ──────────────────────
+(function () {
+    const input = document.getElementById('partSearch');
+    const list  = document.getElementById('autocompleteList');
+    let debounce;
+
+    input.addEventListener('input', function () {
+        clearTimeout(debounce);
+        const term = this.value.trim();
+        if (term.length < 2) { list.classList.add('hidden'); return; }
+
+        debounce = setTimeout(function () {
+            fetch('{{ route('sales.parts-filter') }}?autocomplete=1&term=' + encodeURIComponent(term), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                list.innerHTML = '';
+                if (!data.length) { list.classList.add('hidden'); return; }
+                data.forEach(function (item) {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    li.className = 'px-3 py-2 cursor-pointer hover:bg-blue-50 hover:text-blue-700';
+                    li.addEventListener('mousedown', function (e) {
+                        e.preventDefault();
+                        input.value = item;
+                        list.classList.add('hidden');
+                    });
+                    list.appendChild(li);
+                });
+                list.classList.remove('hidden');
+            });
+        }, 250);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!list.contains(e.target) && e.target !== input) {
+            list.classList.add('hidden');
+        }
+    });
+})();
 </script>
 @endpush

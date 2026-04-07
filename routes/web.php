@@ -234,6 +234,7 @@ Route::middleware(['auth', 'role:PManager,DataOperator,IT Manager'])
         // ── Entry reports (new) ───────────────────────────────────────────────
         Route::get('/reports/counter-return',    [PartsController::class, 'reportCounterReturn'])->name('reports.counter-return');
         Route::get('/reports/purchase-return',   [PartsController::class, 'reportPurchaseReturn'])->name('reports.purchase-return');
+        Route::get('/reports/vendor-ledger',     [PartsController::class, 'vendorLedger'])->name('reports.vendor-ledger');
         Route::get('/reports/purch-cre-cash',    [PartsController::class, 'reportPurchCreCash'])->name('reports.purch-cre-cash');
         Route::get('/reports/purch-profit',      [PartsController::class, 'reportPurchProfit'])->name('reports.purch-profit');
         Route::get('/reports/part-stock',        [PartsController::class, 'reportPartStock'])->name('reports.part-stock');
@@ -533,6 +534,7 @@ Route::middleware(['auth', 'role:FManager,Accountant,IT Manager'])
         Route::get('/history', [AccountantController::class, 'history'])->name('history');
         Route::get('/finance-reports', [AccountantController::class, 'financeReports'])->name('finance-reports');
         Route::get('/parts-reports', [AccountantController::class, 'partsReports'])->name('parts-reports');
+        Route::get('/vendor-ledger', [AccountantController::class, 'vendorLedger'])->name('vendor-ledger');
     });
 
 

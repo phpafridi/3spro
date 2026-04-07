@@ -2281,4 +2281,137 @@ public function searchPart(Request $request)
 
         return redirect()->route('parts.print.issue-cons', ['inv_id' => $inv]);
     }
+
+    // ==================== VENDOR LEDGER ====================
+
+    public function vendorLedger(Request $request)
+    {
+        $jobbers  = PJobber::orderBy('jbr_name')->get();
+        $jabberId = $request->input('jobber_id');
+        $dateFrom = $request->input('date_from');
+        $dateTo   = $request->input('date_to');
+
+        $ledger       = null;
+        $selectedJobber = null;
+        $summary      = null;
+
+        if ($jabberId) {
+            $selectedJobber = PJobber::find($jabberId);
+
+            // ── Purchase Invoices (jobber stored as name) ────────────────
+            $purchQuery = DB::table('p_purch_inv as pi')
+                ->join('p_jobber as pj', 'pi.jobber', '=', 'pj.jbr_name')
+                ->where('pj.jobber_id', $jabberId)
+                ->select(
+                    'pi.Invoice_no as ref_id',
+                    DB::raw("'Purchase' as trans_type"),
+                    'pi.Invoice_number as ref_number',
+                    'pi.mdate as trans_date',
+                    'pi.payment_method',
+                    'pi.Total_amount as debit',
+                    DB::raw('0 as credit'),
+                    'pi.status as note'
+                );
+
+            if ($dateFrom) $purchQuery->whereDate('pi.mdate', '>=', $dateFrom);
+            if ($dateTo)   $purchQuery->whereDate('pi.mdate', '<=', $dateTo);
+
+            // ── Purchase Returns ─────────────────────────────────────────
+            $returnQuery = DB::table('p_purch_return as pr')
+                ->join('p_purch_inv as pi', 'pr.invoice_no', '=', 'pi.Invoice_no')
+                ->join('p_jobber as pj', 'pi.jobber', '=', 'pj.jbr_name')
+                ->where('pj.jobber_id', $jabberId)
+                ->select(
+                    'pr.p_return_id as ref_id',
+                    DB::raw("'Return' as trans_type"),
+                    'pr.PRJV as ref_number',
+                    'pr.datetime as trans_date',
+                    DB::raw("'—' as payment_method"),
+                    DB::raw('0 as debit'),
+                    DB::raw('(pr.unit_price * pr.return_qty) as credit'),
+                    DB::raw("'Purchase Return' as note")
+                );
+
+            if ($dateFrom) $returnQuery->whereDate('pr.datetime', '>=', $dateFrom);
+            if ($dateTo)   $returnQuery->whereDate('pr.datetime', '<=', $dateTo);
+
+            // ── Payments (jobber stored as jobber_id) ────────────────────
+            $paymentQuery = DB::table('p_jobber_payments as pjp')
+                ->where('pjp.jobber', $jabberId)
+                ->select(
+                    'pjp.payment_id as ref_id',
+                    DB::raw("'Payment' as trans_type"),
+                    DB::raw("CONCAT('PAY-', pjp.payment_id) as ref_number"),
+                    'pjp.datetime as trans_date',
+                    'pjp.payment_method',
+                    DB::raw('0 as debit'),
+                    'pjp.amount as credit',
+                    'pjp.remarks as note'
+                )
+                ->where('pjp.trans_type', 'Paid');
+
+            if ($dateFrom) $paymentQuery->whereDate('pjp.datetime', '>=', $dateFrom);
+            if ($dateTo)   $paymentQuery->whereDate('pjp.datetime', '<=', $dateTo);
+
+            // ── Union all into ledger ────────────────────────────────────
+            $ledger = $purchQuery
+                ->unionAll($returnQuery)
+                ->unionAll($paymentQuery)
+                ->orderByRaw('trans_date ASC, ref_id ASC')
+                ->get();
+
+            // ── Summary Figures ──────────────────────────────────────────
+            $totalPurchase = DB::table('p_purch_inv as pi')
+                ->join('p_jobber as pj', 'pi.jobber', '=', 'pj.jbr_name')
+                ->where('pj.jobber_id', $jabberId)
+                ->when($dateFrom, fn($q) => $q->whereDate('pi.mdate', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('pi.mdate', '<=', $dateTo))
+                ->sum('pi.Total_amount');
+
+            $creditPurchase = DB::table('p_purch_inv as pi')
+                ->join('p_jobber as pj', 'pi.jobber', '=', 'pj.jbr_name')
+                ->where('pj.jobber_id', $jabberId)
+                ->where('pi.payment_method', 'Credit')
+                ->when($dateFrom, fn($q) => $q->whereDate('pi.mdate', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('pi.mdate', '<=', $dateTo))
+                ->sum('pi.Total_amount');
+
+            $cashPurchase = DB::table('p_purch_inv as pi')
+                ->join('p_jobber as pj', 'pi.jobber', '=', 'pj.jbr_name')
+                ->where('pj.jobber_id', $jabberId)
+                ->where('pi.payment_method', '!=', 'Credit')
+                ->when($dateFrom, fn($q) => $q->whereDate('pi.mdate', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('pi.mdate', '<=', $dateTo))
+                ->sum('pi.Total_amount');
+
+            $totalPaid = DB::table('p_jobber_payments')
+                ->where('jobber', $jabberId)
+                ->where('trans_type', 'Paid')
+                ->when($dateFrom, fn($q) => $q->whereDate('datetime', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('datetime', '<=', $dateTo))
+                ->sum('amount');
+
+            $totalReturns = DB::table('p_purch_return as pr')
+                ->join('p_purch_inv as pi', 'pr.invoice_no', '=', 'pi.Invoice_no')
+                ->join('p_jobber as pj', 'pi.jobber', '=', 'pj.jbr_name')
+                ->where('pj.jobber_id', $jabberId)
+                ->when($dateFrom, fn($q) => $q->whereDate('pr.datetime', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('pr.datetime', '<=', $dateTo))
+                ->sum(DB::raw('pr.unit_price * pr.return_qty'));
+
+            $summary = [
+                'total_purchase'  => $totalPurchase,
+                'credit_purchase' => $creditPurchase,
+                'cash_purchase'   => $cashPurchase,
+                'total_paid'      => $totalPaid,
+                'total_returns'   => $totalReturns,
+                'balance_due'     => $totalPurchase - $totalPaid - $totalReturns,
+            ];
+        }
+
+        return view('parts.entry.reports.vendor-ledger', compact(
+            'jobbers', 'selectedJobber', 'ledger', 'summary',
+            'jabberId', 'dateFrom', 'dateTo'
+        ));
+    }
 }

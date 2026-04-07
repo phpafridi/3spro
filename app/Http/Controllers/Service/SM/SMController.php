@@ -289,32 +289,27 @@ class SMController extends Controller
         $reason  = $request->input('reason');
         $passwrd = $request->input('passwrd');
 
-        // Password from config (converted from hardcoded '123MG123')
-        if ($passwrd !== config('service.unclose_password', '123MG123')) {
+
+        if ($passwrd !== config('service.unclose_password', '123')) {
             return back()->with('error', 'Password is incorrect!');
         }
 
         $sm = Auth::user()->login_id ?? Auth::user()->name;
 
-        // Insert unclosed log
+        // Fetch invoice totals before insert so total_invoice is never null
+        $invoice = DB::table('jobc_invoice')->where('Jobc_id', $jobcId)->first();
+        $totalInvoice   = $invoice ? $invoice->Total    : 0;
+        $oldInvDatetime = $invoice ? $invoice->datetime : null;
+
+        // Insert unclosed log with total_invoice included
         DB::table('s_Unclosed_jc')->insert([
-            'jobc_id'     => $jobcId,
-            'SM_reason'   => $reason,
-            'SM'          => $sm,
-            'sm_datetime' => now(),
+            'jobc_id'         => $jobcId,
+            'SM_reason'       => $reason,
+            'SM'              => $sm,
+            'sm_datetime'     => now(),
+            'total_invoice'   => $totalInvoice,
+            'old_inv_datime'  => $oldInvDatetime,
         ]);
-
-        // Get the new record id
-        $maxId = DB::table('s_Unclosed_jc')->max('unjc_Id');
-
-        // Update total_invoice from jobc_invoice
-        DB::statement("
-            UPDATE s_Unclosed_jc
-            INNER JOIN jobc_invoice ON s_Unclosed_jc.jobc_id = jobc_invoice.Jobc_id
-            SET s_Unclosed_jc.total_invoice   = jobc_invoice.Total,
-                s_Unclosed_jc.old_inv_datime  = jobc_invoice.datetime
-            WHERE unjc_Id = ?
-        ", [$maxId]);
 
         // Reopen jobcard
         DB::table('jobcard')->where('Jobc_id', $jobcId)->update(['status' => 1]);

@@ -227,6 +227,7 @@
         @php $reportsOpen = request()->routeIs('parts.search') ||
                              request()->routeIs('parts.print-requisition*') ||
                              request()->routeIs('parts.reports') ||
+                             request()->routeIs('parts.reports.vendor-ledger') ||
                              request()->routeIs('parts.kpi-report') ||
                              request()->routeIs('parts.dpok-report'); @endphp
 
@@ -237,6 +238,9 @@
                 <i class="fa fa-chevron-down chevron"></i>
             </button>
             <div class="dropdown-children" x-show="open" x-cloak>
+                <a href="{{ route('parts.reports.vendor-ledger') }}" class="{{ request()->routeIs('parts.reports.vendor-ledger') ? 'active' : '' }}">
+                    <i class="fa fa-book nav-icon"></i> Vendor Ledger
+                </a>
                 <a href="{{ route('parts.search') }}" class="{{ request()->routeIs('parts.search') ? 'active' : '' }}">
                     <i class="fa fa-search nav-icon"></i> Search
                 </a>
